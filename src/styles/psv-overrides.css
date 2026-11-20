@@ -1,0 +1,90 @@
+/* Photo Sphere Viewer — penyesuaian agar menyatu dengan UI studio */
+.psv-container {
+  font-family: var(--font-sans);
+  background: #09090b;
+}
+
+.psv-loader {
+  background: rgba(9, 9, 11, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.psv-loader-content {
+  color: #fafafa;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.psv-tooltip {
+  background: #18181b !important;
+  color: #fafafa !important;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-sans);
+}
+
+.psv-tooltip::after {
+  border-top-color: #18181b !important;
+}
+
+/* Marker hotspot */
+.hotspot {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  background: rgba(9, 9, 11, 0.72);
+  border: 1px solid rgba(250, 250, 250, 0.22);
+  box-shadow: 0 0 0 6px rgba(250, 250, 250, 0.06);
+  color: #fafafa;
+  backdrop-filter: blur(4px);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  cursor: pointer;
+}
+
+.hotspot::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(250, 250, 250, 0.12);
+}
+
+.hotspot:hover {
+  transform: scale(1.12);
+  background: rgba(250, 250, 250, 0.16);
+  border-color: rgba(250, 250, 250, 0.5);
+}
+
+.hotspot--info::after,
+.hotspot--project::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #facc15;
+  top: 4px;
+  right: 4px;
+}
+
+.hotspot--scene::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #0ea5e9;
+  top: 4px;
+  right: 4px;
+}
+
+/* Panah navigasi virtual tour */
+.psv-virtual-tour-arrow {
+  opacity: 0.75 !important;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.psv-virtual-tour-arrow:hover { opacity: 1 !important; transform: scale(1.08); }
