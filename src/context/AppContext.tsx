@@ -23,6 +23,7 @@ import {
 } from "../lib/db"
 import { isRemote, isServerMode } from "../lib/supabase"
 import { getAuthToken, setAuthToken } from "../lib/authToken"
+import { normalizeEffects, type SceneEffects } from "../lib/effects"
 import {
   loadRemoteState,
   removePanoramaFile,
@@ -87,6 +88,10 @@ interface AppContextValue {
   favorites: string[]
   toggleFavorite: (id: string) => void
 
+  effectsByScene: Record<string, SceneEffects>
+  setSceneEffects: (sceneId: string, patch: Partial<SceneEffects>) => void
+  resetSceneEffects: (sceneId: string) => void
+
   authOpen: boolean
   setAuthOpen: (open: boolean) => void
   uploadOpen: boolean
@@ -106,6 +111,7 @@ const GUEST_KEY = "virtour360.guestId"
 const HOTSPOTS_KEY = "virtour360.hotspots"
 const MEDIA_KEY = "virtour360.media"
 const FAVORITES_KEY = "virtour360.favorites"
+const EFFECTS_KEY = "virtour360.effects"
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -195,6 +201,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     persistableMedia(readJSON<Record<string, SceneMedia>>(MEDIA_KEY, {})),
   )
   const [favorites, setFavorites] = useState<string[]>(() => readJSON<string[]>(FAVORITES_KEY, []))
+  const [effectsByScene, setEffectsByScene] = useState<Record<string, SceneEffects>>(() =>
+    readJSON<Record<string, SceneEffects>>(EFFECTS_KEY, {}),
+  )
   const [activeSceneId, setActiveSceneId] = useState<string>("atrium")
   const [audioByScene, setAudioByScene] = useState<Record<string, SceneAudio>>({})
   const [assetMedia, setAssetMedia] = useState<Record<string, SceneMedia>>({})
@@ -280,6 +289,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         persist(FAVORITES_KEY, remote.favorites)
         setMediaOverrides(remote.media)
         persist(MEDIA_KEY, remote.media)
+        if (remote.effects) {
+          setEffectsByScene(remote.effects)
+          persist(EFFECTS_KEY, remote.effects)
+        }
         if (remote.panoramas.length) {
           setPanoramas(
             remote.panoramas.map((p) => ({
@@ -309,6 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         hotspots: hotspotOverrides,
         favorites,
         media: persistableMedia(mediaOverrides),
+        effects: effectsByScene,
         // Mode server tidak punya public URL Storage, jadi metadata panorama
         // tidak ikut disinkron agar device lain tidak menampilkan gambar rusak.
         panoramas: isServerMode
@@ -322,7 +336,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }).catch(() => undefined)
     }, 800)
     return () => window.clearTimeout(timer)
-  }, [remoteReady, identityKey, hotspotOverrides, favorites, mediaOverrides, panoramas, user])
+  }, [remoteReady, identityKey, hotspotOverrides, favorites, mediaOverrides, effectsByScene, panoramas, user])
 
   useEffect(() => {
     return () => {
@@ -677,6 +691,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  /* ------------------------------- Effects ----------------------------------- */
+
+  const setSceneEffects = useCallback((sceneId: string, patch: Partial<SceneEffects>) => {
+    setEffectsByScene((prev) => {
+      const next = { ...prev, [sceneId]: normalizeEffects({ ...prev[sceneId], ...patch }) }
+      persist(EFFECTS_KEY, next)
+      return next
+    })
+  }, [])
+
+  const resetSceneEffects = useCallback((sceneId: string) => {
+    setEffectsByScene((prev) => {
+      const next = { ...prev }
+      delete next[sceneId]
+      persist(EFFECTS_KEY, next)
+      return next
+    })
+  }, [])
+
   /* -------------------------------- Scenes ---------------------------------- */
 
   const effectiveMedia = useMemo(
@@ -741,6 +774,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         audioByScene,
         favorites,
         toggleFavorite,
+        effectsByScene,
+        setSceneEffects,
+        resetSceneEffects,
         authOpen,
         setAuthOpen,
         uploadOpen,

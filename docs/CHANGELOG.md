@@ -58,7 +58,17 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
 - Tombol "Lanjut sebagai tamu" di modal login & pengaturan akun.
 - Identitas tamu stabil (`guest:<id>`) di localStorage.
 
-## 2026-11-20 — Deployment
+## 2026-11-21 — Hapus fitur tak terjangkau & efek scene nyata
+- **Dihapus**: AI Edit 360, Model 3D, Grid, Analitik (placeholder disabled tanpa backend/aset).
+- **Ditambah** (`src/lib/effects.ts` + `AppContext` + inspector):
+  Levelling (roll), Nadir, Quick Fix (preset natural/warm/cool/mono),
+  Custom Fix (brightness/contrast/saturate), Staging Day To Dusk,
+  Filter Processing (hue/grayscale/sepia), Sun light — semuanya diterapkan
+  langsung ke kanvas viewer via CSS filter + `sphereCorrection`, tersimpan per scene
+  dan ikut tersinkron di state remote.
+- **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
+
+## 2026-11-21 — Deployment ulang ke GitHub/Vercel
 - Deploy produksi: https://virtour360-lemon.vercel.app
 - Alias lama `portfolio-360-lemon.vercel.app` tetap aktif.
 - Perbaikan: BOM di `vercel.json` dihapus, `.vercel` link di-rebuild.

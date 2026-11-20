@@ -1,8 +1,5 @@
 import {
-  Box,
-  ChartNoAxesCombined,
   ChevronDown,
-  Grid3x3,
   MapPin,
   MousePointer2,
   PenLine,
@@ -20,9 +17,6 @@ const tools = [
   { id: "pin", icon: MapPin, label: "Hotspot — klik panorama untuk menaruh", disabled: false },
   { id: "undo", icon: Undo2, label: "Urungkan perubahan hotspot terakhir", disabled: false },
   { id: "draw", icon: PenLine, label: "Gambar area — klik panorama untuk menandai", disabled: false },
-  { id: "model", icon: Box, label: "Model 3D tidak tersedia di mode lokal (butuh aset glTF)", disabled: true },
-  { id: "grid", icon: Grid3x3, label: "Grid tidak tersedia di mode lokal", disabled: true },
-  { id: "chart", icon: ChartNoAxesCombined, label: "Analitik tidak tersedia tanpa backend", disabled: true },
   { id: "settings", icon: Settings2, label: "Pengaturan tampilan", disabled: false },
 ]
 

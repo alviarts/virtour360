@@ -72,18 +72,22 @@ Build: `npm run build` sukses, `node --check` seluruh `api/*.js` sukses, console
 | Upload panorama & hotspot editing | ✅ | ✅ | **Berfungsi** |
 | Akun & penyimpanan privat | ✅ (server) | ✅ (Supabase opsional) | **Berfungsi saat env diisi** |
 | Public profile + grid karya | ✅ | ✅ | **Sama** |
-| AI Edit 360, Levelling, Nadir, Filter | ✅ (nyata) | disabled + alasan | **Tidak setara** — butuh pipeline image processing |
-| Model 3D, Grid, Analitik | ✅ | disabled + alasan | **Tidak setara** — butuh backend/aset 3D |
+| Levelling, Nadir, Quick/Custom Fix, Filter, Day-to-Dusk, Sun light | ✅ (nyata) | efek CSS + roll yang berfungsi & tersimpan | **Setara secara fungsional** (bukan pixel-level image processing) |
+| AI Edit 360 | ✅ | **dihapus** | **Tidak ada** — butuh model AI |
+| Model 3D, Grid, Analitik | ✅ | **dihapus** | **Tidak ada** — butuh aset 3D/backend |
 | Multi-user tim, promosi, trial, pembayaran | ✅ | informasi/toast | **Tidak setara** — butuh backend penuh |
 
 ## 3. Perbaikan yang dilakukan pada sesi validasi
 - Mini-map: ditambahkan titik hotspot sesuai posisi yaw/pitch (sebelumnya hanya garis pandang).
 - Dokumentasi: `docs/CHANGELOG.md` dibuat untuk mencatat semua perubahan.
+- **2026-11-21**: fitur tak terjangkau (AI Edit, Model 3D, Grid, Analitik) **dihapus**,
+  bukan lagi tombol disabled. Fitur pengolahan warna/leveling diwujudkan sebagai efek
+  nyata: slider roll tersimpan (`virtour360.effects`), preset mono mengubah filter kanvas
+  menjadi `grayscale(100%)`, NADIR menampilkan badge. Divider: console error 0.
 
 ## 4. Batasan yang disengaja
-Fitur yang tidak bisa disamakan tanpa backend/service tambahan sengaja **dinonaktifkan dengan
-tooltip alasan**, bukan tombol palsu: AI Edit 360, Levelling, Nadir, Quick/Custom Fix,
-Day-to-Dusk, Filter Processing, Sun light, Model 3D, Grid, Analitik.
+Fitur yang tidak bisa dijangkau tanpa backend/service tambahan sengaja **dihapus**:
+AI Edit 360, Model 3D, Grid, Analitik. Fitur warna/leveling tetap ada sebagai efek nyata.
 Sinkron lintas device hanya aktif jika mode server Supabase dikonfigurasi.
 
 ## 5. Kesimpulan

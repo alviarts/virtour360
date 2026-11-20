@@ -21,6 +21,8 @@ import { profile } from "../../data/profile"
 import type { Hotspot, Scene } from "../../types/tour"
 import { AccordionSection } from "../ui/AccordionSection"
 import { Badge } from "../ui/Badge"
+import { useApp } from "../../context/AppContext"
+import { defaultEffects, effectPresets, type SceneEffects } from "../../lib/effects"
 
 type Tab = "scene" | "hotspot" | "location"
 
@@ -83,7 +85,41 @@ function ActionButton({
   )
 }
 
-const LOCAL_ONLY = "Fitur ini memerlukan pemrosesan gambar/backend — tidak tersedia di mode lokal."
+function EffectSlider({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  suffix = "",
+  onChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step?: number
+  suffix?: string
+  onChange: (value: number) => void
+}) {
+  return (
+    <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+      <span className="flex items-center justify-between">
+        <span>{label}</span>
+        <span className="font-mono text-zinc-300">{value}{suffix}</span>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="h-1.5 w-full cursor-pointer accent-amber-400"
+      />
+    </label>
+  )
+}
 
 export function RightPanel({
   scene,
@@ -103,6 +139,10 @@ export function RightPanel({
   onRemoveAudio,
   audioName,
 }: RightPanelProps) {
+  const { effectsByScene, setSceneEffects, resetSceneEffects, notify } = useApp()
+  const effects = effectsByScene[scene.id] ?? defaultEffects
+  const patchEffects = (patch: Partial<SceneEffects>) => setSceneEffects(scene.id, patch)
+
   const [tab, setTab] = useState<Tab>("scene")
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -195,25 +235,67 @@ export function RightPanel({
               </div>
             </AccordionSection>
 
-            <AccordionSection title="AI Edit 360">
-              <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
-                Hapus objek, tripod, atau orang, atau ubah area dengan prompt langsung pada gambar 360°.
-              </p>
-              <ActionButton disabled title={LOCAL_ONLY}>AI Edit</ActionButton>
-            </AccordionSection>
-
             <AccordionSection title="Levelling">
               <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
                 Luruskan panorama yang miring. Utara / yaw tidak berubah.
               </p>
-              <ActionButton disabled title={LOCAL_ONLY}>Level this scene</ActionButton>
+              <div className="flex flex-col gap-3">
+                <EffectSlider label="Roll" value={effects.roll} min={-20} max={20} suffix="°" onChange={(roll) => patchEffects({ roll })} />
+                <ActionButton onClick={() => { patchEffects({ roll: 0 }); notify("Scene berhasil diratakan.") }}>Level this scene</ActionButton>
+              </div>
             </AccordionSection>
 
-            {["Nadir", "Quick Fix", "Custom Fix", "Staging Day To Dusk", "Filter Processing", "Sun light"].map((label) => (
-              <AccordionSection key={label} title={label}>
-                <p className="text-[11px] leading-relaxed text-zinc-500">{LOCAL_ONLY}</p>
-              </AccordionSection>
-            ))}
+            <AccordionSection title="Nadir">
+              <label className="flex items-center gap-2 text-[11px] text-zinc-400">
+                <input type="checkbox" checked={effects.nadir} onChange={(e) => patchEffects({ nadir: e.target.checked })} className="accent-amber-400" />
+                Tampilkan penutup nadir
+              </label>
+            </AccordionSection>
+
+            <AccordionSection title="Quick Fix">
+              <p className="mb-2 text-[11px] text-zinc-500">Preset koreksi cepat.</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {Object.entries(effectPresets)
+                  .filter(([key]) => key !== "dusk")
+                  .map(([key, preset]) => (
+                    <button key={key} onClick={() => patchEffects(preset)} className="rounded-md border border-zinc-700 py-1.5 text-[10px] capitalize text-zinc-300 hover:border-zinc-500 hover:text-white">
+                      {key}
+                    </button>
+                  ))}
+              </div>
+            </AccordionSection>
+
+            <AccordionSection title="Custom Fix">
+              <div className="flex flex-col gap-3">
+                <EffectSlider label="Brightness" value={effects.brightness} min={50} max={150} suffix="%" onChange={(brightness) => patchEffects({ brightness })} />
+                <EffectSlider label="Contrast" value={effects.contrast} min={50} max={150} suffix="%" onChange={(contrast) => patchEffects({ contrast })} />
+                <EffectSlider label="Saturation" value={effects.saturate} min={0} max={200} suffix="%" onChange={(saturate) => patchEffects({ saturate })} />
+              </div>
+            </AccordionSection>
+
+            <AccordionSection title="Staging Day To Dusk">
+              <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">Ubah suasana siang menjadi senja.</p>
+              <ActionButton onClick={() => patchEffects(effectPresets.dusk)}>Terapkan senja</ActionButton>
+            </AccordionSection>
+
+            <AccordionSection title="Filter Processing">
+              <div className="flex flex-col gap-3">
+                <EffectSlider label="Hue" value={effects.hue} min={-180} max={180} suffix="°" onChange={(hue) => patchEffects({ hue })} />
+                <EffectSlider label="Grayscale" value={effects.grayscale} min={0} max={100} suffix="%" onChange={(grayscale) => patchEffects({ grayscale })} />
+                <EffectSlider label="Sepia" value={effects.sepia} min={0} max={100} suffix="%" onChange={(sepia) => patchEffects({ sepia })} />
+              </div>
+            </AccordionSection>
+
+            <AccordionSection title="Sun light">
+              <div className="flex flex-col gap-3">
+                <EffectSlider label="Brightness" value={effects.brightness} min={50} max={150} suffix="%" onChange={(brightness) => patchEffects({ brightness })} />
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button onClick={() => patchEffects(effectPresets.warm)} className="rounded-md border border-zinc-700 py-1.5 text-[10px] text-zinc-300 hover:border-zinc-500">Hangat</button>
+                  <button onClick={() => patchEffects(effectPresets.cool)} className="rounded-md border border-zinc-700 py-1.5 text-[10px] text-zinc-300 hover:border-zinc-500">Dingin</button>
+                </div>
+                <button onClick={() => { resetSceneEffects(scene.id); notify("Efek scene dikembalikan ke awal.") }} className="text-[10px] text-zinc-500 hover:text-zinc-300">Reset semua efek</button>
+              </div>
+            </AccordionSection>
 
             <AccordionSection title="View">
               <div className="flex flex-col gap-3 text-[11px] text-zinc-400">

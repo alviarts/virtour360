@@ -1,4 +1,5 @@
 import type { Hotspot } from "../types/tour"
+import type { SceneEffects } from "./effects"
 import { isServerMode, SHARED_STATE_ID, supabase } from "./supabase"
 import { getAuthToken } from "./authToken"
 
@@ -22,6 +23,7 @@ export interface RemoteState {
   favorites: string[]
   media: Record<string, { panorama?: string; thumbnail?: string }>
   panoramas: RemotePanorama[]
+  effects: Record<string, SceneEffects>
 }
 
 export const emptyRemoteState: RemoteState = {
@@ -30,6 +32,7 @@ export const emptyRemoteState: RemoteState = {
   favorites: [],
   media: {},
   panoramas: [],
+  effects: {},
 }
 
 export async function loadRemoteState(stateId: string): Promise<RemoteState | null> {

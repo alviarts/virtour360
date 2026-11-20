@@ -11,6 +11,7 @@ import { tourConfig } from "../config/tour.config"
 import { contentHotspots, findScene, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
 import type { Hotspot, HotspotType, Scene } from "../types/tour"
+import { effectsToCss, type SceneEffects } from "../lib/effects"
 
 export type Quality = "hemat" | "standar" | "tinggi"
 
@@ -59,6 +60,7 @@ interface ViewerOptions {
   onSceneChange: (id: string) => void
   onAddHotspot: (sceneId: string, spot: Hotspot) => void
   onNotify?: (message: string) => void
+  effects: SceneEffects
 }
 
 export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
@@ -208,6 +210,18 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     // currentSceneId sengaja tidak diikutsertakan agar tidak loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenes, isReady])
+
+  /*Efek warna & leveling diterapkan ke kanvas viewer secara langsung.*/
+  useEffect(() => {
+    if (!isReady || !containerRef.current || !viewerRef.current) return
+    const canvas = containerRef.current.querySelector<HTMLElement>(".psv-canvas-container")
+    if (canvas) canvas.style.filter = effectsToCss(options.effects)
+    try {
+      viewerRef.current.setOption("sphereCorrection", { roll: options.effects.roll })
+    } catch {
+      /* abaikan jika opsi belum didukung */
+    }
+  }, [isReady, currentSceneId, options.effects])
 
   /*Scene yang dipilih dari view lain (dashboard/portfolio) ikut ke viewer.*/
   useEffect(() => {

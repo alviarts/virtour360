@@ -14,6 +14,7 @@ import { useApp } from "./context/AppContext"
 import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
 import { publishPublicPayload } from "./lib/publicStore"
+import { defaultEffects } from "./lib/effects"
 import { defaultSceneId } from "./data/scenes"
 
 interface SettingsPopoverProps {
@@ -103,13 +104,17 @@ export default function App() {
     setReplaceSceneId,
     logout,
     notify,
+    effectsByScene,
   } = useApp()
+
+  const currentEffects = effectsByScene[activeSceneId] ?? defaultEffects
 
   const tour = useTourViewer(scenes, {
     activeSceneId,
     onSceneChange: setActiveSceneId,
     onAddHotspot: addHotspot,
     onNotify: notify,
+    effects: currentEffects,
   })
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen(shellRef)
 
@@ -282,6 +287,7 @@ export default function App() {
           />
         }
         onNotify={notify}
+        showNadir={currentEffects.nadir}
         inset={preview ? { left: 0, right: 0 } : undefined}
         preview={preview}
         onExitPreview={() => setPreview(false)}

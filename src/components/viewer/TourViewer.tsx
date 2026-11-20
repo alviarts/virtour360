@@ -22,6 +22,7 @@ interface TourViewerProps {
   isFullscreen: boolean
   settingsOpen: boolean
   settingsContent?: ReactNode
+  showNadir?: boolean
   onNotify: (message: string) => void
   inset?: { left: number; right: number }
   preview?: boolean
@@ -50,6 +51,7 @@ export function TourViewer({
   isFullscreen,
   settingsOpen,
   settingsContent,
+  showNadir,
   onNotify,
   inset,
   preview,
@@ -121,6 +123,12 @@ export function TourViewer({
             </button>
           )}
           <audio ref={audioRef} src={scene.audio} onEnded={() => setPlaying(false)} />
+        </div>
+      )}
+
+      {showNadir && (
+        <div className="pointer-events-none absolute bottom-16 left-1/2 z-10 -translate-x-1/2 rounded-full border border-white/20 bg-black/60 px-3 py-1.5 text-[10px] font-semibold tracking-wide text-white/80 backdrop-blur">
+          VIRTour360
         </div>
       )}
 
