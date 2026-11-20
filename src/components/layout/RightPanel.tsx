@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import {
   ArrowUpRight,
   Camera,
@@ -9,9 +9,12 @@ import {
   MapPin,
   Maximize2,
   MousePointerClick,
-  Sparkles,
+  Music2,
+  Plus,
+  Trash2,
   Type,
   Upload,
+  X,
 } from "lucide-react"
 import { theme } from "../../config/theme"
 import { profile } from "../../data/profile"
@@ -23,9 +26,21 @@ type Tab = "scene" | "hotspot" | "location"
 
 interface RightPanelProps {
   scene: Scene
+  scenes: Scene[]
   selectedHotspot: Hotspot | null
   onClearHotspot: () => void
+  onSelectHotspot: (id: string) => void
   onGoToScene: (id: string) => void
+  onUpdateHotspot: (id: string, patch: Partial<Hotspot>) => void
+  onRemoveHotspot: (id: string) => void
+  onAddHotspot: () => void
+  onCaptureThumbnail: () => void
+  onExpandThumbnail: () => void
+  onSelectPost: () => void
+  onReplace: () => void
+  onUploadAudio: () => void
+  onRemoveAudio: () => void
+  audioName?: string
 }
 
 function Field({ icon, value }: { icon: ReactNode; value: string }) {
@@ -35,23 +50,69 @@ function Field({ icon, value }: { icon: ReactNode; value: string }) {
       <input
         readOnly
         value={value}
+        title="Informasi scene (ubah melalui panel pengaturan proyek)"
         className="min-w-0 flex-1 bg-transparent text-xs text-zinc-100 outline-none placeholder:text-zinc-600"
       />
     </div>
   )
 }
 
-function ActionButton({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
+function ActionButton({
+  children,
+  icon,
+  onClick,
+  disabled,
+  title,
+}: {
+  children: ReactNode
+  icon?: ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  title?: string
+}) {
   return (
-    <button className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-white text-xs font-medium text-black transition-colors hover:bg-zinc-200">
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-white text-xs font-medium text-black transition-colors hover:bg-zinc-200 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-600"
+    >
       {icon}
       {children}
     </button>
   )
 }
 
-export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene }: RightPanelProps) {
+const LOCAL_ONLY = "Fitur ini memerlukan pemrosesan gambar/backend — tidak tersedia di mode lokal."
+
+export function RightPanel({
+  scene,
+  scenes,
+  selectedHotspot,
+  onClearHotspot,
+  onSelectHotspot,
+  onGoToScene,
+  onUpdateHotspot,
+  onRemoveHotspot,
+  onAddHotspot,
+  onCaptureThumbnail,
+  onExpandThumbnail,
+  onSelectPost,
+  onReplace,
+  onUploadAudio,
+  onRemoveAudio,
+  audioName,
+}: RightPanelProps) {
   const [tab, setTab] = useState<Tab>("scene")
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
+  const [href, setHref] = useState("")
+
+  useEffect(() => {
+    setTitle(selectedHotspot?.title ?? "")
+    setDescription(selectedHotspot?.description ?? "")
+    setHref(selectedHotspot?.href ?? "")
+  }, [selectedHotspot?.id, selectedHotspot?.title, selectedHotspot?.description, selectedHotspot?.href])
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "scene", label: "Scene" },
@@ -59,12 +120,20 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
     { id: "location", label: "Location" },
   ]
 
+  const saveHotspot = () => {
+    if (!selectedHotspot) return
+    onUpdateHotspot(selectedHotspot.id, {
+      title: title.trim() || "Hotspot",
+      description: description.trim(),
+      ...(selectedHotspot.type === "link" ? { href: href.trim() } : {}),
+    })
+  }
+
   return (
     <aside
       className="fixed bottom-0 right-0 top-14 z-20 flex flex-col bg-zinc-900"
       style={{ width: theme.size.inspector }}
     >
-      {/* Tab — header aksi berada di TopBar */}
       <div className="px-2 pt-2">
         <div className="flex rounded-lg border border-zinc-700 p-0.5">
           {tabs.map((item) => (
@@ -76,15 +145,12 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
               }`}
             >
               {item.label}
-              {item.id === "hotspot" && (
-                <span className="text-[10px] text-zinc-500">{scene.hotspots.length}</span>
-              )}
+              {item.id === "hotspot" && <span className="text-[10px] text-zinc-500">{scene.hotspots.length}</span>}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Konten */}
       <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto px-2 pb-24 pt-2">
         {tab === "scene" && (
           <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
@@ -96,24 +162,36 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
                 <div className="flex h-10 items-center gap-1 rounded-lg border border-zinc-700 px-1">
                   <img src={scene.thumbnail} alt="" className="size-8 rounded object-cover" />
                   <span className="min-w-0 flex-1 truncate text-xs text-zinc-300">Thumbnail</span>
-                  <button className="grid size-7 place-items-center rounded text-zinc-400 hover:bg-white/10 hover:text-white" title="Ambil gambar">
+                  <button onClick={onCaptureThumbnail} className="grid size-7 place-items-center rounded text-zinc-400 hover:bg-white/10 hover:text-white" title="Jadikan panorama aktif sebagai thumbnail">
                     <Camera size={14} />
                   </button>
-                  <button className="grid size-7 place-items-center rounded text-zinc-400 hover:bg-white/10 hover:text-white" title="Perbesar">
+                  <button onClick={onExpandThumbnail} className="grid size-7 place-items-center rounded text-zinc-400 hover:bg-white/10 hover:text-white" title="Perbesar thumbnail">
                     <Maximize2 size={13} />
                   </button>
                 </div>
 
-                <button className="flex h-9 items-center justify-end px-2 text-xs font-medium text-zinc-50 hover:text-white">
+                <button onClick={onReplace} className="flex h-9 items-center justify-end px-2 text-xs font-medium text-zinc-50 hover:text-white" title="Unggah gambar pengganti untuk scene ini">
                   Replace
                 </button>
 
-                <div className="flex h-10 items-center gap-2 rounded-lg border border-zinc-700 px-2.5">
+                <button onClick={onSelectPost} className="flex h-10 w-full items-center gap-2 rounded-lg border border-zinc-700 px-2.5 text-left transition-colors hover:border-zinc-500">
                   <ImageIcon size={14} className="text-zinc-500" />
                   <span className="text-xs text-zinc-400">Select post</span>
-                </div>
+                </button>
 
-                <ActionButton icon={<Upload size={13} />}>Upload file .mp3</ActionButton>
+                {audioName ? (
+                  <div className="flex h-10 items-center gap-2 rounded-lg border border-zinc-700 px-2.5">
+                    <Music2 size={14} className="shrink-0 text-sky-400" />
+                    <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300" title={audioName}>{audioName}</span>
+                    <button onClick={onRemoveAudio} title="Hapus audio" className="grid size-6 place-items-center rounded text-zinc-500 hover:bg-white/10 hover:text-red-400">
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <ActionButton icon={<Upload size={13} />} onClick={onUploadAudio}>
+                    Upload file .mp3
+                  </ActionButton>
+                )}
               </div>
             </AccordionSection>
 
@@ -121,39 +199,21 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
               <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
                 Hapus objek, tripod, atau orang, atau ubah area dengan prompt langsung pada gambar 360°.
               </p>
-              <ActionButton icon={<Sparkles size={13} />}>AI Edit</ActionButton>
+              <ActionButton disabled title={LOCAL_ONLY}>AI Edit</ActionButton>
             </AccordionSection>
 
             <AccordionSection title="Levelling">
               <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
                 Luruskan panorama yang miring. Utara / yaw tidak berubah.
               </p>
-              <ActionButton>Level this scene</ActionButton>
+              <ActionButton disabled title={LOCAL_ONLY}>Level this scene</ActionButton>
             </AccordionSection>
 
-            <AccordionSection title="Nadir">
-              <p className="text-[11px] leading-relaxed text-zinc-500">Perbaiki bagian bawah panorama.</p>
-            </AccordionSection>
-
-            <AccordionSection title="Quick Fix">
-              <p className="text-[11px] leading-relaxed text-zinc-500">Koreksi cepat pencahayaan dan warna.</p>
-            </AccordionSection>
-
-            <AccordionSection title="Custom Fix">
-              <p className="text-[11px] leading-relaxed text-zinc-500">Penyesuaian manual exposure, contrast, dan white balance.</p>
-            </AccordionSection>
-
-            <AccordionSection title="Staging Day To Dusk">
-              <p className="text-[11px] leading-relaxed text-zinc-500">Ubah suasana siang menjadi senja.</p>
-            </AccordionSection>
-
-            <AccordionSection title="Filter Processing">
-              <p className="text-[11px] leading-relaxed text-zinc-500">Terapkan filter kreatif ke panorama.</p>
-            </AccordionSection>
-
-            <AccordionSection title="Sun light">
-              <p className="text-[11px] leading-relaxed text-zinc-500">Sesuaikan arah dan intensitas cahaya matahari.</p>
-            </AccordionSection>
+            {["Nadir", "Quick Fix", "Custom Fix", "Staging Day To Dusk", "Filter Processing", "Sun light"].map((label) => (
+              <AccordionSection key={label} title={label}>
+                <p className="text-[11px] leading-relaxed text-zinc-500">{LOCAL_ONLY}</p>
+              </AccordionSection>
+            ))}
 
             <AccordionSection title="View">
               <div className="flex flex-col gap-3 text-[11px] text-zinc-400">
@@ -172,30 +232,83 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
 
         {tab === "hotspot" && (
           <div className="animate-fade-up">
+            <ActionButton icon={<Plus size={13} />} onClick={onAddHotspot} title="Tambah hotspot di tengah tampilan">
+              Tambah hotspot
+            </ActionButton>
+
             {selectedHotspot ? (
-              <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-black/40 p-3">
+              <div className="mt-3 flex flex-col gap-3 rounded-xl border border-zinc-800 bg-black/40 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-zinc-100">Detail hotspot</span>
-                  <Badge tone={selectedHotspot.type === "scene" ? "blue" : "amber"}>
-                    {selectedHotspot.type}
-                  </Badge>
+                  <span className="text-xs font-semibold text-zinc-100">Edit hotspot</span>
+                  <div className="flex items-center gap-1.5">
+                    <Badge tone={selectedHotspot.type === "scene" ? "blue" : "amber"}>{selectedHotspot.type}</Badge>
+                    <button onClick={() => { onRemoveHotspot(selectedHotspot.id); onClearHotspot() }} title="Hapus hotspot" className="text-zinc-500 hover:text-red-400">
+                      <Trash2 size={13} />
+                    </button>
+                    <button onClick={onClearHotspot} title="Tutup" className="text-zinc-500 hover:text-zinc-200">
+                      <X size={13} />
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold text-white">{selectedHotspot.title}</h3>
-                {selectedHotspot.description && (
-                  <p className="text-[11px] leading-relaxed text-zinc-400">{selectedHotspot.description}</p>
+
+                <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                  Judul
+                  <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                  Deskripsi
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="resize-none rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-[11px] leading-relaxed text-zinc-100 outline-none focus:border-zinc-500"
+                  />
+                </label>
+                {selectedHotspot.type === "link" && (
+                  <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                    URL tautan
+                    <input
+                      value={href}
+                      onChange={(e) => setHref(e.target.value)}
+                      placeholder="https://…"
+                      className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                    />
+                  </label>
                 )}
+                {selectedHotspot.type === "scene" && (
+                  <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                    Scene tujuan
+                    <select
+                      value={selectedHotspot.targetSceneId ?? ""}
+                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, { targetSceneId: e.target.value })}
+                      className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                    >
+                      {scenes.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
                 <div className="flex gap-2 font-mono text-[10px] text-zinc-500">
                   <span>yaw {selectedHotspot.yaw}</span>
                   <span>pitch {selectedHotspot.pitch}</span>
                 </div>
 
+                <button onClick={saveHotspot} className="h-8 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
+                  Simpan perubahan
+                </button>
+
                 {selectedHotspot.type === "scene" && selectedHotspot.targetSceneId && (
                   <button
                     onClick={() => onGoToScene(selectedHotspot.targetSceneId!)}
-                    className="flex h-9 items-center justify-center gap-2 rounded-lg bg-white text-xs font-medium text-black hover:bg-zinc-200"
+                    className="flex h-8 items-center justify-center gap-2 rounded-lg border border-zinc-700 text-[11px] text-zinc-200 hover:bg-white/5"
                   >
-                    Kunjungi scene
-                    <ArrowUpRight size={13} />
+                    Kunjungi scene <ArrowUpRight size={12} />
                   </button>
                 )}
                 {selectedHotspot.type === "link" && selectedHotspot.href && (
@@ -203,21 +316,17 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
                     href={selectedHotspot.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex h-9 items-center justify-center gap-2 rounded-lg bg-white text-xs font-medium text-black hover:bg-zinc-200"
+                    className="flex h-8 items-center justify-center gap-2 rounded-lg border border-zinc-700 text-[11px] text-zinc-200 hover:bg-white/5"
                   >
-                    Buka tautan
-                    <ExternalLink size={13} />
+                    Buka tautan <ExternalLink size={12} />
                   </a>
                 )}
-                <button onClick={onClearHotspot} className="text-[11px] text-zinc-500 hover:text-zinc-300">
-                  Tutup
-                </button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-black/40 px-4 py-10 text-center">
+              <div className="mt-3 flex flex-col items-center gap-3 rounded-xl border border-zinc-800 bg-black/40 px-4 py-8 text-center">
                 <span className="size-3 rounded-full bg-pink-500 shadow-[0_0_14px_rgba(236,72,153,0.9)]" />
                 <p className="text-[11px] leading-relaxed text-zinc-500">
-                  Pilih hotspot pada panorama untuk melihat detailnya.
+                  Pilih hotspot pada panorama, atau tambah hotspot baru lalu atur judul dan deskripsinya di sini.
                 </p>
                 <MousePointerClick size={18} className="text-zinc-700" />
               </div>
@@ -225,15 +334,20 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
 
             <div className="mt-3 flex flex-col gap-2">
               {scene.hotspots.map((spot) => (
-                <button
-                  key={spot.id}
-                  onClick={() => onGoToScene(scene.id)}
-                  className="flex items-center gap-2 rounded-lg border border-zinc-800 px-2.5 py-2 text-left transition-colors hover:border-zinc-600"
-                >
-                  <span className="size-1.5 rounded-full bg-amber-400" />
-                  <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">{spot.title}</span>
-                  <span className="font-mono text-[10px] text-zinc-600">{spot.yaw}</span>
-                </button>
+                <div key={spot.id} className="flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 transition-colors hover:border-zinc-600">
+                  <button onClick={() => onSelectHotspot(spot.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                    <span className="size-1.5 shrink-0 rounded-full bg-amber-400" />
+                    <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">{spot.title}</span>
+                    <span className="font-mono text-[10px] text-zinc-600">{spot.yaw}</span>
+                  </button>
+                  <button
+                    onClick={() => { onRemoveHotspot(spot.id); if (selectedHotspot?.id === spot.id) onClearHotspot() }}
+                    title={`Hapus ${spot.title}`}
+                    className="grid size-6 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-red-400"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -251,9 +365,10 @@ export function RightPanel({ scene, selectedHotspot, onClearHotspot, onGoToScene
               <div className="p-3 text-xs text-zinc-300">{profile.location}</div>
             </div>
             <div className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-black/40 p-3 text-[11px] text-zinc-400">
-              <div className="flex items-center gap-2"><Mail size={13} /> {profile.email}</div>
-              <div className="flex items-center gap-2"><ExternalLink size={13} /> {profile.website}</div>
+              <a href={`mailto:${profile.email}`} className="flex items-center gap-2 hover:text-zinc-100"><Mail size={13} /> {profile.email}</a>
+              <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-zinc-100"><ExternalLink size={13} /> {profile.website}</a>
             </div>
+            <p className="text-[10px] leading-relaxed text-zinc-600">Lokasi bersifat informasi profil; tidak ada geotagging nyata pada panorama.</p>
           </div>
         )}
       </div>

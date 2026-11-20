@@ -1,20 +1,20 @@
-﻿# Rencana — Virtour360° Virtual Tour (ala Panoee Studio)
+﻿# Rencana — Virtour360 Studio & Virtual Tour 360°
 
 ## Tujuan
 Membangun website portofolio berupa **360° virtual tour interaktif** dengan tampilan
-studio/editor dark-premium yang menyerupai `studio.panoee.net` (dark, tipografi Inter,
+studio/editor dark-premium (dark, tipografi Inter,
 panel zinc, aksen amber/blue/pink), dengan konten portofolio ourselves.
 
 ## Tiga permukaan (hasil analisis lanjutan)
 Setelah login, referensi diperluas menjadi tiga tampilan yang harus direplikasi:
 
-1. **Studio / Editor** — `studio.panoee.net/editor/.../scene-info`
+1. **Studio / Editor** — halaman editor scene
    Top bar 56px, sidebar 240px, inspector 260px, mini-map, toolbar pill.
-2. **Dashboard Projects** — `studio.panoee.net/dashboard/projects`
+2. **Dashboard Projects** — halaman dashboard proyek
    Top nav 64px (logo pink, menu Project/Media/Tools/Promotion/Enterprise, trial pill amber,
    Changelog, New Project pink), subheader Live/Studio, grid/list toggle, filter All, search,
    kartu project dengan badge "Published" hijau, notifikasi "Policy update", tombol gift.
-3. **Public Portfolio** — `panoee.live/<username>` (dari "View Public Profile")
+3. **Public Portfolio** — halaman publik setelah publish (dari "View Public Profile")
    Theme terang, header putih (Search ⌘K, Create cyan, Studio pink), profil + statistik
    (Posts/Tours/Views/Likes), grid "360° posts" 4 kolom, banner promo pink, grid
    "Virtual tours" 3 kolom, floating bottom nav (Home/Map/Author/Explore).
@@ -23,9 +23,9 @@ Implementasi: `src/App.tsx` (studio), `src/views/DashboardView.tsx`,
 `src/views/PublicPortfolioView.tsx`, router hash di `src/Root.tsx`.
 
 ## Referensi &riset
-- `studio.panoee.net` → redirect ke `/account/auth/login` (butuh login). Akan diperiksa
-  ulang setelah login untuk menangkap detail UI studio.
-- Panoee memakai **three.js** untuk viewer-nya (terlihat dari importmap di HTML-nya).
+- Referensi awal → redirect ke halaman login (butuh login). Sudah diperiksa setelah login
+  untuk menangkap detail UI studio.
+- Referensi memakai **krpano** untuk viewer-nya; Virtour360 memakai **Photo Sphere Viewer** (three.js).
 - Repo GitHub yang dipelajari:
   - `mistic100/Photo-Sphere-Viewer` — MIT, 2.4k★, TypeScript, plugin ecosystem lengkap.
   - `wishmerhill/libretours-360` — editor + viewer tour 360 self-hosted (GPL-3.0).

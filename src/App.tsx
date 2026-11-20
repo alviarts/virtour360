@@ -4,29 +4,68 @@ import { TopBar } from "./components/layout/TopBar"
 import { LeftSidebar } from "./components/layout/LeftSidebar"
 import { RightPanel } from "./components/layout/RightPanel"
 import { TourViewer } from "./components/viewer/TourViewer"
-import { useTourViewer } from "./hooks/useTourViewer"
+import { MediaPickerModal } from "./components/viewer/MediaPickerModal"
+import { ProfileModal } from "./components/auth/ProfileModal"
+import { Lightbox } from "./components/ui/Lightbox"
+import { useTourViewer, type Quality } from "./hooks/useTourViewer"
 import { useFullscreen } from "./hooks/useFullscreen"
 import { useHotkeys } from "./hooks/useHotkeys"
-import { scenes } from "./data/scenes"
+import { useApp } from "./context/AppContext"
 import { profile } from "./data/profile"
+import { navigate } from "./lib/navigation"
+import { publishPublicPayload } from "./lib/publicStore"
+import { defaultSceneId } from "./data/scenes"
 
-function SettingsPopover() {
+interface SettingsPopoverProps {
+  quality: Quality
+  qualityLabel: string
+  setQuality: (q: Quality) => void
+  compass: boolean
+  setCompass: (v: boolean) => void
+  gyroscope: boolean
+  setGyroscope: (v: boolean) => void
+}
+
+function SettingsPopover({
+  quality,
+  qualityLabel,
+  setQuality,
+  compass,
+  setCompass,
+  gyroscope,
+  setGyroscope,
+}: SettingsPopoverProps) {
   return (
     <div className="flex flex-col gap-3 text-xs text-zinc-400">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span>Kualitas</span>
-        <span className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] text-zinc-300">Auto</span>
+        <div className="flex overflow-hidden rounded border border-zinc-700">
+          {(["hemat", "standar", "tinggi"] as Quality[]).map((q) => (
+            <button
+              key={q}
+              onClick={() => setQuality(q)}
+              title={`Kualitas ${q} — mengubah zoom & batas detail`}
+              className={`px-1.5 py-0.5 text-[10px] capitalize ${quality === q ? "bg-white text-black" : "text-zinc-400 hover:bg-white/10"}`}
+            >
+              {q}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="flex items-center justify-between">
+      <p className="-mt-2 text-right text-[10px] text-zinc-600">Aktif: {qualityLabel}</p>
+
+      <label className="flex cursor-pointer items-center justify-between">
         <span>Kompas</span>
-        <span className="size-2 rounded-full bg-sky-500" />
-      </div>
-      <div className="flex items-center justify-between">
+        <input type="checkbox" checked={compass} onChange={(e) => setCompass(e.target.checked)} className="size-3.5 accent-sky-500" />
+      </label>
+      <label className="flex cursor-pointer items-center justify-between">
         <span>Gyroskop</span>
-        <span className="size-2 rounded-full bg-zinc-600" />
-      </div>
+        <input type="checkbox" checked={gyroscope} onChange={(e) => setGyroscope(e.target.checked)} className="size-3.5 accent-amber-400" />
+      </label>
       <div className="border-t border-zinc-800 pt-2 text-[10px] leading-relaxed text-zinc-600">
-        Gunakan Arrow Left/Right untuk berpindah scene, R untuk reset, F untuk layar penuh.
+        Gyroskop hanya bekerja pada perangkat sensor &amp; localhost/HTTPS.
+        <br />
+        Arrow Left/Right: pindah scene · R: reset · F: layar penuh · + / -: zoom
       </div>
     </div>
   )
@@ -34,26 +73,54 @@ function SettingsPopover() {
 
 export default function App() {
   const shellRef = useRef<HTMLDivElement | null>(null)
+  const audioInputRef = useRef<HTMLInputElement | null>(null)
   const [activeTool, setActiveTool] = useState("select")
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [toast, setToast] = useState<string | null>(null)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const [preview, setPreview] = useState(false)
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
-  const tour = useTourViewer()
+  const {
+    scenes,
+    user,
+    activeSceneId,
+    setActiveSceneId,
+    addHotspot,
+    updateHotspot,
+    removeHotspot,
+    undoEdit,
+    canUndo,
+    captureThumbnail,
+    setSceneAudio,
+    removeSceneAudio,
+    audioByScene,
+    removePanorama,
+    setAuthOpen,
+    setUploadOpen,
+    setReplaceSceneId,
+    logout,
+    notify,
+  } = useApp()
+
+  const tour = useTourViewer(scenes, {
+    activeSceneId,
+    onSceneChange: setActiveSceneId,
+    onAddHotspot: addHotspot,
+    onNotify: notify,
+  })
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen(shellRef)
 
-  const currentIndex = scenes.findIndex((s) => s.id === tour.currentSceneId)
-
-  const showToast = useCallback((message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast(null), 2200)
-  }, [])
+  const currentIndex = Math.max(0, scenes.findIndex((s) => s.id === tour.currentSceneId))
 
   const goRelative = useCallback(
     (delta: number) => {
       const next = scenes[(currentIndex + delta + scenes.length) % scenes.length]
       tour.goToScene(next.id)
     },
-    [currentIndex, tour],
+    [currentIndex, scenes, tour],
   )
 
   useHotkeys({
@@ -65,23 +132,128 @@ export default function App() {
     onFullscreen: toggleFullscreen,
   })
 
+  const openUpload = () => setUploadOpen(true)
+
+  const handleTool = (id: string) => {
+    setActiveTool(id)
+    if (id === "pin") {
+      tour.startPlacement("info")
+      notify("Klik panorama untuk menaruh hotspot.")
+    } else if (id === "draw") {
+      tour.startPlacement("project")
+      notify("Klik panorama untuk menandai area proyek.")
+    } else if (id === "undo") {
+      undoEdit()
+    } else if (id === "settings") {
+      setSettingsOpen((v) => !v)
+    } else if (id === "select" || id === "cursor") {
+      tour.stopPlacement()
+    }
+  }
+
+  const handleRemoveScene = (id: string) => {
+    void removePanorama(id).then(() => {
+      if (id === tour.currentSceneId) setActiveSceneId(defaultSceneId)
+      notify("Scene upload dihapus.")
+    })
+  }
+
   return (
     <AppShell containerRef={shellRef}>
-      <TopBar
-        activeTool={activeTool}
-        onToolChange={(id) => {
-          setActiveTool(id)
-          if (id === "pin") tour.addHotspot()
-        }}
-        onToggleSettings={() => setSettingsOpen((v) => !v)}
-      />
+      {!preview && (
+        <>
+          <TopBar
+            activeTool={activeTool}
+            onToolChange={handleTool}
+            onToggleSettings={() => setSettingsOpen((v) => !v)}
+            initials={user?.initials ?? profile.initials}
+            onAccount={() => setAccountOpen((v) => !v)}
+            onSuggestions={() => setSuggestionsOpen((v) => !v)}
+            suggestionsOpen={suggestionsOpen}
+            canUndo={canUndo}
+            preview={false}
+            onTogglePreview={() => setPreview(true)}
+            onPublish={async () => {
+              await publishPublicPayload({
+                profile: {
+                  name: user?.name ?? profile.name,
+                  initials: user?.initials ?? profile.initials,
+                  location: profile.location,
+                  email: profile.email,
+                  website: profile.website,
+                  bio: profile.bio,
+                },
+                scenes,
+                updatedAt: new Date().toISOString(),
+              })
+              navigate("portfolio")
+            }}
+          />
 
-      <LeftSidebar
-        scenes={scenes}
-        currentSceneId={tour.currentSceneId}
-        onSelect={tour.goToScene}
-        onAddScene={() => showToast("Mode tambah scene — pilih panorama untuk memulai")}
-      />
+          {suggestionsOpen && (
+            <div className="absolute right-2 top-14 z-40 w-56 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl">
+              <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Saran untuk scene ini</p>
+              {[
+                { label: "Tambah hotspot info", run: () => { tour.addHotspot(); notify("Hotspot ditambahkan di tengah pandangan.") } },
+                { label: "Reset tampilan", run: tour.resetView },
+                { label: "Buka scene berikutnya", run: () => goRelative(1) },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => { item.run(); setSuggestionsOpen(false) }}
+                  className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {accountOpen && (
+            <div className="absolute left-2 top-12 z-40 w-52 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl">
+              <div className="border-b border-zinc-800 px-2 pb-2">
+                <p className="truncate text-xs font-semibold text-zinc-100">{user?.name ?? "Mode tamu"}</p>
+                <p className="truncate text-[10px] text-zinc-500">
+                  {user?.email ?? "Data tersimpan di browser ini"}
+                </p>
+              </div>
+              <button onClick={() => { setAccountOpen(false); setProfileOpen(true) }} className="mt-1 flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+                Pengaturan akun
+              </button>
+              <button onClick={() => { setAccountOpen(false); openUpload() }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+                Unggah panorama 360°
+              </button>
+              <button onClick={() => { setAccountOpen(false); navigate("dashboard") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+                Buka Dashboard
+              </button>
+              {user ? (
+                <button
+                  onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar.") }}
+                  className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10"
+                >
+                  Keluar
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setAccountOpen(false); setAuthOpen(true) }}
+                  className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-sky-400 hover:bg-sky-500/10"
+                >
+                  Masuk / Daftar (opsional)
+                </button>
+              )}
+            </div>
+          )}
+
+          <LeftSidebar
+            scenes={scenes}
+            currentSceneId={tour.currentSceneId}
+            onSelect={tour.goToScene}
+            onAddScene={openUpload}
+            onCreate={openUpload}
+            onRemoveScene={handleRemoveScene}
+          />
+        </>
+      )}
 
       <TourViewer
         containerRef={tour.containerRef}
@@ -97,35 +269,88 @@ export default function App() {
         onZoomOut={() => tour.zoomBy(-6)}
         onFullscreen={toggleFullscreen}
         isFullscreen={isFullscreen}
-        settingsOpen={settingsOpen}
-        settingsContent={<SettingsPopover />}
+        settingsOpen={!preview && settingsOpen}
+        settingsContent={
+          <SettingsPopover
+            quality={tour.quality}
+            qualityLabel={tour.qualityLabel}
+            setQuality={tour.setQuality}
+            compass={tour.compass}
+            setCompass={tour.setCompassVisible}
+            gyroscope={tour.gyroscope}
+            setGyroscope={tour.setGyroscopeEnabled}
+          />
+        }
+        onNotify={notify}
+        inset={preview ? { left: 0, right: 0 } : undefined}
+        preview={preview}
+        onExitPreview={() => setPreview(false)}
+        audioName={audioByScene[tour.currentScene.id]?.name}
+        onRemoveAudio={() => {
+          void removeSceneAudio(tour.currentScene.id).then(() => notify("Audio dihapus."))
+        }}
+        placementType={tour.placementType}
+        onCancelPlacement={tour.stopPlacement}
+        onDraw={() => tour.startPlacement("project")}
+        onUploadAudio={() => audioInputRef.current?.click()}
       />
 
-      <RightPanel
-        scene={tour.currentScene}
-        selectedHotspot={tour.selectedHotspot}
-        onClearHotspot={tour.clearSelectedHotspot}
-        onGoToScene={tour.goToScene}
-      />
+      {!preview && (
+        <>
+          <RightPanel
+            scene={tour.currentScene}
+            scenes={scenes}
+            selectedHotspot={tour.selectedHotspot}
+            onClearHotspot={tour.clearSelectedHotspot}
+            onSelectHotspot={tour.selectHotspotById}
+            onGoToScene={tour.goToScene}
+            onUpdateHotspot={(id, patch) => updateHotspot(tour.currentScene.id, id, patch)}
+            onRemoveHotspot={(id) => { removeHotspot(tour.currentScene.id, id); notify("Hotspot dihapus.") }}
+            onAddHotspot={tour.addHotspot}
+            onCaptureThumbnail={() => {
+              captureThumbnail(tour.currentScene.id, tour.currentThumbnailUrl())
+              notify("Thumbnail diset ke panorama aktif.")
+            }}
+            onExpandThumbnail={() => setLightboxOpen(true)}
+            onSelectPost={() => setMediaPickerOpen(true)}
+            onReplace={() => { setReplaceSceneId(tour.currentScene.id); setUploadOpen(true) }}
+            onUploadAudio={() => audioInputRef.current?.click()}
+            onRemoveAudio={() => void removeSceneAudio(tour.currentScene.id)}
+            audioName={audioByScene[tour.currentScene.id]?.name}
+          />
 
-      {!tour.isReady && (
-        <div className="absolute left-60 right-[260px] top-0 z-40 grid place-items-center bg-zinc-950/80 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3">
-            <span className="size-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" />
-            <span className="text-xs text-zinc-400">Menyiapkan panorama…</span>
+          {!tour.isReady && (
+            <div className="absolute bottom-0 left-60 right-[260px] top-0 z-40 grid place-items-center bg-zinc-950/70 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3">
+                <span className="size-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" />
+                <span className="text-xs text-zinc-400">Menyiapkan panorama…</span>
+              </div>
+            </div>
+          )}
+
+          <div className="pointer-events-none absolute bottom-3 right-[272px] z-10 hidden text-[10px] text-zinc-600 lg:block">
+            {user?.name ?? profile.name} · {tour.currentScene.project.title} · {tour.currentScene.project.year}
           </div>
-        </div>
+        </>
       )}
 
-      {toast && (
-        <div className="absolute bottom-20 left-1/2 z-50 -translate-x-1/2 animate-fade-up rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs text-zinc-200 shadow-xl">
-          {toast}
-        </div>
-      )}
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/*"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file) {
+            void setSceneAudio(tour.currentScene.id, file).then(() => notify(`Audio "${file.name}" dipasang pada scene.`))
+          }
+          event.target.value = ""
+        }}
+      />
 
-      <div className="pointer-events-none absolute bottom-3 right-[272px] z-10 hidden text-[10px] text-zinc-600 lg:block">
-        {profile.name} · {tour.currentScene.project.title} · {tour.currentScene.project.year}
-      </div>
+      {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
+      {mediaPickerOpen && <MediaPickerModal activeSceneId={tour.currentScene.id} onClose={() => setMediaPickerOpen(false)} />}
+      {lightboxOpen && <Lightbox src={tour.currentScene.thumbnail} title={tour.currentScene.name} onClose={() => setLightboxOpen(false)} />}
     </AppShell>
   )
 }

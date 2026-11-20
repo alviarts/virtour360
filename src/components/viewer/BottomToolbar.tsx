@@ -12,6 +12,8 @@ interface BottomToolbarProps {
   onZoomOut: () => void
   onFullscreen: () => void
   isFullscreen: boolean
+  onDraw?: () => void
+  onUploadAudio?: () => void
 }
 
 export function BottomToolbar({
@@ -24,10 +26,12 @@ export function BottomToolbar({
   onZoomOut,
   onFullscreen,
   isFullscreen,
+  onDraw,
+  onUploadAudio,
 }: BottomToolbarProps) {
   return (
     <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 flex max-w-[calc(100%-24px)] -translate-x-1/2 items-center">
-      <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-black/70 p-1.5 backdrop-blur-md">
+      <div className="hide-scrollbar pointer-events-auto flex max-w-full items-center gap-2 overflow-x-auto rounded-full bg-black/70 p-1.5 backdrop-blur-md">
         <button
           type="button"
           onClick={onToggleAutorotate}
@@ -50,11 +54,11 @@ export function BottomToolbar({
           <Plus size={13} strokeWidth={2.6} />
           Hotspot
         </button>
-        <button type="button" title="Tambah media" className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
+        <button type="button" onClick={onUploadAudio} title="Unggah audio untuk scene ini" className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
           <Sparkles size={13} />
           Media
         </button>
-        <button type="button" title="Tambah polygon" className="hidden h-8 items-center gap-1.5 rounded-full px-3 text-xs text-zinc-400 transition-colors hover:bg-white/10 hover:text-white md:flex">
+        <button type="button" onClick={onDraw} title="Klik panorama untuk menandai area proyek" className="hidden h-8 items-center gap-1.5 rounded-full px-3 text-xs text-zinc-400 transition-colors hover:bg-white/10 hover:text-white md:flex">
           <Plus size={13} />
           Polygon
         </button>

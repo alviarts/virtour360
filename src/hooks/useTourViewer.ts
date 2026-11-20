@@ -6,11 +6,21 @@ import { AutorotatePlugin } from "@photo-sphere-viewer/autorotate-plugin"
 import { CompassPlugin } from "@photo-sphere-viewer/compass-plugin"
 import { GyroscopePlugin } from "@photo-sphere-viewer/gyroscope-plugin"
 import { SettingsPlugin } from "@photo-sphere-viewer/settings-plugin"
-import { scenes, defaultSceneId } from "../data/scenes"
+import { defaultSceneId } from "../data/scenes"
 import { tourConfig } from "../config/tour.config"
 import { contentHotspots, findScene, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
-import type { Hotspot, Scene } from "../types/tour"
+import type { Hotspot, HotspotType, Scene } from "../types/tour"
+
+export type Quality = "hemat" | "standar" | "tinggi"
+
+const QUALITY: Record<Quality, { minFov: number; zoom: number; label: string }> = {
+  hemat: { minFov: 65, zoom: 45, label: "Hemat" },
+  standar: { minFov: 30, zoom: 70, label: "Standar" },
+  tinggi: { minFov: 15, zoom: 100, label: "Tinggi" },
+}
+
+const radToDeg = (rad: number) => (rad * 180) / Math.PI
 
 const ICONS: Record<string, string> = {
   info: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
@@ -30,7 +40,7 @@ function markerConfig(spot: Hotspot) {
   }
 }
 
-function buildNodes() {
+function buildNodes(scenes: Scene[]) {
   return scenes.map((scene) => ({
     id: scene.id,
     panorama: scene.panorama,
@@ -44,20 +54,39 @@ function buildNodes() {
 
 export type ViewState = { yaw: number; pitch: number; zoom: number }
 
-export function useTourViewer() {
+interface ViewerOptions {
+  activeSceneId: string
+  onSceneChange: (id: string) => void
+  onAddHotspot: (sceneId: string, spot: Hotspot) => void
+  onNotify?: (message: string) => void
+}
+
+export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const viewerRef = useRef<Viewer | null>(null)
   const tourRef = useRef<VirtualTourPlugin | null>(null)
   const markersRef = useRef<MarkersPlugin | null>(null)
   const autorotateRef = useRef<AutorotatePlugin | null>(null)
+  const compassRef = useRef<CompassPlugin | null>(null)
+  const gyroRef = useRef<GyroscopePlugin | null>(null)
 
   const [isReady, setIsReady] = useState(false)
-  const [currentSceneId, setCurrentSceneId] = useState(defaultSceneId)
+  const [currentSceneId, setCurrentSceneId] = useState(() =>
+    scenes.some((s) => s.id === options.activeSceneId) ? options.activeSceneId : defaultSceneId,
+  )
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null)
   const [view, setView] = useState<ViewState>({ yaw: 0, pitch: 0, zoom: tourConfig.defaultZoom })
   const [isAutorotate, setIsAutorotate] = useState(false)
+  const [quality, setQualityState] = useState<Quality>("standar")
+  const [compass, setCompass] = useState(true)
+  const [gyroscope, setGyroscope] = useState(false)
+  const [placementType, setPlacementType] = useState<HotspotType | null>(null)
 
   const currentScene: Scene = findScene(scenes, currentSceneId)
+
+  /* Event handler yang dipasang sekali memakai ref agar selalu membaca data terbaru. */
+  const live = useRef({ scenes, currentSceneId, options })
+  live.current = { scenes, currentSceneId, options }
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -70,8 +99,8 @@ export function useTourViewer() {
           dataMode: "client",
           positionMode: "manual",
           renderMode: tourConfig.renderMode,
-          nodes: buildNodes(),
-          startNodeId: defaultSceneId,
+          nodes: buildNodes(live.current.scenes),
+          startNodeId: live.current.currentSceneId,
           transitionOptions: {
             showLoader: true,
             speed: tourConfig.transitionSpeed,
@@ -91,33 +120,40 @@ export function useTourViewer() {
       defaultZoomLvl: tourConfig.defaultZoom,
       touchmoveTwoFingers: true,
       mousewheelCtrlKey: false,
-      caption: scenes[0].name,
+      caption: live.current.scenes[0]?.name ?? "Virtual Tour",
     })
 
     const markers = viewer.getPlugin<MarkersPlugin>(MarkersPlugin)
     const tour = viewer.getPlugin<VirtualTourPlugin>(VirtualTourPlugin)
     const autorotate = viewer.getPlugin<AutorotatePlugin>(AutorotatePlugin)
+    const compassPlugin = viewer.getPlugin<CompassPlugin>(CompassPlugin)
+    const gyroPlugin = viewer.getPlugin<GyroscopePlugin>(GyroscopePlugin)
 
     viewerRef.current = viewer
     tourRef.current = tour
     markersRef.current = markers
     autorotateRef.current = autorotate
+    compassRef.current = compassPlugin
+    gyroRef.current = gyroPlugin
 
     const onReady = () => {
       setIsReady(true)
-      const start = scenes[0].initialView
+      const start = findScene(live.current.scenes, live.current.currentSceneId).initialView
       viewer.rotate({ yaw: start.yaw, pitch: start.pitch })
     }
     const onNodeChanged = (e: any) => {
-      setCurrentSceneId(e.node.id)
+      const id: string = e.node.id
+      setCurrentSceneId(id)
       setSelectedHotspot(null)
+      live.current.options.onSceneChange(id)
     }
     const onSelectMarker = (e: any) => {
       const id = e.marker.data?.hotspotId ?? e.marker.id
-      const scene = findScene(scenes, currentSceneId)
+      const { scenes: allScenes, currentSceneId: sceneId, options: opts } = live.current
+      const scene = findScene(allScenes, sceneId)
       const spot = scene.hotspots.find((h) => h.id === id) ?? null
       if (spot?.type === "scene" && spot.targetSceneId) {
-        tour.setCurrentNode(spot.targetSceneId).catch(() => undefined)
+        tour.setCurrentNode(spot.targetSceneId).catch(() => opts.onNotify?.("Scene tujuan tidak ditemukan."))
         return
       }
       if (spot?.type === "link" && spot.href) {
@@ -128,46 +164,115 @@ export function useTourViewer() {
     }
     const onPosition = (e: any) => {
       setView({
-        yaw: round(e.position.yaw, 0),
-        pitch: round(e.position.pitch, 0),
+        yaw: round(radToDeg(e.position.yaw), 0),
+        pitch: round(radToDeg(e.position.pitch), 0),
         zoom: round(viewer.getZoomLevel(), 0),
       })
+    }
+    const onClick = (e: any) => {
+      if (!placementRef.current) return
+      const data = e.data
+      if (!data || data.rightclick) return
+      placeHotspot(radToDeg(data.yaw), radToDeg(data.pitch), placementRef.current)
+      placementRef.current = null
+      setPlacementType(null)
     }
 
     viewer.addEventListener("ready", onReady)
     tour.addEventListener("node-changed", onNodeChanged)
     markers.addEventListener("select-marker", onSelectMarker)
     viewer.addEventListener("position-updated", onPosition)
+    viewer.addEventListener("click", onClick)
 
     return () => {
       viewer.removeEventListener("ready", onReady)
       tour.removeEventListener("node-changed", onNodeChanged)
       markers.removeEventListener("select-marker", onSelectMarker)
       viewer.removeEventListener("position-updated", onPosition)
+      viewer.removeEventListener("click", onClick)
       viewer.destroy()
       viewerRef.current = null
       tourRef.current = null
       markersRef.current = null
       autorotateRef.current = null
+      compassRef.current = null
+      gyroRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /*Sinkronkan ulang node saat scene berubah (upload, hotspot edit, ganti media).*/
+  useEffect(() => {
+    if (!isReady) return
+    tourRef.current?.setNodes(buildNodes(scenes), currentSceneId)
+    // currentSceneId sengaja tidak diikutsertakan agar tidak loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scenes, isReady])
+
+  /*Scene yang dipilih dari view lain (dashboard/portfolio) ikut ke viewer.*/
+  useEffect(() => {
+    if (!options.activeSceneId || options.activeSceneId === currentSceneId) return
+    if (!scenes.some((s) => s.id === options.activeSceneId)) return
+    setCurrentSceneId(options.activeSceneId)
+    if (isReady) tourRef.current?.setCurrentNode(options.activeSceneId).catch(() => undefined)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.activeSceneId])
+
+  /*Detail hotspot ikut berubah saat judul/deskripsi diedit atau dihapus.*/
+  useEffect(() => {
+    if (!selectedHotspot) return
+    const latest = currentScene.hotspots.find((h) => h.id === selectedHotspot.id)
+    if (!latest) {
+      setSelectedHotspot(null)
+    } else if (JSON.stringify(latest) !== JSON.stringify(selectedHotspot)) {
+      setSelectedHotspot(latest)
+    }
+  }, [currentScene.hotspots, selectedHotspot])
+
+  const placementRef = useRef<HotspotType | null>(null)
+  placementRef.current = placementType
+
+  const placeHotspot = useCallback(
+    (yaw: number, pitch: number, type: HotspotType) => {
+      const { currentSceneId: sceneId } = live.current
+      const titles: Record<HotspotType, string> = {
+        info: "Info baru",
+        project: "Area proyek",
+        link: "Tautan baru",
+        scene: "Navigasi baru",
+      }
+      const spot: Hotspot = {
+        id: `hs-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        type,
+        yaw: round(yaw, 0),
+        pitch: round(pitch, 0),
+        title: titles[type],
+        description: "Hotspot baru. Ubah judul dan deskripsi di panel Hotspot.",
+      }
+      live.current.options.onAddHotspot(sceneId, spot)
+      setSelectedHotspot(spot)
+      return spot
+    },
+    [],
+  )
+
   const goToScene = useCallback((id: string) => {
-    if (id === currentSceneId) return
-    tourRef.current?.setCurrentNode(id).catch(() => undefined)
-  }, [currentSceneId])
+    if (id === live.current.currentSceneId) return
+    setCurrentSceneId(id)
+    live.current.options.onSceneChange(id)
+    tourRef.current?.setCurrentNode(id).catch(() => live.current.options.onNotify?.("Scene tidak ditemukan."))
+  }, [])
 
   const resetView = useCallback(() => {
-    const scene = findScene(scenes, currentSceneId)
+    const scene = findScene(live.current.scenes, live.current.currentSceneId)
     viewerRef.current?.rotate({ yaw: scene.initialView.yaw, pitch: scene.initialView.pitch })
     viewerRef.current?.zoom(scene.initialView.zoom)
-  }, [currentSceneId])
+  }, [])
 
   const rotateTo = useCallback((yaw: number) => {
     const viewer = viewerRef.current
     if (!viewer) return
-    const pitch = viewer.getPosition().pitch
+    const pitch = radToDeg(viewer.getPosition().pitch)
     viewer.rotate({ yaw, pitch })
   }, [])
 
@@ -191,27 +296,64 @@ export function useTourViewer() {
     }
   }, [])
 
+  const setQuality = useCallback((next: Quality) => {
+    const preset = QUALITY[next]
+    viewerRef.current?.setOption("minFov", preset.minFov)
+    viewerRef.current?.zoom(preset.zoom)
+    setQualityState(next)
+  }, [])
+
+  const setCompassVisible = useCallback((visible: boolean) => {
+    if (visible) compassRef.current?.show()
+    else compassRef.current?.hide()
+    setCompass(visible)
+  }, [])
+
+  const setGyroscopeEnabled = useCallback((enabled: boolean) => {
+    if (!enabled) {
+      gyroRef.current?.stop()
+      setGyroscope(false)
+      return
+    }
+    gyroRef.current
+      ?.start()
+      .then(() => setGyroscope(true))
+      .catch(() => {
+        setGyroscope(false)
+        live.current.options.onNotify?.("Gyroskop tidak tersedia di perangkat/browser ini.")
+      })
+  }, [])
+
   const addHotspot = useCallback(() => {
     const viewer = viewerRef.current
-    const tour = tourRef.current
-    const markers = markersRef.current
-    if (!viewer || !tour || !markers) return
+    if (!viewer) return
     const pos = viewer.getPosition()
-    const id = `hs-${Date.now()}`
-    const spot: Hotspot = {
-      id,
-      type: "info",
-      yaw: round(pos.yaw, 0),
-      pitch: round(pos.pitch, 0),
-      title: "Hotspot baru",
-      description: "Klik hotspot ini untuk melihat detail karya.",
-    }
-    tour.updateNode({
-      id: currentSceneId,
-      markers: [...contentHotspots(currentScene), spot].map(markerConfig),
-    })
+    placeHotspot(radToDeg(pos.yaw), radToDeg(pos.pitch), "info")
+  }, [placeHotspot])
+
+  const startPlacement = useCallback((type: HotspotType) => {
+    placementRef.current = type
+    setPlacementType(type)
+  }, [])
+
+  const stopPlacement = useCallback(() => {
+    placementRef.current = null
+    setPlacementType(null)
+  }, [])
+
+  const selectHotspotById = useCallback((id: string) => {
+    const spot = findScene(live.current.scenes, live.current.currentSceneId).hotspots.find((h) => h.id === id)
+    if (!spot) return
     setSelectedHotspot(spot)
-  }, [currentScene, currentSceneId])
+    viewerRef.current?.animate({ yaw: spot.yaw, pitch: spot.pitch, speed: 600 })
+  }, [])
+
+  const clearSelectedHotspot = useCallback(() => setSelectedHotspot(null), [])
+
+  const currentThumbnailUrl = useCallback(
+    () => findScene(live.current.scenes, live.current.currentSceneId).panorama,
+    [],
+  )
 
   return {
     containerRef,
@@ -220,7 +362,8 @@ export function useTourViewer() {
     currentSceneId,
     goToScene,
     selectedHotspot,
-    clearSelectedHotspot: () => setSelectedHotspot(null),
+    clearSelectedHotspot,
+    selectHotspotById,
     view,
     isAutorotate,
     toggleAutorotate,
@@ -228,5 +371,16 @@ export function useTourViewer() {
     rotateTo,
     zoomBy,
     addHotspot,
+    placementType,
+    startPlacement,
+    stopPlacement,
+    quality,
+    setQuality,
+    qualityLabel: QUALITY[quality].label,
+    compass,
+    setCompassVisible,
+    gyroscope,
+    setGyroscopeEnabled,
+    currentThumbnailUrl,
   }
 }

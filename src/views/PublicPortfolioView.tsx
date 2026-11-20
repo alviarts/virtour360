@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   Bell,
   Compass,
@@ -9,80 +9,122 @@ import {
   Search,
   Upload,
   User,
+  X,
 } from "lucide-react"
-import { profile } from "../data/profile"
-import { scenes } from "../data/scenes"
+import { useApp } from "../context/AppContext"
+import { Logo360 } from "../components/ui/Logo360"
+import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { navigate } from "../lib/navigation"
+import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
+import { profile } from "../data/profile"
 
-const stats = [
-  { value: "74", label: "Posts" },
-  { value: "44", label: "Tours" },
-  { value: "1313", label: "Views" },
-  { value: "1", label: "Likes" },
+const THUMBS = [
+  "/media/thumbnails/key-biscayne-1.jpg",
+  "/media/thumbnails/key-biscayne-2.jpg",
+  "/media/thumbnails/key-biscayne-3.jpg",
+]
+
+const PANOS = [
+  "/media/panoramas/key-biscayne-1.jpg",
+  "/media/panoramas/key-biscayne-2.jpg",
+  "/media/panoramas/key-biscayne-3.jpg",
 ]
 
 const postCards = [
-  { title: "Atrium — The Gallery", image: scenes[0].thumbnail, count: 4 },
-  { title: "Studio — Creative Room", image: scenes[1].thumbnail, count: 1 },
-  { title: "Terrace — Sunset View", image: scenes[2].thumbnail, count: 2 },
-  { title: "2BR MASTER BEDROOM", image: scenes[0].thumbnail, count: 1 },
-  { title: "Living Room 360", image: scenes[1].thumbnail, count: 3 },
-  { title: "Trungtamyte", image: scenes[2].thumbnail, count: 1 },
-  { title: "CT05 20260512 OVERVIEW 1", image: scenes[0].thumbnail, count: 1 },
-  { title: "0512a", image: scenes[1].thumbnail, count: 1 },
+  { title: "Atrium — The Gallery", image: THUMBS[0], panorama: PANOS[0], count: 4 },
+  { title: "Studio — Creative Room", image: THUMBS[1], panorama: PANOS[1], count: 1 },
+  { title: "Terrace — Sunset View", image: THUMBS[2], panorama: PANOS[2], count: 2 },
+  { title: "2BR MASTER BEDROOM", image: THUMBS[0], panorama: PANOS[0], count: 1 },
+  { title: "Living Room 360", image: THUMBS[1], panorama: PANOS[1], count: 3 },
+  { title: "Trungtamyte", image: THUMBS[2], panorama: PANOS[2], count: 1 },
+  { title: "CT05 20260512 OVERVIEW 1", image: THUMBS[0], panorama: PANOS[0], count: 1 },
+  { title: "0512a", image: THUMBS[1], panorama: PANOS[1], count: 1 },
 ]
 
 const tourCards = [
-  { title: "2BR CXL 20261119", image: scenes[0].thumbnail, comments: 0, likes: 1 },
-  { title: "4BR CXL 20261119", image: scenes[1].thumbnail, comments: 0, likes: 1 },
-  { title: "TienichTrongNha CXL 20261119", image: scenes[2].thumbnail, comments: 0, likes: 1 },
-  { title: "ED CXL 20261119", image: scenes[0].thumbnail, comments: 2, likes: 0 },
-  { title: "ED CXL 20261113", image: scenes[1].thumbnail, comments: 0, likes: 0 },
-  { title: "Tienich ID CXL 20261024", image: scenes[2].thumbnail, comments: 8, likes: 0 },
+  { title: "2BR CXL 20261119", image: THUMBS[0], panorama: PANOS[0], comments: 0, likes: 1 },
+  { title: "4BR CXL 20261119", image: THUMBS[1], panorama: PANOS[1], comments: 0, likes: 1 },
+  { title: "TienichTrongNha CXL 20261119", image: THUMBS[2], panorama: PANOS[2], comments: 0, likes: 1 },
+  { title: "ED CXL 20261119", image: THUMBS[0], panorama: PANOS[0], comments: 2, likes: 0 },
+  { title: "ED CXL 20261113", image: THUMBS[1], panorama: PANOS[1], comments: 0, likes: 0 },
+  { title: "Tienich ID CXL 20261024", image: THUMBS[2], panorama: PANOS[2], comments: 8, likes: 0 },
 ]
 
-function Header() {
+interface CardItem {
+  id: string
+  title: string
+  image: string
+  panorama: string
+  count?: number
+  comments?: number
+  likes?: number
+  sceneId?: string
+}
+
+function Header({
+  onCreate,
+  onLogin,
+  userName,
+  query,
+  onQuery,
+}: {
+  onCreate: () => void
+  onLogin: () => void
+  userName?: string
+  query: string
+  onQuery: (value: string) => void
+}) {
+  const { notify } = useApp()
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-5 backdrop-blur">
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate("portfolio")} className="flex items-center gap-1.5">
-          <span className="grid size-6 place-items-center rounded-md bg-slate-900 text-xs font-black text-white">P</span>
-          <span className="text-lg font-bold tracking-tight text-slate-900">panoee</span>
+        <button onClick={() => document.getElementById("portfolio-root")?.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center">
+          <Logo360 tone="dark" size={28} />
         </button>
         <div className="flex h-9 w-64 items-center gap-2 rounded-full bg-slate-100 px-3.5">
           <Search size={15} className="text-slate-400" />
-          <span className="flex-1 text-xs text-slate-400">Search</span>
-          <span className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[10px] text-slate-500">⌘</span>
-          <span className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-[10px] text-slate-500">K</span>
+          <input
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Cari karya…"
+            className="min-w-0 flex-1 bg-transparent text-xs text-slate-800 outline-none placeholder:text-slate-400"
+          />
+          {query && <button onClick={() => onQuery("")} title="Hapus" className="text-slate-400 hover:text-slate-700"><X size={13} /></button>}
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
+        <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
           <Upload size={13} /> Create
         </button>
         <button onClick={() => navigate("studio")} className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]">
           <Compass size={13} /> Studio
         </button>
-        <button className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500">
+        <button onClick={() => notify("Belum ada notifikasi (fitur perlu backend).")} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500">
           <Bell size={15} />
         </button>
-        <button className="h-9 rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">
-          Login
+        <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">
+          {userName ?? "Masuk (opsional)"}
         </button>
       </div>
     </header>
   )
 }
 
-function ProfileHeader() {
+function ProfileHeader({ name, initials, postCount, tourCount, likes }: { name: string; initials: string; postCount: number; tourCount: number; likes: number }) {
+  const stats = [
+    { value: String(postCount), label: "Posts" },
+    { value: String(tourCount), label: "Tours" },
+    { value: "1313", label: "Views" },
+    { value: String(likes), label: "Likes" },
+  ]
   return (
-    <div className="flex flex-col items-center bg-white px-4 py-10">
+    <div className="flex flex-col items-center bg-white px-4 py-10" id="portfolio-author">
       <div className="grid size-24 place-items-center rounded-full border-4 border-white bg-emerald-200 text-3xl shadow-md">
-        {profile.initials.toUpperCase()}
+        {initials.toUpperCase()}
       </div>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{profile.name}</h1>
-      <p className="mt-0.5 text-sm text-slate-400">@ardhana.studio</p>
-      <div className="mt-6 flex items-start gap-10">
+      <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{name}</h1>
+      <p className="mt-0.5 text-sm text-slate-400">@virtour360</p>
+      <div className="mt-6 flex items-start gap-8 sm:gap-10">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col items-center">
             <span className="text-xl font-bold text-slate-900">{stat.value}</span>
@@ -102,54 +144,85 @@ function SectionTitle({ children }: { children: ReactNode }) {
   )
 }
 
-function PostCard({ item }: { item: (typeof postCards)[number] }) {
+function Card({
+  item,
+  favorite,
+  onToggleFavorite,
+  onOpen,
+}: {
+  item: CardItem
+  favorite: boolean
+  onToggleFavorite: () => void
+  onOpen: () => void
+}) {
   return (
-    <button className="group text-left">
+    <div className="group text-left">
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-200">
-        <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-        <span className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-slate-800/60 text-white backdrop-blur">
-          <Heart size={13} />
-        </span>
-        <span className="absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-emerald-500 px-1.5 text-[10px] font-bold text-white">
-          360°
-        </span>
-        <span className="absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">
-          {item.count} ▣
-        </span>
-      </div>
-      <p className="mt-2 truncate text-xs font-medium text-slate-800">{item.title}</p>
-    </button>
-  )
-}
-
-function TourCard({ item }: { item: (typeof tourCards)[number] }) {
-  return (
-    <button onClick={() => navigate("studio")} className="group text-left">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-200">
-        <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-        <span className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-slate-800/60 text-white backdrop-blur">
-          <Heart size={13} />
-        </span>
-        <span className="absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-emerald-500 px-1.5 text-[10px] font-bold text-white">
-          360°
-        </span>
-        {(item.comments > 0 || item.likes > 0) && (
-          <span className="absolute right-2 top-10 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] text-white">
-            <MessageCircle size={10} /> {item.comments || item.likes}
+        <button onClick={onOpen} className="block h-full w-full">
+          <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        </button>
+        <button
+          onClick={onToggleFavorite}
+          title={favorite ? "Hapus dari favorit" : "Simpan ke favorit"}
+          className={`absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-slate-800/60 text-white backdrop-blur transition-colors ${favorite ? "text-rose-400" : "hover:text-rose-300"}`}
+        >
+          <Heart size={13} fill={favorite ? "currentColor" : "none"} />
+        </button>
+        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-emerald-500 px-1.5 text-[10px] font-bold text-white">360°</span>
+        {item.count !== undefined && (
+          <span className="pointer-events-none absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">{item.count} ▣</span>
+        )}
+        {!!item.comments && (
+          <span className="pointer-events-none absolute right-2 top-10 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] text-white">
+            <MessageCircle size={10} /> {item.comments}
           </span>
         )}
       </div>
-      <p className="mt-2 truncate text-xs font-medium text-slate-800">{item.title}</p>
-    </button>
+      <button onClick={onOpen} className="mt-2 block w-full truncate text-left text-xs font-medium text-slate-800 hover:text-slate-950">{item.title}</button>
+    </div>
+  )
+}
+
+function DetailModal({ item, onClose, onExplore }: { item: CardItem; onClose: () => void; onExplore: () => void }) {
+  const { favorites, toggleFavorite } = useApp()
+  const favorite = favorites.includes(item.id)
+  return (
+    <div className="fixed inset-0 z-[110] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-md animate-fade-up overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="relative h-52">
+          <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+          <button onClick={onClose} className="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80"><X size={15} /></button>
+        </div>
+        <div className="p-5">
+          <h3 className="truncate text-base font-bold text-slate-900">{item.title}</h3>
+          <p className="mt-1 text-xs text-slate-500">Panorama 360° · {item.count ?? 1} scene</p>
+          <div className="mt-4 flex gap-2">
+            <button onClick={onExplore} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#d1005c] text-xs font-semibold text-white hover:bg-[#b80051]">
+              Jelajahi 360° →
+            </button>
+            <button
+              onClick={() => toggleFavorite(item.id)}
+              className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-medium ${favorite ? "border-rose-300 bg-rose-50 text-rose-600" : "border-slate-200 text-slate-700"}`}
+            >
+              <Heart size={13} fill={favorite ? "currentColor" : "none"} /> {favorite ? "Favorit" : "Simpan"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
 function FloatingNav() {
+  const scrollTo = (id?: string) => {
+    if (id) document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    else document.getElementById("portfolio-root")?.scrollTo({ top: 0, behavior: "smooth" })
+  }
   const items = [
-    { label: "Home", icon: Home, active: true },
-    { label: "Map", icon: MapPin },
-    { label: "Author", icon: User },
-    { label: "Explore", icon: Compass },
+    { label: "Home", icon: Home, run: () => scrollTo() },
+    { label: "Map", icon: MapPin, run: () => scrollTo("portfolio-map") },
+    { label: "Author", icon: User, run: () => scrollTo("portfolio-author") },
+    { label: "Explore", icon: Compass, run: () => scrollTo("portfolio-explore") },
   ]
   return (
     <div className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/70 bg-white/90 px-2 py-1.5 shadow-xl backdrop-blur-md">
@@ -158,9 +231,8 @@ function FloatingNav() {
         return (
           <button
             key={item.label}
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${
-              item.active ? "bg-slate-100 text-slate-900" : "text-slate-500 hover:text-slate-900"
-            }`}
+            onClick={item.run}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
           >
             <Icon size={14} /> {item.label}
           </button>
@@ -171,31 +243,91 @@ function FloatingNav() {
 }
 
 export function PublicPortfolioView() {
+  const { scenes, user, setAuthOpen, setUploadOpen, favorites, toggleFavorite } = useApp()
+  const [query, setQuery] = useState("")
+  const [detail, setDetail] = useState<CardItem | null>(null)
+  const [exploring, setExploring] = useState<CardItem | null>(null)
+  const [publicData, setPublicData] = useState<PublicPayload | null>(null)
+  const [allPosts, setAllPosts] = useState(false)
+  const [allTours, setAllTours] = useState(false)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    loadPublicPayload().then((data) => {
+      if (alive && data) setPublicData(data)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // Pengunjung melihat data hasil publish; fallback ke data lokal.
+  const sourceScenes = publicData?.scenes?.length ? publicData.scenes : scenes
+  const uploaded = sourceScenes.filter((s) => s.id.startsWith("pano-"))
+  const posts: CardItem[] = useMemo(
+    () => [
+      ...uploaded.map((s) => ({ id: s.id, title: s.name, image: s.thumbnail, panorama: s.panorama, count: 1, sceneId: s.id })),
+      ...postCards.map((item, i) => ({ id: `post-${i}`, ...item })),
+    ],
+    [uploaded],
+  )
+  const tours: CardItem[] = useMemo(
+    () => [
+      ...uploaded.map((s) => ({ id: `tour-${s.id}`, title: s.name, image: s.thumbnail, panorama: s.panorama, likes: 0, sceneId: s.id })),
+      ...tourCards.map((item, i) => ({ id: `tour-${i}`, ...item })),
+    ],
+    [uploaded],
+  )
+
+  const matches = (item: CardItem) => item.title.toLowerCase().includes(query.trim().toLowerCase())
+  const shownPosts = (allPosts ? posts : posts.slice(0, 4)).filter(matches)
+  const shownTours = (allTours ? tours : tours.slice(0, 3)).filter(matches)
+  const displayName = publicData?.profile.name ?? user?.name ?? "Ardhana Wicaksono"
+  const displayInitials = publicData?.profile.initials ?? user?.initials ?? "AW"
+
   return (
-    <div className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
-      <Header />
-      <ProfileHeader />
+    <div ref={rootRef} id="portfolio-root" className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
+      <Header onCreate={() => setUploadOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} />
+      <ProfileHeader name={displayName} initials={displayInitials} postCount={posts.length} tourCount={tours.length} likes={favorites.length} />
 
       <div className="mx-auto max-w-[1200px] px-6 pb-28">
-        {/* 360 posts */}
-        <section className="rounded-2xl bg-[#eef2f8] p-6">
-          <SectionTitle>360° posts by {profile.initials}</SectionTitle>
+        {query && (
+          <p className="mt-4 text-xs text-slate-500">
+            Hasil pencarian "{query}" — {posts.filter(matches).length} post, {tours.filter(matches).length} tour.
+          </p>
+        )}
+
+        <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-explore">
+          <SectionTitle>360° posts by {displayInitials}</SectionTitle>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {postCards.map((item, i) => <PostCard key={i} item={item} />)}
+            {shownPosts.map((item) => (
+              <Card
+                key={item.id}
+                item={item}
+                favorite={favorites.includes(item.id)}
+                onToggleFavorite={() => toggleFavorite(item.id)}
+                onOpen={() => setDetail(item)}
+              />
+            ))}
           </div>
-          <div className="mt-6 text-center">
-            <button className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold text-white">View more</button>
-          </div>
+          {shownPosts.length === 0 && <p className="py-8 text-center text-xs text-slate-500">Tidak ada post yang cocok.</p>}
+          {posts.length > 4 && (
+            <div className="mt-6 text-center">
+              <button onClick={() => setAllPosts((v) => !v)} className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold text-white">
+                {allPosts ? "View less" : "View more"}
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Promo banner */}
         <div className="mx-auto mt-8 flex max-w-[620px] overflow-hidden rounded-xl">
           <div className="relative w-2/5 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-cyan-400">
             <div className="absolute inset-0 opacity-40 [background-image:repeating-linear-gradient(115deg,transparent,transparent_12px,rgba(255,255,255,0.35)_12px,rgba(255,255,255,0.35)_14px)]" />
           </div>
           <div className="flex w-3/5 flex-col justify-center bg-[#d1005c] px-5 py-5 text-white">
             <p className="text-sm font-bold leading-snug">
-              Publish Advanced &amp; Premium Virtual Tours in Panoee Studio
+              Publish Advanced &amp; Premium Virtual Tours in Virtour360 Studio
             </p>
             <button onClick={() => navigate("studio")} className="mt-3 w-fit rounded border border-white/60 px-3 py-1.5 text-[10px] font-semibold tracking-wide">
               EXPLORE NOW →
@@ -203,18 +335,37 @@ export function PublicPortfolioView() {
           </div>
         </div>
 
-        {/* Virtual tours */}
-        <section className="mt-10 rounded-2xl bg-[#eef2f8] p-6">
-          <SectionTitle>Virtual tours by {profile.initials}</SectionTitle>
+        <section className="mt-10 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-tours">
+          <SectionTitle>Virtual tours by {displayInitials}</SectionTitle>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            {tourCards.map((item, i) => <TourCard key={i} item={item} />)}
+            {shownTours.map((item) => (
+              <Card
+                key={item.id}
+                item={item}
+                favorite={favorites.includes(item.id)}
+                onToggleFavorite={() => toggleFavorite(item.id)}
+                onOpen={() => setDetail(item)}
+              />
+            ))}
           </div>
-          <div className="mt-6 text-center">
-            <button className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold text-white">View more</button>
-          </div>
+          {shownTours.length === 0 && <p className="py-8 text-center text-xs text-slate-500">Tidak ada tour yang cocok.</p>}
+          {tours.length > 3 && (
+            <div className="mt-6 text-center">
+              <button onClick={() => setAllTours((v) => !v)} className="rounded-full bg-slate-900 px-5 py-2 text-xs font-semibold text-white">
+                {allTours ? "View less" : "View more"}
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Footer CTA */}
+        <div className="mt-8 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-5" id="portfolio-map">
+          <MapPin size={20} className="shrink-0 text-sky-500" />
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Lokasi &amp; kontak</h3>
+            <p className="mt-1 text-xs text-slate-500">{profile.location} · {profile.email}</p>
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Share your world in 360</h3>
@@ -222,12 +373,29 @@ export function PublicPortfolioView() {
               Turn this dead-end into your next discovery by publishing your own panorama.
             </p>
           </div>
-          <button className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
+          <button onClick={() => setUploadOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
             Upload your own 360 →
           </button>
         </div>
       </div>
 
+      {detail && (
+        <DetailModal
+          item={detail}
+          onClose={() => setDetail(null)}
+          onExplore={() => {
+            setExploring(detail)
+            setDetail(null)
+          }}
+        />
+      )}
+      {exploring && (
+        <PublicViewerModal
+          title={exploring.title}
+          panorama={exploring.panorama}
+          onClose={() => setExploring(null)}
+        />
+      )}
       <FloatingNav />
     </div>
   )

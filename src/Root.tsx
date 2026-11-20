@@ -1,5 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import App from "./App"
+import { AuthModal } from "./components/auth/AuthModal"
+import { UploadModal } from "./components/auth/UploadModal"
+import { AppProvider, useApp } from "./context/AppContext"
 import { currentView, type View } from "./lib/navigation"
 
 const DashboardView = lazy(() =>
@@ -7,6 +10,9 @@ const DashboardView = lazy(() =>
 )
 const PublicPortfolioView = lazy(() =>
   import("./views/PublicPortfolioView").then((m) => ({ default: m.PublicPortfolioView })),
+)
+const PublicHomeView = lazy(() =>
+  import("./views/PublicHomeView").then((m) => ({ default: m.PublicHomeView })),
 )
 
 function Loader() {
@@ -17,8 +23,9 @@ function Loader() {
   )
 }
 
-export default function Root() {
+function Shell() {
   const [view, setView] = useState<View>(currentView())
+  const { toast } = useApp()
 
   useEffect(() => {
     const onHash = () => setView(currentView())
@@ -26,11 +33,36 @@ export default function Root() {
     return () => window.removeEventListener("hashchange", onHash)
   }, [])
 
-  if (view === "studio") return <App />
-
   return (
-    <Suspense fallback={<Loader />}>
-      {view === "dashboard" ? <DashboardView /> : <PublicPortfolioView />}
-    </Suspense>
+    <>
+      {view === "studio" ? (
+        <App />
+      ) : (
+        <Suspense fallback={<Loader />}>
+          {view === "dashboard" ? (
+            <DashboardView />
+          ) : view === "portfolio" ? (
+            <PublicPortfolioView />
+          ) : (
+            <PublicHomeView />
+          )}
+        </Suspense>
+      )}
+      <AuthModal />
+      <UploadModal />
+      {toast && (
+        <div className="pointer-events-none fixed bottom-20 left-1/2 z-[120] -translate-x-1/2 animate-fade-up rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-xs text-zinc-100 shadow-xl">
+          {toast}
+        </div>
+      )}
+    </>
+  )
+}
+
+export default function Root() {
+  return (
+    <AppProvider>
+      <Shell />
+    </AppProvider>
   )
 }

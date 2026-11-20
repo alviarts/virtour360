@@ -1,11 +1,12 @@
-export type View = "studio" | "dashboard" | "portfolio"
+export type View = "home" | "studio" | "dashboard" | "portfolio"
 
 export function currentView(): View {
   const hash = window.location.hash.replace(/^#\/?/, "")
   if (hash.startsWith("dashboard")) return "dashboard"
-  if (hash.startsWith("studio") || hash === "") return "studio"
+  if (hash.startsWith("studio")) return "studio"
   if (hash.startsWith("portfolio")) return "portfolio"
-  return "studio"
+  if (hash.startsWith("home") || hash === "") return "home"
+  return "home"
 }
 
 export function navigate(view: View) {
