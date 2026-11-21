@@ -40,6 +40,22 @@ function openDB(): Promise<IDBDatabase> {
   })
 }
 
+/** Hapus semua data lokal — dipakai saat identitas akun berganti. */
+export async function clearAllLocalData(): Promise<void> {
+  const db = await openDB()
+  await Promise.all(
+    [STORE, ASSET_STORE].map(
+      (name) =>
+        new Promise<void>((resolve, reject) => {
+          const tx = db.transaction(name, "readwrite")
+          tx.objectStore(name).clear()
+          tx.oncomplete = () => resolve()
+          tx.onerror = () => reject(tx.error)
+        }),
+    ),
+  )
+}
+
 export async function savePanorama(item: StoredPanorama): Promise<void> {
   const db = await openDB()
   return new Promise((resolve, reject) => {

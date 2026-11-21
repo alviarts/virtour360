@@ -17,6 +17,7 @@ export function Logo360({ tone = "pink", showText = true, size = 30, className =
     <span className={`inline-flex shrink-0 items-center gap-2 ${className}`}>
       <svg width={size} height={size} viewBox="0 0 40 40" fill="none" aria-hidden="true">
         <ellipse
+          className="globe-spin"
           cx="20"
           cy="20"
           rx="18"

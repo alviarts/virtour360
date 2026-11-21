@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react"
 import {
-  ChevronDown,
   Gift,
   Grid2X2,
   List,
@@ -17,7 +16,7 @@ import { Logo360 } from "../components/ui/Logo360"
 import { navigate } from "../lib/navigation"
 import type { Scene } from "../types/tour"
 
-const navItems = ["Project", "Media", "Tools", "Promotion", "Enterprise"]
+const navItems = ["Project", "Media", "Portofolio"]
 
 function BrandLogo() {
   return (
@@ -154,16 +153,16 @@ export function DashboardView() {
               {navItems.map((item) => (
                 <button
                   key={item}
-                  onClick={() => notify(item === "Project" ? "Anda sedang di halaman Project." : `Menu ${item} tidak tersedia di mode lokal (butuh backend).`)}
-                  className={`relative h-8 items-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap transition-colors ${item === "Tools" || item === "Enterprise" ? "hidden lg:flex" : "flex"} ${
+                  onClick={() => {
+                    if (item === "Project") notify("Anda sedang di halaman Project.")
+                    else if (item === "Media") setUploadOpen(true)
+                    else navigate("portfolio")
+                  }}
+                  className={`relative flex h-8 items-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap transition-colors ${
                     item === "Project" ? "bg-zinc-800 text-zinc-50" : "text-zinc-300 hover:bg-white/5"
                   }`}
                 >
                   {item}
-                  {item === "Tools" && <ChevronDown size={12} />}
-                  {item === "Promotion" && (
-                    <span className="grid size-4 place-items-center rounded-full bg-amber-400 text-[9px] font-bold text-black">3</span>
-                  )}
                 </button>
               ))}
             </nav>
@@ -276,7 +275,7 @@ export function DashboardView() {
 
         {tab === "studio" ? (
           visible.length ? (
-            <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-6" : "flex max-w-[720px] flex-col gap-3"}`}>
+            <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-8" : "flex max-w-[720px] flex-col gap-3"}`}>
               {visible.map((scene) => (
                 <ProjectCard
                   key={scene.id}
@@ -294,7 +293,7 @@ export function DashboardView() {
             </div>
           )
         ) : visible.length ? (
-          <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-6" : "flex max-w-[720px] flex-col gap-3"}`}>
+          <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-8" : "flex max-w-[720px] flex-col gap-3"}`}>
             {visible.map((scene) => (
               <ProjectCard
                 key={scene.id}

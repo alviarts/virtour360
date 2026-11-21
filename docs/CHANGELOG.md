@@ -68,6 +68,27 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Revisi besar: hero 360, contoh gratis, fresh account, workflow public
+- **Hero**: latar panorama 360° bergerak pelan (`slow-pan` 90s, redup + blur)
+  dan logo global berputar (`globe-spin` 24s); keduanya mati dengan prefers-reduced-motion.
+- **Pencarian**: efek mengetik bergilir pada placeholder saat kolom kosong.
+- **Header publik**: tombol "Masuk" tanpa kata "opsional"; notifikasi & avatar
+  hanya tampil setelah login.
+- **3 contoh 360 gratis** (`src/data/examples.ts`): ruang publik → apartemen →
+  terrace, dirangkai sebagai tur 3 scene dengan alur panah kuning.
+- **Viewer publik** sekarang multi-scene (VirtualTourPlugin + marker info) dengan
+  navigasi ← →, counter "1 / 3 scene", dan klik hotspot panah pindah layer.
+- **Hotspot editor**: pilih jenis (Info/Karya/Pindah layer/Tautan) + tombol cepat
+  "Set ke layer berikutnya".
+- **Akun baru fresh**: `virtour360.owner` + `resetWorkspaceIfOwnerChanged()`
+  membersihkan hotspot/media/favorit/efek & IndexedDB saat identitas berganti.
+- **Dashboard**: nav disederhanakan jadi Project / Media / Portofolio (tanpa
+  menu komersial), gap antar kartu project 32px.
+- **Bug fix**: `exampleScenes` & `sourceScenes` di-memo agar viewer tidak
+  destroy/recreate terus-menerus (penyebab panorama ERR_ABORTED).
+- Verifikasi browser: hero + globe + typing tampil, viewer 3 scene jalan &
+  pindah scene (2/3), dashboard gated, console error 0.
+
 ## 2026-11-22 — Portofolio per kreator (explore orang lain)
 - `src/data/creators.ts`: daftar kreator contoh dipindah dari Home ke file bersama.
 - `navigation.ts`: `navigateCreator(id)` + `creatorFromHash()`; route `#/portfolio/<id>`.

@@ -5,6 +5,7 @@ import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/AppContext"
 import { navigate, navigateCreator } from "../lib/navigation"
 import { LOCAL_CREATORS } from "../data/creators"
+import { buildExampleScenes } from "../data/examples"
 import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 
 const ITEMS = [
@@ -19,11 +20,45 @@ const ITEMS = [
 const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
 
 export function PublicHomeView() {
-  const { user, setAuthOpen, favorites, toggleFavorite } = useApp()
+  const { user, setAuthOpen, favorites, toggleFavorite, notify } = useApp()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("Semua")
   const [exploring, setExploring] = useState<(typeof ITEMS)[number] | null>(null)
   const [publicData, setPublicData] = useState<PublicPayload | null>(null)
+  const [typed, setTyped] = useState("")
+  const exampleScenes = useMemo(() => buildExampleScenes(), [])
+
+  // Efek mengetik pada kolom pencarian saat kosong.
+  useEffect(() => {
+    if (query) {
+      setTyped("")
+      return
+    }
+    const phrases = [
+      "Cari panorama, tempat, atau kreator…",
+      "Cari Apartemen 360°…",
+      "Cari ruang publik…",
+    ]
+    let phrase = 0
+    let char = 0
+    let deleting = false
+    const timer = window.setInterval(() => {
+      const full = phrases[phrase]
+      if (!deleting) {
+        char += 1
+        setTyped(full.slice(0, char))
+        if (char >= full.length) deleting = true
+      } else {
+        char -= 1
+        setTyped(full.slice(0, Math.max(0, char)))
+        if (char <= 0) {
+          deleting = false
+          phrase = (phrase + 1) % phrases.length
+        }
+      }
+    }, 80)
+    return () => window.clearInterval(timer)
+  }, [query])
 
   useEffect(() => {
     let alive = true
@@ -96,18 +131,40 @@ export function PublicHomeView() {
           >
             <Compass size={13} /> Studio
           </button>
-          <button onClick={() => setAuthOpen(true)} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500" title="Notifikasi">
-            <Bell size={15} />
-          </button>
-          <button onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))} className="h-9 rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">
-            {user?.name ?? "Masuk (opsional)"}
+          {user && (
+            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500" title="Notifikasi">
+              <Bell size={15} />
+            </button>
+          )}
+          <button
+            onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))}
+            className="h-9 rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700"
+          >
+            {user ? (
+              <span className="flex items-center gap-2">
+                <span className="grid size-5 place-items-center rounded-full bg-amber-100 text-[9px] font-bold text-amber-700">{user.initials}</span>
+                {user.name}
+              </span>
+            ) : (
+              "Masuk"
+            )}
           </button>
         </div>
       </header>
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-slate-200 bg-white px-4 py-24 text-center sm:px-6 lg:px-8 lg:py-32">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(#e2e8f0_1px,transparent_1px),linear-gradient(90deg,#e2e8f0_1px,transparent_1px)] [background-size:32px_32px]" />
+        {/* Panorama 360° bergerak pelan sebagai latar — sengaja redup agar teks tetap jelas */}
+        <div
+          className="hero-360 pointer-events-none absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage: "url(/media/panoramas/key-biscayne-1.jpg)",
+            backgroundSize: "200% 100%",
+            filter: "blur(2px) saturate(0.7)",
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/40 via-white/70 to-white" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.25] [background-image:linear-gradient(#e2e8f0_1px,transparent_1px),linear-gradient(90deg,#e2e8f0_1px,transparent_1px)] [background-size:32px_32px]" />
         <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-[520px] -translate-x-1/2 rounded-full bg-cyan-200/30 blur-3xl" />
         <div className="relative mx-auto max-w-2xl">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-semibold text-cyan-700">
@@ -122,12 +179,19 @@ export function PublicHomeView() {
           </p>
           <div className="mx-auto mt-7 flex h-12 max-w-lg items-center gap-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm">
             <Search size={17} className="shrink-0 text-slate-400" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari panorama, tempat, atau kreator…"
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
-            />
+            <div className="relative min-w-0 flex-1">
+              {!query && (
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-slate-400">
+                  {typed}<span className="typing-caret">|</span>
+                </span>
+              )}
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Cari panorama, tempat, atau kreator"
+                className="relative min-w-0 w-full bg-transparent text-sm text-slate-800 outline-none"
+              />
+            </div>
             <button onClick={() => scrollTo("home-explore")} className="h-8 shrink-0 rounded-full bg-slate-900 px-4 text-xs font-semibold text-white">
               Cari
             </button>
@@ -300,7 +364,13 @@ export function PublicHomeView() {
       </div>
 
       {exploring && (
-        <PublicViewerModal title={exploring.title} panorama={exploring.panorama} onClose={() => setExploring(null)} />
+        <PublicViewerModal
+          title={exploring.title}
+          panorama={exploring.panorama}
+          scenes={exampleScenes}
+          sceneId={exploring.id}
+          onClose={() => setExploring(null)}
+        />
       )}
     </div>
   )

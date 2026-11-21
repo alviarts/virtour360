@@ -13,6 +13,7 @@ import { scenes as staticScenes } from "../data/scenes"
 import {
   deleteAsset,
   deleteAssetsForScene,
+  clearAllLocalData,
   deletePanorama,
   getAssets,
   getPanoramas,
@@ -108,6 +109,7 @@ const AppContext = createContext<AppContextValue | null>(null)
 const USERS_KEY = "virtour360.users"
 const SESSION_KEY = "virtour360.session"
 const GUEST_KEY = "virtour360.guestId"
+const OWNER_KEY = "virtour360.owner"
 const HOTSPOTS_KEY = "virtour360.hotspots"
 const MEDIA_KEY = "virtour360.media"
 const FAVORITES_KEY = "virtour360.favorites"
@@ -154,6 +156,23 @@ async function authRequest(action: string, payload: Record<string, unknown>) {
   } catch {
     return { ok: false, error: "Gagal terhubung ke server." }
   }
+}
+
+/**
+ * Akun berbeda tidak boleh mewarisi scene/hotspot/audio akun sebelumnya.
+ * Bersihkan data lokal bila pemiliknya berubah.
+ */
+async function resetWorkspaceIfOwnerChanged(email: string): Promise<boolean> {
+  const previous = localStorage.getItem(OWNER_KEY)
+  localStorage.setItem(OWNER_KEY, email)
+  if (!previous || previous === email) return false
+  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY].forEach((key) => localStorage.removeItem(key))
+  try {
+    await clearAllLocalData()
+  } catch {
+    /* abaikan */
+  }
+  return true
 }
 
 /** Identitas tamu stabil di browser ini — tidak perlu login. */
@@ -353,8 +372,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!result.ok) return result.error || "Gagal mendaftar."
       if (result.token) setAuthToken(result.token)
       const session = result.user as User
+      const didReset = await resetWorkspaceIfOwnerChanged(session.email)
       localStorage.setItem(SESSION_KEY, JSON.stringify(session))
       setUser(session)
+      if (didReset) {
+        setPanoramas([])
+        setHotspotOverrides({})
+        setMediaOverrides({})
+        setFavorites([])
+        setEffectsByScene({})
+      }
       return null
     }
     const users = readUsers()
@@ -365,8 +392,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const next: StoredUser = { name: name.trim(), email: email.trim(), password, initials: makeInitials(name) }
     localStorage.setItem(USERS_KEY, JSON.stringify([...users, next]))
     const session: User = { name: next.name, email: next.email, initials: next.initials }
+    const didReset = await resetWorkspaceIfOwnerChanged(session.email)
     localStorage.setItem(SESSION_KEY, JSON.stringify(session))
     setUser(session)
+    if (didReset) {
+      setPanoramas([])
+      setHotspotOverrides({})
+      setMediaOverrides({})
+      setFavorites([])
+      setEffectsByScene({})
+    }
     return null
   }, [])
 
@@ -376,16 +411,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!result.ok) return result.error || "Gagal masuk."
       if (result.token) setAuthToken(result.token)
       const session = result.user as User
+      const didReset = await resetWorkspaceIfOwnerChanged(session.email)
       localStorage.setItem(SESSION_KEY, JSON.stringify(session))
       setUser(session)
+      if (didReset) {
+        setPanoramas([])
+        setHotspotOverrides({})
+        setMediaOverrides({})
+        setFavorites([])
+        setEffectsByScene({})
+      }
       return null
     }
     const found = readUsers().find((u) => u.email.toLowerCase() === email.trim().toLowerCase())
     if (!found) return "Akun tidak ditemukan. Silakan daftar dulu."
     if (found.password !== password) return "Password salah."
     const session: User = { name: found.name, email: found.email, initials: found.initials }
+    const didReset = await resetWorkspaceIfOwnerChanged(session.email)
     localStorage.setItem(SESSION_KEY, JSON.stringify(session))
     setUser(session)
+    if (didReset) {
+      setPanoramas([])
+      setHotspotOverrides({})
+      setMediaOverrides({})
+      setFavorites([])
+      setEffectsByScene({})
+    }
     return null
   }, [])
 

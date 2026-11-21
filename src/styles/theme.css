@@ -46,3 +46,40 @@ button { cursor: pointer; }
 }
 
 .animate-fade-up { animation: fade-up 260ms ease-out both; }
+
+/* Hero: panorama 360° bergerak pelan seperti video, tapi redup supaya tidak mengganggu */
+@keyframes slow-pan {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+
+.hero-360 {
+  animation: slow-pan 90s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-360 { animation: none; }
+}
+
+/* Logo global 360° berputar pelan */
+@keyframes slow-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.globe-spin {
+  transform-origin: center;
+  animation: slow-spin 24s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .globe-spin { animation: none; }
+}
+
+/* Efek mengetik pada placeholder pencarian */
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.typing-caret { animation: caret-blink 1s step-end infinite; }

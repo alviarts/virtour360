@@ -334,6 +334,33 @@ export function RightPanel({
                 </div>
 
                 <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                  Jenis hotspot
+                  <select
+                    value={selectedHotspot.type}
+                    onChange={(e) => onUpdateHotspot(selectedHotspot.id, { type: e.target.value as Hotspot["type"] })}
+                    className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                  >
+                    <option value="info">Info</option>
+                    <option value="project">Karya</option>
+                    <option value="scene">Pindah ke layer</option>
+                    <option value="link">Tautan</option>
+                  </select>
+                </label>
+
+                {selectedHotspot.type === "scene" && scenes.length > 1 && (
+                  <button
+                    onClick={() => {
+                      const index = scenes.findIndex((s) => s.id === scene.id)
+                      const next = scenes[(index + 1) % scenes.length]
+                      onUpdateHotspot(selectedHotspot.id, { targetSceneId: next.id })
+                    }}
+                    className="flex h-8 items-center justify-center gap-2 rounded-lg border border-sky-500/40 bg-sky-500/10 text-[11px] font-medium text-sky-300 hover:bg-sky-500/20"
+                  >
+                    <ArrowUpRight size={12} /> Set ke layer berikutnya
+                  </button>
+                )}
+
+                <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
                   Judul
                   <input
                     value={title}

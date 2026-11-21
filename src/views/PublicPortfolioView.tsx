@@ -102,11 +102,13 @@ function Header({
         <button onClick={() => (userName ? navigate("studio") : onLogin())} className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]">
           <Compass size={13} /> Studio
         </button>
-        <button onClick={() => notify("Belum ada notifikasi (fitur perlu backend).")} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500">
-          <Bell size={15} />
-        </button>
+        {userName && (
+          <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500">
+            <Bell size={15} />
+          </button>
+        )}
         <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">
-          {userName ?? "Masuk (opsional)"}
+          {userName ?? "Masuk"}
         </button>
       </div>
     </header>
@@ -289,7 +291,10 @@ export function PublicPortfolioView() {
   }, [])
 
   // Pengunjung melihat data hasil publish; fallback ke data lokal.
-  const sourceScenes = publicData?.scenes?.length ? publicData.scenes : scenes
+  const sourceScenes = useMemo(
+    () => (publicData?.scenes?.length ? publicData.scenes : scenes),
+    [publicData, scenes],
+  )
   const uploaded = sourceScenes.filter((s) => s.id.startsWith("pano-"))
   const basePosts: CardItem[] = useMemo(
     () => [
@@ -523,6 +528,8 @@ export function PublicPortfolioView() {
         <PublicViewerModal
           title={exploring.title}
           panorama={exploring.panorama}
+          scenes={exploring.sceneId ? sourceScenes : undefined}
+          sceneId={exploring.sceneId ?? undefined}
           onClose={() => setExploring(null)}
         />
       )}
