@@ -68,6 +68,13 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Tanpa kata komersial/premium
+- Proyek ditegaskan sebagai **portofolio pribadi untuk teman**, bukan produk berbayar.
+- Teks "Premium/Advanced", "Trial left", "Policy update / unsubscribing", dan "Hadiah harian"
+  di Dashboard & Public Portfolio diganti menjadi "Portofolio Pribadi", "Catatan — untuk teman",
+  dan ucapan sederhana.
+- PLAN.md & VALIDATION.md diselaraskan (fitur langganan/pembayaran tidak dipakai).
+
 ## 2026-11-22 — Seed 5 user dummy & panorama 360° gratis
 - `scripts/seed-supabase.mjs`: bootstrap schema + 5 user dummy (password `demo1234`)
   + payload publik `virtour:public` berisi 5 kreator dengan panorama gratis

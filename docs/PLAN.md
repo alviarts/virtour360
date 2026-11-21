@@ -1,9 +1,9 @@
 ﻿# Rencana — Virtour360 Studio & Virtual Tour 360°
 
 ## Tujuan
-Membangun website portofolio berupa **360° virtual tour interaktif** dengan tampilan
-studio/editor dark-premium (dark, tipografi Inter,
-panel zinc, aksen amber/blue/pink), dengan konten portofolio ourselves.
+Membangun website **portofolio pribadi 360° untuk teman** — bukan produk komersial,
+tanpa langganan maupun pembayaran. Tampilan studio/editor gelap (tipografi Inter,
+panel zinc, aksen amber/blue/pink) dengan konten portofolio ourselves.
 
 ## Tiga permukaan (hasil analisis lanjutan)
 Setelah login, referensi diperluas menjadi tiga tampilan yang harus direplikasi:
@@ -11,9 +11,9 @@ Setelah login, referensi diperluas menjadi tiga tampilan yang harus direplikasi:
 1. **Studio / Editor** — halaman editor scene
    Top bar 56px, sidebar 240px, inspector 260px, mini-map, toolbar pill.
 2. **Dashboard Projects** — halaman dashboard proyek
-   Top nav 64px (logo pink, menu Project/Media/Tools/Promotion/Enterprise, trial pill amber,
+   Top nav 64px (logo pink, menu Project/Media/Tools, pill "Portofolio Pribadi",
    Changelog, New Project pink), subheader Live/Studio, grid/list toggle, filter All, search,
-   kartu project dengan badge "Published" hijau, notifikasi "Policy update", tombol gift.
+   kartu project dengan badge "Published" hijau, catatan "Portofolio untuk teman", tombol ucapan.
 3. **Public Portfolio** — halaman publik setelah publish (dari "View Public Profile")
    Theme terang, header putih (Search ⌘K, Create cyan, Studio pink), profil + statistik
    (Posts/Tours/Views/Likes), grid "360° posts" 4 kolom, banner promo pink, grid

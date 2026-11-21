@@ -170,8 +170,8 @@ export function DashboardView() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => notify("Masa trial aktif: 7d 10h 5m 12s.")} className="hidden h-6 items-center rounded-full bg-amber-400 px-2.5 text-[11px] font-semibold text-black whitespace-nowrap md:flex">
-              7d 10h 5m 12s Trial left
+            <button onClick={() => notify("Portofolio pribadi — dibuat untuk teman.")} className="hidden h-6 items-center rounded-full bg-amber-400 px-2.5 text-[11px] font-semibold text-black whitespace-nowrap md:flex">
+              Portofolio Pribadi
             </button>
             <button onClick={() => notify("Changelog: peningkatan viewer & upload 360.")} className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-700 px-3 text-xs whitespace-nowrap text-zinc-200 hover:bg-white/5 lg:flex">
               <Sparkles size={13} /> Changelog
@@ -302,18 +302,18 @@ export function DashboardView() {
       {showNotice && (
         <div className="fixed bottom-8 right-8 z-30 w-[310px] animate-fade-up rounded-xl border border-zinc-800 bg-zinc-900/95 p-4 shadow-2xl">
           <div className="flex items-start justify-between">
-            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-semibold text-black">Policy update</span>
+            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-semibold text-black">Catatan</span>
             <button onClick={() => setShowNotice(false)} className="text-zinc-500 hover:text-zinc-200"><X size={13} /></button>
           </div>
-          <h3 className="mt-3 text-sm font-semibold text-zinc-50">Changes after unsubscribing</h3>
+          <h3 className="mt-3 text-sm font-semibold text-zinc-50">Portofolio untuk teman</h3>
           <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-            From Oct 1/2026, premium features may be disabled or adjusted to Free plan limits.
+            Tempat berbagi karya 360° dengan teman dekat — dibuat dengan senang.
           </p>
-          <button onClick={() => notify("Kebijakan berlaku mulai 1 Oktober 2026.")} className="mt-3 text-xs font-semibold text-zinc-100 hover:text-white">Learn more</button>
+          <button onClick={() => notify("Dibuat dengan senang untuk teman-teman.")} className="mt-3 text-xs font-semibold text-zinc-100 hover:text-white">Selengkapnya</button>
         </div>
       )}
 
-      <button onClick={() => notify("Hadiah harian tersedia besok.")} className="fixed bottom-6 left-6 z-30 grid size-10 place-items-center rounded-full bg-amber-500 text-black shadow-lg" title="Hadiah harian">
+      <button onClick={() => notify("Terima kasih sudah mampir!")} className="fixed bottom-6 left-6 z-30 grid size-10 place-items-center rounded-full bg-amber-500 text-black shadow-lg" title="Ucapan untuk teman">
         <Gift size={17} />
       </button>
     </div>

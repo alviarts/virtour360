@@ -417,10 +417,10 @@ export function PublicPortfolioView() {
           </div>
           <div className="flex w-3/5 flex-col justify-center bg-[#d1005c] px-5 py-5 text-white">
             <p className="text-sm font-bold leading-snug">
-              Publish Advanced &amp; Premium Virtual Tours in Virtour360 Studio
+              Karya 360° untuk teman — dibuat dengan senang, tanpa biaya.
             </p>
-            <button onClick={() => navigate("studio")} className="mt-3 w-fit rounded border border-white/60 px-3 py-1.5 text-[10px] font-semibold tracking-wide">
-              EXPLORE NOW →
+            <button onClick={() => navigate("home")} className="mt-3 w-fit rounded border border-white/60 px-3 py-1.5 text-[10px] font-semibold tracking-wide">
+              JELAJAHI →
             </button>
           </div>
         </div>

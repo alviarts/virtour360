@@ -75,7 +75,10 @@ Build: `npm run build` sukses, `node --check` seluruh `api/*.js` sukses, console
 | Levelling, Nadir, Quick/Custom Fix, Filter, Day-to-Dusk, Sun light | ✅ (nyata) | efek CSS + roll yang berfungsi & tersimpan | **Setara secara fungsional** (bukan pixel-level image processing) |
 | AI Edit 360 | ✅ | **dihapus** | **Tidak ada** — butuh model AI |
 | Model 3D, Grid, Analitik | ✅ | **dihapus** | **Tidak ada** — butuh aset 3D/backend |
-| Multi-user tim, promosi, trial, pembayaran | ✅ | informasi/toast | **Tidak setara** — butuh backend penuh |
+
+Catatan: proyek ini **bukan produk berlangganan/komersial** — ditujukan sebagai
+portofolio pribadi untuk teman, jadi fitur promosi/trial/pembayaran sengaja tidak ada.
+| Multi-user, promosi, trial, pembayaran | — | **tidak dipakai** (portofolio pribadi untuk teman) | **Sesuai kebutuhan** |
 
 ## 3. Perbaikan yang dilakukan pada sesi validasi
 - Mini-map: ditambahkan titik hotspot sesuai posisi yaw/pitch (sebelumnya hanya garis pandang).
@@ -92,9 +95,8 @@ Sinkron lintas device hanya aktif jika mode server Supabase dikonfigurasi.
 
 ## 5. Kesimpulan
 Untuk cakupan **editor 360°, struktur UI, hotspot, scene, upload, public view, dan akun**,
-Virtour360 sudah setara dengan referensi secara visual dan fungsional.
-Untuk cakupan **AI/image processing, 3D, analitik, dan fitur komersial**, masih tertinggal
-dan memerlukan backend/service eksternal.
+Virtour360 sudah setara dengan referensi secara visual dan fungsional — sesuai kebutuhan
+sebagai portofolio pribadi untuk teman.
 
 ## 6. Cara mengulang validasi
 ```bash
