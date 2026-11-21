@@ -115,7 +115,7 @@ export function PublicHomeView() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-slate-200 bg-white px-6 py-16 text-center">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white px-4 py-24 text-center sm:px-6 lg:px-8 lg:py-32">
         <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(#e2e8f0_1px,transparent_1px),linear-gradient(90deg,#e2e8f0_1px,transparent_1px)] [background-size:32px_32px]" />
         <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-[520px] -translate-x-1/2 rounded-full bg-cyan-200/30 blur-3xl" />
         <div className="relative mx-auto max-w-2xl">
@@ -149,9 +149,9 @@ export function PublicHomeView() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-[1120px] px-6 pb-28">
+      <main className="mx-auto max-w-[1120px] px-4 pb-28 sm:px-6 lg:px-8">
         {/* Trending */}
-        <section id="home-explore" className="pt-10">
+        <section id="home-explore" className="pt-16">
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Trending panoramas</h2>
@@ -162,7 +162,7 @@ export function PublicHomeView() {
             </button>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
             {results.map((item) => {
               const favorite = favorites.includes(item.id)
               return (
@@ -181,7 +181,7 @@ export function PublicHomeView() {
                     <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
                     <span className="pointer-events-none absolute bottom-2 right-2 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] text-white">{item.views} views</span>
                   </div>
-                  <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center justify-between p-4">
                     <button onClick={() => setExploring(item)} className="min-w-0 truncate text-left text-xs font-semibold text-slate-800 hover:text-slate-950">{item.title}</button>
                     <span className="ml-2 shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">{item.category}</span>
                   </div>
@@ -195,7 +195,7 @@ export function PublicHomeView() {
         </section>
 
         {/* Banyak user / kreator — 1 post gambar untuk 1 user (dari database jika ada) */}
-        <section id="home-creators" className="mt-12">
+        <section id="home-creators" className="mt-16">
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Kreator &amp; karya mereka</h2>
@@ -209,7 +209,7 @@ export function PublicHomeView() {
               {(publicData?.creators?.length ?? CREATORS.length)} kreator
             </span>
           </div>
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
             {(publicData?.creators?.length
               ? publicData.creators.map((creator) => ({
                   id: creator.id,
@@ -239,7 +239,7 @@ export function PublicHomeView() {
                     </button>
                     <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
                   </div>
-                  <div className="flex items-center gap-3 p-3">
+                  <div className="flex items-center gap-3 p-4">
                     <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${creator.color}`}>
                       {creator.initials}
                     </span>
@@ -258,7 +258,7 @@ export function PublicHomeView() {
         </section>
 
         {/* Kategori */}
-        <section id="home-categories" className="mt-12">
+        <section id="home-categories" className="mt-16">
           <h2 className="text-lg font-bold text-slate-900">Jelajahi berdasarkan kategori</h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {CATEGORIES.map((item) => (
@@ -276,7 +276,7 @@ export function PublicHomeView() {
         </section>
 
         {/* CTA */}
-        <div className="mt-12 flex flex-col items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center">
+        <div className="mt-16 flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center">
           <div className="flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-50 text-[#d1005c]"><MapPin size={19} /></span>
             <div>

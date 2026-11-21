@@ -118,7 +118,7 @@ export function DashboardView() {
   const [source, setSource] = useState<"all" | "uploaded" | "static">("all")
   const [category, setCategory] = useState<"all" | "360" | "tour">("all")
   const [accountOpen, setAccountOpen] = useState(false)
-  const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify } = useApp()
+  const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites } = useApp()
 
   const projects = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -209,8 +209,23 @@ export function DashboardView() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1400px] px-8 py-3">
-        <div className="flex flex-col justify-between gap-4 py-3 sm:flex-row sm:items-center">
+      <main className="mx-auto max-w-[1400px] px-4 py-3 min-[112.5rem]:max-w-[1640px] sm:px-6 lg:px-8">
+        {/* KPI strip — ringkasan portofolio pribadi */}
+        <div className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-3">
+          {[
+            { label: "Proyek", value: String(scenes.length), hint: "scene dalam portofolio" },
+            { label: "Dipublikasikan", value: String(scenes.filter((s) => s.id.startsWith("pano-")).length), hint: "karya dari upload" },
+            { label: "Favorit", value: String(favorites.length), hint: "disimpan pengunjung" },
+          ].map((kpi) => (
+            <div key={kpi.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+              <p className="text-xs font-medium text-zinc-400">{kpi.label}</p>
+              <p className="mt-2 text-3xl font-bold tracking-tight text-zinc-50">{kpi.value}</p>
+              <p className="mt-1 text-[10px] text-zinc-600">{kpi.hint}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2">
             <div className="flex rounded-md border border-zinc-800 p-0.5">
               {(["live", "studio"] as const).map((item) => (
@@ -261,7 +276,7 @@ export function DashboardView() {
 
         {tab === "studio" ? (
           visible.length ? (
-            <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,248px)] gap-4" : "flex max-w-[720px] flex-col gap-2"}`}>
+            <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-6" : "flex max-w-[720px] flex-col gap-3"}`}>
               {visible.map((scene) => (
                 <ProjectCard
                   key={scene.id}
@@ -279,7 +294,7 @@ export function DashboardView() {
             </div>
           )
         ) : visible.length ? (
-          <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,248px)] gap-4" : "flex max-w-[720px] flex-col gap-2"}`}>
+          <div className={`pt-2 ${view === "grid" ? "grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-6" : "flex max-w-[720px] flex-col gap-3"}`}>
             {visible.map((scene) => (
               <ProjectCard
                 key={scene.id}

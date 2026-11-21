@@ -68,6 +68,19 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Skill design layout terpasang & diterapkan
+- Install skill via `npx skills add`: `wensity-layout`, `wensity-typography`,
+  `wensity-ui-copy`, `dashboard-design` di `.agents/skills/` (kompatibel OpenCode).
+- Flag Snyk "Critical" pada dashboard-design ternyata false positive (kata "token"
+  yang dimaksud design token) — isi skill hanya markdown, tanpa script/perintah.
+- Terapan prinsip skill:
+  - SkalaSpacing 4px, gutter 16/24/32px, hero padding 128px.
+  - Grouping by distance: heading 64px di atas, 24px ke grid; gap kartu 24px.
+  - Auto-fill grid `minmax(min(100%, 280px), 1fr)` — tidak overflow di 1062px.
+  - Satu start edge & konten dibatasi 1120px (Home), 1400→1640px (Dashboard).
+  - Dashboard: KPI strip "Proyek / Dipublikasikan / Favorit" + grid auto-fill 248px.
+- Verifikasi browser: `scrollWidth === innerWidth` (1062), console error 0.
+
 ## 2026-11-22 — Studio & Dashboard khusus login
 - `src/components/auth/LoginRequired.tsx` (baru): halaman pengunci untuk route privat
   dengan tombol "Masuk sekarang" dan "Kembali ke publik".

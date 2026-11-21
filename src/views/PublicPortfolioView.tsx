@@ -309,7 +309,7 @@ export function PublicPortfolioView() {
       <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} />
       <ProfileHeader name={displayName} initials={displayInitials} postCount={posts.length} tourCount={tours.length} likes={favorites.length} />
 
-      <div className="mx-auto max-w-[1200px] px-6 pb-28">
+      <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
         {/* Struktur folder hasil publish: Project → Scenes */}
         {!!publicData?.folders?.length && (
           <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-folders">
@@ -347,7 +347,7 @@ export function PublicPortfolioView() {
                       <ChevronDown size={15} className={`shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
                     </button>
                     {open && (
-                      <div className="animate-fade-up grid grid-cols-2 gap-3 border-t border-slate-100 p-3 md:grid-cols-3">
+                      <div className="animate-fade-up grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-4 border-t border-slate-100 p-4">
                         {scenes.map((scene) => (
                           <Card
                             key={scene.id}
@@ -390,7 +390,7 @@ export function PublicPortfolioView() {
 
         <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-explore">
           <SectionTitle>360° posts by {displayInitials}</SectionTitle>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-6">
             {shownPosts.map((item) => (
               <Card
                 key={item.id}
@@ -427,7 +427,7 @@ export function PublicPortfolioView() {
 
         <section className="mt-10 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-tours">
           <SectionTitle>Virtual tours by {displayInitials}</SectionTitle>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
             {shownTours.map((item) => (
               <Card
                 key={item.id}

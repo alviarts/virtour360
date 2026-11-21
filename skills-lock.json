@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "skills": {
+    "dashboard-design": {
+      "source": "abdiraimov-otabek/dashboard-design-skill",
+      "commit": "463b8fdf62c640180ec1ba731f3616c2319bf68c",
+      "sourceType": "github",
+      "skillPath": "skills/dashboard-design/SKILL.md",
+      "computedHash": "785d12f28f9c16b48a4167676d6485830a647b01e0934a4ce53f0ea14cd7a4b1"
+    },
+    "wensity-layout": {
+      "source": "wensity/skills",
+      "commit": "ec90193fb5d7aeb84288a2c552ddd64388dcff58",
+      "sourceType": "github",
+      "skillPath": "skills/wensity-layout/SKILL.md",
+      "computedHash": "08104f7cc1d2c9269a3ed438704b95c315ee979b4ecfe37c42dc550023376380"
+    },
+    "wensity-typography": {
+      "source": "wensity/skills",
+      "commit": "ec90193fb5d7aeb84288a2c552ddd64388dcff58",
+      "sourceType": "github",
+      "skillPath": "skills/wensity-typography/SKILL.md",
+      "computedHash": "4b93a9eafae881dc1cbe4d634da41c95c7dec3c797184bc905288c6de08ec6bc"
+    },
+    "wensity-ui-copy": {
+      "source": "wensity/skills",
+      "commit": "ec90193fb5d7aeb84288a2c552ddd64388dcff58",
+      "sourceType": "github",
+      "skillPath": "skills/wensity-ui-copy/SKILL.md",
+      "computedHash": "885d7806aade7a6a0451209ffa3fd5197a53a47b2298e17e5e7fb58a99d97b12"
+    }
+  }
+}
