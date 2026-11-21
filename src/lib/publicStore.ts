@@ -112,7 +112,12 @@ export async function publishPublicPayload(payload: PublicPayload): Promise<bool
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        payload: { ...payload, folders: buildPublicFolders(payload.scenes) },
+        // Pertahankan daftar kreator hasil seed/publish sebelumnya.
+        payload: {
+          ...payload,
+          creators: payload.creators?.length ? payload.creators : (await loadPublicPayload())?.creators ?? [],
+          folders: buildPublicFolders(payload.scenes),
+        },
       }),
     })
     return response.ok
