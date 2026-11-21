@@ -245,7 +245,7 @@ function FloatingNav() {
 }
 
 export function PublicPortfolioView() {
-  const { scenes, user, setAuthOpen, setUploadOpen, favorites, toggleFavorite } = useApp()
+  const { scenes, user, setAuthOpen, favorites, toggleFavorite } = useApp()
   const [query, setQuery] = useState("")
   const [detail, setDetail] = useState<CardItem | null>(null)
   const [exploring, setExploring] = useState<CardItem | null>(null)
@@ -306,7 +306,7 @@ export function PublicPortfolioView() {
 
   return (
     <div ref={rootRef} id="portfolio-root" className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
-      <Header onCreate={() => setUploadOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} />
+      <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} />
       <ProfileHeader name={displayName} initials={displayInitials} postCount={posts.length} tourCount={tours.length} likes={favorites.length} />
 
       <div className="mx-auto max-w-[1200px] px-6 pb-28">
@@ -463,7 +463,7 @@ export function PublicPortfolioView() {
               Turn this dead-end into your next discovery by publishing your own panorama.
             </p>
           </div>
-          <button onClick={() => setUploadOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
+          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
             Upload your own 360 →
           </button>
         </div>

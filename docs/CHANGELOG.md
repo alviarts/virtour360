@@ -68,6 +68,18 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Revisi komentar user (tamu/public, multi-user, gating, navigasi)
+- **Hapus konsep "tamu"**: semua label UI jadi "publik"/"Kembali ke publik";
+  modal login tidak lagi menawarkan "Lanjut sebagai tamu".
+- **Banyak user di Home**: section baru "Kreator & karya mereka" — 6 kreator,
+  tiap kreator 1 post gambar 360° dengan avatar & jumlah post.
+- **Gating upload**: tombol Create/Upload di Home & Public Portfolio sekarang
+  membuka modal login (publik tidak bisa mengunggah sembarangan); submit upload
+  tanpa user juga dialihkan ke login.
+- **Viewer Studio**: box navigasi "360 berikutnya / sebelumnya" dengan thumbnail
+  & panah, klik untuk pindah scene.
+- **Menu akun Studio**: tambah "Kembali ke Portofolio user" dan "Kembali ke Home".
+
 ## 2026-11-22 — Foldering hasil publish
 - `src/lib/publicStore.ts`: ditambah `PublicFolder` + `buildPublicFolders()` yang
   mengelompokkan scene per **project** (slug dari `project.title`), lengkap dengan

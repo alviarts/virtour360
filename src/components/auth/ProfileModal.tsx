@@ -5,7 +5,7 @@ import { useApp } from "../../context/AppContext"
 type Mode = "profile" | "password"
 
 export function ProfileModal({ onClose }: { onClose: () => void }) {
-  const { user, guestId, updateProfile, changePassword, setAuthOpen, notify } = useApp()
+  const { user, updateProfile, changePassword, setAuthOpen, notify } = useApp()
   const [mode, setMode] = useState<Mode>("profile")
   const [name, setName] = useState(user?.name ?? "")
   const [email, setEmail] = useState(user?.email ?? "")
@@ -56,15 +56,12 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
           <div className="mt-5 flex flex-col items-center gap-3 py-6 text-center">
             <User size={24} className="text-zinc-600" />
             <p className="text-xs leading-relaxed text-zinc-400">
-              Anda sedang dalam <span className="font-semibold text-zinc-200">mode tamu</span>.
-              Semua fitur tetap bisa dipakai tanpa login — data tersimpan di browser ini.
-            </p>
-            <p className="max-w-full truncate rounded border border-zinc-800 px-2 py-1 font-mono text-[10px] text-zinc-600" title={guestId}>
-              ID tamu: {guestId}
+              Anda sedang melihat sebagai <span className="font-semibold text-zinc-200">publik</span>.
+              Masuk diperlukan untuk menyimpan karya dan mengunggah panorama 360°.
             </p>
             <div className="flex w-full gap-2">
               <button onClick={onClose} className="h-9 flex-1 rounded-lg border border-zinc-700 text-xs font-medium text-zinc-300 hover:bg-white/5">
-                Lanjut sebagai tamu
+                Lanjut melihat publik
               </button>
               <button
                 onClick={() => {

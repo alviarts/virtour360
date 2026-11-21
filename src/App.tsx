@@ -223,7 +223,7 @@ export default function App() {
           {accountOpen && (
             <div className="absolute left-2 top-12 z-40 w-52 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl">
               <div className="border-b border-zinc-800 px-2 pb-2">
-                <p className="truncate text-xs font-semibold text-zinc-100">{user?.name ?? "Mode tamu"}</p>
+                <p className="truncate text-xs font-semibold text-zinc-100">{user?.name ?? "Publik"}</p>
                 <p className="truncate text-[10px] text-zinc-500">
                   {user?.email ?? "Data tersimpan di browser ini"}
                 </p>
@@ -236,6 +236,12 @@ export default function App() {
               </button>
               <button onClick={() => { setAccountOpen(false); navigate("dashboard") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Buka Dashboard
+              </button>
+              <button onClick={() => { setAccountOpen(false); navigate("portfolio") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+                Kembali ke Portofolio user
+              </button>
+              <button onClick={() => { setAccountOpen(false); navigate("home") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+                Kembali ke Home
               </button>
               {user ? (
                 <button
@@ -297,6 +303,10 @@ export default function App() {
         inset={preview ? { left: 0, right: 0 } : undefined}
         preview={preview}
         onExitPreview={() => setPreview(false)}
+        prevScene={scenes[(currentIndex - 1 + scenes.length) % scenes.length]}
+        nextScene={scenes[(currentIndex + 1) % scenes.length]}
+        onPrevScene={() => tour.goToScene(scenes[(currentIndex - 1 + scenes.length) % scenes.length].id)}
+        onNextScene={() => tour.goToScene(scenes[(currentIndex + 1) % scenes.length].id)}
         audioName={audioByScene[tour.currentScene.id]?.name}
         onRemoveAudio={() => {
           void removeSceneAudio(tour.currentScene.id).then(() => notify("Audio dihapus."))

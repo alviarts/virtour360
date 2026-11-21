@@ -17,8 +17,18 @@ const ITEMS = [
 
 const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
 
+/** Banyak kreator di halaman publik — tiap kreator punya 1 post gambar 360°. */
+const CREATORS = [
+  { id: "c1", name: "Atrium Studio", initials: "AS", color: "bg-amber-100 text-amber-700", title: "Atrium — The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", posts: 12 },
+  { id: "c2", name: "Ruang Kreatif", initials: "RK", color: "bg-sky-100 text-sky-700", title: "Studio — Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", posts: 8 },
+  { id: "c3", name: "Sunset Living", initials: "SL", color: "bg-rose-100 text-rose-700", title: "Terrace — Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", posts: 21 },
+  { id: "c4", name: "Arda Visual", initials: "AV", color: "bg-emerald-100 text-emerald-700", title: "Living Room 360", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", posts: 5 },
+  { id: "c5", name: "Nusantara Tour", initials: "NT", color: "bg-violet-100 text-violet-700", title: "Trungtamyte", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Outdoor", posts: 14 },
+  { id: "c6", name: "Harbor 360", initials: "H3", color: "bg-cyan-100 text-cyan-700", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", posts: 9 },
+]
+
 export function PublicHomeView() {
-  const { user, setAuthOpen, setUploadOpen, favorites, toggleFavorite } = useApp()
+  const { user, setAuthOpen, favorites, toggleFavorite } = useApp()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("Semua")
   const [exploring, setExploring] = useState<(typeof ITEMS)[number] | null>(null)
@@ -81,7 +91,7 @@ export function PublicHomeView() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setUploadOpen(true)} className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
+          <button onClick={() => setAuthOpen(true)} title="Masuk untuk mengunggah 360°" className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
             <Camera size={13} /> Create
           </button>
           <button onClick={() => navigate("studio")} className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]">
@@ -176,6 +186,46 @@ export function PublicHomeView() {
           )}
         </section>
 
+        {/* Banyak user / kreator — 1 post gambar untuk 1 user */}
+        <section id="home-creators" className="mt-12">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Kreator &amp; karya mereka</h2>
+              <p className="mt-1 text-xs text-slate-500">Satu post 360° untuk setiap kreator — jelajahi semuanya</p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
+              {CREATORS.length} kreator
+            </span>
+          </div>
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {CREATORS.map((creator) => (
+              <div key={creator.id} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <button
+                    onClick={() => setExploring({ id: creator.id, title: creator.title, image: creator.image, panorama: creator.panorama, category: creator.category, views: `${creator.posts} post` })}
+                    className="block h-full w-full"
+                  >
+                    <img src={creator.image} alt={creator.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  </button>
+                  <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
+                </div>
+                <div className="flex items-center gap-3 p-3">
+                  <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${creator.color}`}>
+                    {creator.initials}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <button onClick={() => navigate("portfolio")} className="block max-w-full truncate text-left text-xs font-semibold text-slate-800 hover:text-[#d1005c]">
+                      {creator.name}
+                    </button>
+                    <span className="block truncate text-[10px] text-slate-500">{creator.title}</span>
+                  </span>
+                  <span className="shrink-0 text-[10px] text-slate-400">{creator.posts} post</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Kategori */}
         <section id="home-categories" className="mt-12">
           <h2 className="text-lg font-bold text-slate-900">Jelajahi berdasarkan kategori</h2>
@@ -203,7 +253,7 @@ export function PublicHomeView() {
               <p className="mt-1 text-xs text-slate-500">Unggah dan bagikan karyamu dalam beberapa menit.</p>
             </div>
           </div>
-          <button onClick={() => setUploadOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
+          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
             Upload your own 360 →
           </button>
         </div>

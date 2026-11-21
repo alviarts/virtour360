@@ -44,6 +44,12 @@ export function UploadModal() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
+    if (!user) {
+      close()
+      setAuthOpen(true)
+      notify("Masuk dulu untuk mengunggah panorama 360°.")
+      return
+    }
     if (!file) {
       notify("Pilih file gambar 360° dulu.")
       return
@@ -88,13 +94,13 @@ export function UploadModal() {
         </div>
 
         {!user && (
-          <div className="mt-4 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-[11px] leading-relaxed text-sky-200">
-            <span className="font-semibold">Mode tamu aktif.</span> Anda tetap bisa unggah & mengedit —
-            semua tersimpan di browser ini.{" "}
+          <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+            <span className="font-semibold">Login diperlukan untuk mengunggah.</span> Publik hanya bisa
+            melihat karya.{" "}
             <button type="button" onClick={() => { close(); setAuthOpen(true) }} className="font-semibold underline">
-              Masuk opsional
+              Masuk sekarang
             </button>{" "}
-            kalau ingin diberi nama & disinkron.
+            untuk menyimpan panorama Anda.
           </div>
         )}
 

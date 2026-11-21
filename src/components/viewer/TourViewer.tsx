@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react"
-import { Music2, Pencil, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Music2, Pencil, X } from "lucide-react"
 import { theme } from "../../config/theme"
 import type { HotspotType, Scene } from "../../types/tour"
 import type { ViewState } from "../../hooks/useTourViewer"
@@ -33,6 +33,10 @@ interface TourViewerProps {
   onCancelPlacement?: () => void
   onDraw?: () => void
   onUploadAudio?: () => void
+  prevScene?: Scene
+  nextScene?: Scene
+  onPrevScene?: () => void
+  onNextScene?: () => void
 }
 
 export function TourViewer({
@@ -62,6 +66,10 @@ export function TourViewer({
   onCancelPlacement,
   onDraw,
   onUploadAudio,
+  prevScene,
+  nextScene,
+  onPrevScene,
+  onNextScene,
 }: TourViewerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
@@ -123,6 +131,33 @@ export function TourViewer({
             </button>
           )}
           <audio ref={audioRef} src={scene.audio} onEnded={() => setPlaying(false)} />
+        </div>
+      )}
+
+      {/* Box pindah ke 360 sebelumnya / berikutnya */}
+      {(prevScene || nextScene) && (
+        <div className="pointer-events-auto absolute bottom-20 right-4 z-20 hidden items-center gap-1.5 rounded-xl border border-white/15 bg-black/70 p-1.5 backdrop-blur-md lg:flex">
+          <button
+            onClick={onPrevScene}
+            disabled={!prevScene}
+            title={prevScene ? `Sebelumnya: ${prevScene.name}` : "Tidak ada scene sebelumnya"}
+            className="grid size-8 place-items-center rounded-lg text-zinc-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-30"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={onNextScene}
+            disabled={!nextScene}
+            title={nextScene ? `Berikutnya: ${nextScene.name}` : "Tidak ada scene berikutnya"}
+            className="flex h-10 items-center gap-2 rounded-lg bg-white/10 px-2 text-left transition-colors hover:bg-white/20 disabled:opacity-30"
+          >
+            <img src={(nextScene ?? prevScene)?.thumbnail} alt="" className="size-8 rounded object-cover" />
+            <span className="flex flex-col">
+              <span className="text-[9px] uppercase tracking-wide text-zinc-400">360 berikutnya</span>
+              <span className="max-w-28 truncate text-[11px] font-medium text-white">{(nextScene ?? prevScene)?.name}</span>
+            </span>
+            <ChevronRight size={14} className="text-zinc-300" />
+          </button>
         </div>
       )}
 

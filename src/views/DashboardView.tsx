@@ -185,14 +185,14 @@ export function DashboardView() {
             <div className="relative">
               <button
                 onClick={() => setAccountOpen((v) => !v)}
-                title={user ? "Akun" : "Mode tamu — masuk opsional"}
+                title={user ? "Akun" : "Publik — masuk untuk mengunggah"}
                 className="grid size-8 place-items-center rounded-full bg-orange-400 text-xs font-bold text-black"
               >
                 {(user?.initials ?? "G")[0]}
               </button>
               {accountOpen && (
                 <div className="absolute right-0 top-10 z-30 w-44 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl text-left">
-                  <p className="truncate border-b border-zinc-800 px-2 pb-2 text-[11px] text-zinc-200">{user?.name ?? "Tamu"}</p>
+                  <p className="truncate border-b border-zinc-800 px-2 pb-2 text-[11px] text-zinc-200">{user?.name ?? "Publik"}</p>
                   {user ? (
                     <button onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar.") }} className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10">
                       <LogOut size={12} /> Keluar

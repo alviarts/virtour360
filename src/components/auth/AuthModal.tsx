@@ -140,11 +140,11 @@ export function AuthModal() {
           onClick={() => setAuthOpen(false)}
           className="mt-2 h-9 w-full rounded-lg border border-zinc-700 text-xs font-medium text-zinc-400 hover:bg-white/5 hover:text-zinc-200"
         >
-          Lanjut sebagai tamu (tanpa login)
+          Kembali ke publik
         </button>
 
         <p className="mt-3 text-center text-[10px] leading-relaxed text-zinc-600">
-          Login bersifat opsional. Mode tamu bisa memakai seluruh fitur; data tersimpan di browser ini.
+          Publik bisa melihat karya tanpa login. Masuk diperlukan untuk menyimpan &amp; mengunggah 360°.
         </p>
       </div>
     </div>
