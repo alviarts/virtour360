@@ -41,6 +41,19 @@ Build: `npm run build` sukses (2222 modul).
 3. **Data kreator di DB tertimpa bentuk lama** — `scripts/restore-creators.mjs`
    ditambahkan untuk memulihkan/menyesuaikan bentuk `{ payload, creators }`.
 
+## 3b. QA tambahan (fitur hasil reverse-engineering Panoee), 2026-11-22
+| Fitur | Hasil di produksi |
+|---|---|
+| Buat grup baru "Apartemen" | PASS (localStorage + backend `user:<email>`) |
+| Tombol sort scene ↑/↓ | PASS (6 tombol pada 3 scene) |
+| Select pindah grup per scene | PASS (3 select) |
+| Kualitas gambar Standard/High/Original | PASS (tersimpan `"original"` & tersinkron) |
+| Embed portofolio (kode iframe + copy) | PASS |
+| Reload → grup & kualitas bertahan | PASS |
+| Console error | 0 |
+
+Detail stack & teknik ada di `docs/RESEARCH.md`.
+
 ## 4. Catatan
 - PasswordDB & secret key tidak disimpan di source; hanya env var Vercel / environment variable lokal.
 - Mode server aktif di production; mode lokal (tanpa env) tetap berfungsi penuh.
