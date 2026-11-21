@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import App from "./App"
 import { AuthModal } from "./components/auth/AuthModal"
+import { LoginRequired } from "./components/auth/LoginRequired"
 import { UploadModal } from "./components/auth/UploadModal"
 import { AppProvider, useApp } from "./context/AppContext"
 import { currentView, type View } from "./lib/navigation"
@@ -25,7 +26,8 @@ function Loader() {
 
 function Shell() {
   const [view, setView] = useState<View>(currentView())
-  const { toast } = useApp()
+  const { toast, user } = useApp()
+  const isPrivate = view === "studio" || view === "dashboard"
 
   useEffect(() => {
     const onHash = () => setView(currentView())
@@ -35,7 +37,9 @@ function Shell() {
 
   return (
     <>
-      {view === "studio" ? (
+      {isPrivate && !user ? (
+        <LoginRequired area={view === "studio" ? "Studio" : "Dashboard"} />
+      ) : view === "studio" ? (
         <App />
       ) : (
         <Suspense fallback={<Loader />}>

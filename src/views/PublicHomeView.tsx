@@ -91,10 +91,18 @@ export function PublicHomeView() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setAuthOpen(true)} title="Masuk untuk mengunggah 360°" className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
+          <button
+            onClick={() => (user ? navigate("studio") : setAuthOpen(true))}
+            title={user ? "Buka Studio untuk membuat" : "Masuk untuk membuat 360°"}
+            className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600"
+          >
             <Camera size={13} /> Create
           </button>
-          <button onClick={() => navigate("studio")} className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]">
+          <button
+            onClick={() => (user ? navigate("studio") : setAuthOpen(true))}
+            title={user ? "Buka Studio" : "Masuk untuk membuka Studio"}
+            className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]"
+          >
             <Compass size={13} /> Studio
           </button>
           <button onClick={() => setAuthOpen(true)} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500" title="Notifikasi">

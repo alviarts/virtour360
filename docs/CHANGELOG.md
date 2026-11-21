@@ -68,6 +68,16 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Studio & Dashboard khusus login
+- `src/components/auth/LoginRequired.tsx` (baru): halaman pengunci untuk route privat
+  dengan tombol "Masuk sekarang" dan "Kembali ke publik".
+- `Root.tsx`: `#/studio` dan `#/dashboard` hanya dirender jika `user` ada;
+  jika tidak, tampilkan `LoginRequired`.
+- Tombol "Studio"/"Create" di Home & Portfolio: langsung buka modal login bila
+  belum login, navigasi ke Studio bila sudah login.
+- **Verifikasi**: buka `#/studio` tanpa sesi → gate muncul; login → masuk Studio;
+  Dashboard → logout → gate muncul kembali. Console error 0.
+
 ## 2026-11-22 — Tanpa kata komersial/premium
 - Proyek ditegaskan sebagai **portofolio pribadi untuk teman**, bukan produk berbayar.
 - Teks "Premium/Advanced", "Trial left", "Policy update / unsubscribing", dan "Hadiah harian"
