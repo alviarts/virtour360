@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { X } from "lucide-react"
 import { useApp } from "../../context/AppContext"
+import { navigate } from "../../lib/navigation"
 
 export function AuthModal() {
   const { authOpen, setAuthOpen, login, register, notify } = useApp()
@@ -38,7 +39,12 @@ export function AuthModal() {
     setAuthOpen(false)
     setPassword("")
     setConfirm("")
-    notify(mode === "login" ? "Selamat datang kembali!" : "Akun berhasil dibuat.")
+    notify(
+      mode === "login"
+        ? "Selamat datang kembali! Studio siap digunakan."
+        : "Akun berhasil dibuat. Selamat datang di Studio!",
+    )
+    navigate("studio")
   }
 
   return (

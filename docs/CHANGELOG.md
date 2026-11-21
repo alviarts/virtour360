@@ -68,6 +68,15 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Perbaikan workflow user & public
+- **Workflow user**: setelah register/login berhasil, otomatis navigasi ke `#/studio`
+  dengan toast "Selamat datang di Studio" (sebelumnya modal hanya ditutup).
+- **Workflow public**: Home sekarang memuat `loadPublicPayload()` dan menampilkan
+  panorama hasil tombol **Published** lebih dulu, dengan kategori "Publish";
+  dimuat ulang saat jendela mendapat fokus.
+- **Publish feedback**: toast sukses/gagal saat menekan Published.
+- Validasi browser: daftar → Studio ✅, Published → Portfolio ✅, Publish tampil di Home ✅.
+
 ## 2026-11-21 — Deployment ulang ke GitHub/Vercel
 - Deploy produksi: https://virtour360-lemon.vercel.app
 - Alias lama `portfolio-360-lemon.vercel.app` tetap aktif.

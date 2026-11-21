@@ -179,7 +179,7 @@ export default function App() {
             preview={false}
             onTogglePreview={() => setPreview(true)}
             onPublish={async () => {
-              await publishPublicPayload({
+              const published = await publishPublicPayload({
                 profile: {
                   name: user?.name ?? profile.name,
                   initials: user?.initials ?? profile.initials,
@@ -191,6 +191,11 @@ export default function App() {
                 scenes,
                 updatedAt: new Date().toISOString(),
               })
+              notify(
+                published
+                  ? "Portofolio berhasil dipublikasikan."
+                  : "Mode lokal — portofolio tersimpan di browser ini.",
+              )
               navigate("portfolio")
             }}
           />

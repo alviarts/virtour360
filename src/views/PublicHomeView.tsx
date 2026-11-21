@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Bell, Camera, Compass, Heart, MapPin, Search, Sparkles, User } from "lucide-react"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/AppContext"
 import { navigate } from "../lib/navigation"
+import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 
 const ITEMS = [
   { id: "h1", title: "Atrium — The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "2.4k" },
@@ -14,22 +15,53 @@ const ITEMS = [
   { id: "h6", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", views: "4.7k" },
 ]
 
-const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti"]
+const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
 
 export function PublicHomeView() {
   const { user, setAuthOpen, setUploadOpen, favorites, toggleFavorite } = useApp()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("Semua")
   const [exploring, setExploring] = useState<(typeof ITEMS)[number] | null>(null)
+  const [publicData, setPublicData] = useState<PublicPayload | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    loadPublicPayload().then((data) => {
+      if (alive && data) setPublicData(data)
+    })
+    // Muat ulang setiap kali kembali ke Home setelah publish.
+    const onFocus = () => loadPublicPayload().then((data) => data && setPublicData(data))
+    window.addEventListener("focus", onFocus)
+    return () => {
+      alive = false
+      window.removeEventListener("focus", onFocus)
+    }
+  }, [])
+
+  // Panorama hasil publish tampil lebih dulu di halaman publik.
+  const publishedItems: (typeof ITEMS)[number][] = useMemo(
+    () =>
+      (publicData?.scenes ?? []).map((scene, index) => ({
+        id: `pub-${scene.id}`,
+        title: scene.name,
+        image: scene.thumbnail,
+        panorama: scene.panorama,
+        category: "Publish",
+        views: `${index + 1} scene`,
+      })),
+    [publicData],
+  )
+
+  const allItems = useMemo(() => [...publishedItems, ...ITEMS], [publishedItems])
 
   const results = useMemo(
     () =>
-      ITEMS.filter(
+      allItems.filter(
         (item) =>
           item.title.toLowerCase().includes(query.trim().toLowerCase()) &&
           (category === "Semua" || item.category === category),
       ),
-    [query, category],
+    [allItems, query, category],
   )
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })
