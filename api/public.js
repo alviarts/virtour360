@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 
-const PUBLIC_ID = "virtour360:public"
+const PUBLIC_ID = "virtour:public"
 
 /**
  * Endpoint publik — dibaca pengunjung tanpa login.
