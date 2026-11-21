@@ -13,7 +13,7 @@ import { useHotkeys } from "./hooks/useHotkeys"
 import { useApp } from "./context/AppContext"
 import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
-import { publishPublicPayload } from "./lib/publicStore"
+import { buildPublicFolders, publishPublicPayload } from "./lib/publicStore"
 import { defaultEffects } from "./lib/effects"
 import { defaultSceneId } from "./data/scenes"
 
@@ -189,6 +189,7 @@ export default function App() {
                   bio: profile.bio,
                 },
                 scenes,
+                folders: buildPublicFolders(scenes),
                 updatedAt: new Date().toISOString(),
               })
               notify(

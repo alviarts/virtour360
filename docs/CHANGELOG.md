@@ -68,6 +68,16 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Foldering hasil publish
+- `src/lib/publicStore.ts`: ditambah `PublicFolder` + `buildPublicFolders()` yang
+  mengelompokkan scene per **project** (slug dari `project.title`), lengkap dengan
+  cover, deskripsi, tag, tahun, dan daftar `sceneIds`.
+- Payload publish sekarang memuat field `folders` (kompatibel dengan payload lama
+  yang belum punya folder — di-backfill saat dimuat).
+- Public Portfolio menampilkan section **"Project & folder"**: satu kartu folder per
+  project, bisa dibuka untuk melihat scene di dalamnya; adapun mode lokal memakai
+  fallback folder dari scene setempat.
+
 ## 2026-11-22 — Perbaikan workflow user & public
 - **Workflow user**: setelah register/login berhasil, otomatis navigasi ke `#/studio`
   dengan toast "Selamat datang di Studio" (sebelumnya modal hanya ditutup).

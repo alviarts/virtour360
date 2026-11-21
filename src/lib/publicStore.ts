@@ -10,10 +10,62 @@ export interface PublicProfile {
   bio: string
 }
 
+/** Folder publik: satu project berisi beberapa scene. */
+export interface PublicFolder {
+  id: string
+  name: string
+  description: string
+  cover: string
+  sceneIds: string[]
+  tags: string[]
+  year: string
+}
+
 export interface PublicPayload {
   profile: PublicProfile
   scenes: Scene[]
+  /** Struktur folder hasil publish: Project → Scenes */
+  folders: PublicFolder[]
   updatedAt: string
+}
+
+function slug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "project"
+}
+
+/**
+ * Susun scene menjadi folder per project.
+ * Scene dengan project title sama digabung dalam satu folder yang rapi.
+ */
+export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
+  const groups = new Map<string, Scene[]>()
+
+  for (const scene of scenes) {
+    const name = (scene.project?.title || scene.group || "Lainnya").trim() || "Lainnya"
+    const key = slug(name)
+    const bucket = groups.get(key) ?? []
+    bucket.push(scene)
+    groups.set(key, bucket)
+  }
+
+  return [...groups.entries()].map(([key, items]) => {
+    const first = items[0]
+    return {
+      id: `folder-${key}`,
+      name: first.project?.title || first.group || "Lainnya",
+      description: items.length > 1
+        ? `${items.length} scene dalam project ini.`
+        : first.description || "Panorama 360°.",
+      cover: first.thumbnail,
+      sceneIds: items.map((scene) => scene.id),
+      tags: first.project?.tags ?? [],
+      year: first.project?.year ?? "",
+    }
+  })
 }
 
 /** Data publik diambil tanpa login oleh pengunjung. */
@@ -23,7 +75,9 @@ export async function loadPublicPayload(): Promise<PublicPayload | null> {
     const response = await fetch("/api/public", { cache: "no-store" })
     if (!response.ok) return null
     const json = (await response.json()) as { payload?: PublicPayload }
-    return json.payload ?? null
+    if (!json.payload) return null
+    // Kompatibel dengan payload lama yang belum punya folders.
+    return { ...json.payload, folders: json.payload.folders ?? buildPublicFolders(json.payload.scenes ?? []) }
   } catch {
     return null
   }
@@ -36,7 +90,9 @@ export async function publishPublicPayload(payload: PublicPayload): Promise<bool
     const response = await fetch("/api/public", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payload }),
+      body: JSON.stringify({
+        payload: { ...payload, folders: buildPublicFolders(payload.scenes) },
+      }),
     })
     return response.ok
   } catch {

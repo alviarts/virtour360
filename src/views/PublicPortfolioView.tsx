@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import {
   Bell,
+  ChevronDown,
   Compass,
+  Folder,
   Heart,
   Home,
   MapPin,
@@ -15,7 +17,7 @@ import { useApp } from "../context/AppContext"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { navigate } from "../lib/navigation"
-import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
+import { buildPublicFolders, loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 import { profile } from "../data/profile"
 
 const THUMBS = [
@@ -250,12 +252,28 @@ export function PublicPortfolioView() {
   const [publicData, setPublicData] = useState<PublicPayload | null>(null)
   const [allPosts, setAllPosts] = useState(false)
   const [allTours, setAllTours] = useState(false)
+  const [openFolder, setOpenFolder] = useState<string | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     let alive = true
     loadPublicPayload().then((data) => {
-      if (alive && data) setPublicData(data)
+      if (!alive) return
+      setPublicData(
+        data ?? {
+          profile: {
+            name: user?.name ?? "Ardhana Wicaksono",
+            initials: user?.initials ?? "AW",
+            location: profile.location,
+            email: profile.email,
+            website: profile.website,
+            bio: profile.bio,
+          },
+          scenes,
+          folders: buildPublicFolders(scenes),
+          updatedAt: new Date().toISOString(),
+        },
+      )
     })
     return () => {
       alive = false
@@ -292,6 +310,78 @@ export function PublicPortfolioView() {
       <ProfileHeader name={displayName} initials={displayInitials} postCount={posts.length} tourCount={tours.length} likes={favorites.length} />
 
       <div className="mx-auto max-w-[1200px] px-6 pb-28">
+        {/* Struktur folder hasil publish: Project → Scenes */}
+        {!!publicData?.folders?.length && (
+          <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-folders">
+            <SectionTitle>Project &amp; folder</SectionTitle>
+            <p className="mb-4 text-xs text-slate-500">
+              {publicData.folders.length} folder dipublikasikan · klik untuk melihat scene di dalamnya
+            </p>
+            <div className="flex flex-col gap-3">
+              {publicData.folders.map((folder) => {
+                const scenes = folder.sceneIds
+                  .map((id) => sourceScenes.find((scene) => scene.id === id))
+                  .filter((scene): scene is NonNullable<typeof scene> => !!scene)
+                const open = openFolder === folder.id
+                return (
+                  <div key={folder.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    <button
+                      onClick={() => setOpenFolder(open ? null : folder.id)}
+                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-slate-50"
+                    >
+                      <img src={folder.cover} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-slate-900">{folder.name}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-slate-500">
+                          {folder.description}
+                        </span>
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {folder.tags.slice(0, 3).map((tag) => (
+                            <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] text-slate-500">{tag}</span>
+                          ))}
+                        </span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">
+                        <Folder size={10} className="mr-1 inline" />{scenes.length} scene
+                      </span>
+                      <ChevronDown size={15} className={`shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
+                    </button>
+                    {open && (
+                      <div className="animate-fade-up grid grid-cols-2 gap-3 border-t border-slate-100 p-3 md:grid-cols-3">
+                        {scenes.map((scene) => (
+                          <Card
+                            key={scene.id}
+                            item={{
+                              id: scene.id,
+                              title: scene.name,
+                              image: scene.thumbnail,
+                              panorama: scene.panorama,
+                              count: 1,
+                              sceneId: scene.id,
+                            }}
+                            favorite={favorites.includes(scene.id)}
+                            onToggleFavorite={() => toggleFavorite(scene.id)}
+                            onOpen={() =>
+                              setDetail({
+                                id: scene.id,
+                                title: scene.name,
+                                image: scene.thumbnail,
+                                panorama: scene.panorama,
+                                count: 1,
+                                sceneId: scene.id,
+                              })
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
         {query && (
           <p className="mt-4 text-xs text-slate-500">
             Hasil pencarian "{query}" — {posts.filter(matches).length} post, {tours.filter(matches).length} tour.
