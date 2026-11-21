@@ -93,6 +93,15 @@ interface AppContextValue {
   setSceneEffects: (sceneId: string, patch: Partial<SceneEffects>) => void
   resetSceneEffects: (sceneId: string) => void
 
+  groups: string[]
+  createGroup: (name: string) => void
+  renameGroup: (oldName: string, newName: string) => void
+  deleteGroup: (name: string) => void
+  setSceneGroup: (sceneId: string, group: string) => void
+  moveScene: (sceneId: string, direction: -1 | 1) => void
+  imageQuality: "standard" | "high" | "original"
+  setImageQuality: (value: "standard" | "high" | "original") => void
+
   authOpen: boolean
   setAuthOpen: (open: boolean) => void
   uploadOpen: boolean
@@ -114,6 +123,10 @@ const HOTSPOTS_KEY = "virtour360.hotspots"
 const MEDIA_KEY = "virtour360.media"
 const FAVORITES_KEY = "virtour360.favorites"
 const EFFECTS_KEY = "virtour360.effects"
+const GROUPS_KEY = "virtour360.groups"
+const ORDER_KEY = "virtour360.sceneOrder"
+const SCENE_GROUP_KEY = "virtour360.sceneGroups"
+const QUALITY_KEY = "virtour360.imageQuality"
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -166,7 +179,7 @@ async function resetWorkspaceIfOwnerChanged(email: string): Promise<boolean> {
   const previous = localStorage.getItem(OWNER_KEY)
   localStorage.setItem(OWNER_KEY, email)
   if (!previous || previous === email) return false
-  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY].forEach((key) => localStorage.removeItem(key))
+  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY, GROUPS_KEY, ORDER_KEY, SCENE_GROUP_KEY, QUALITY_KEY].forEach((key) => localStorage.removeItem(key))
   try {
     await clearAllLocalData()
   } catch {
@@ -223,6 +236,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [effectsByScene, setEffectsByScene] = useState<Record<string, SceneEffects>>(() =>
     readJSON<Record<string, SceneEffects>>(EFFECTS_KEY, {}),
   )
+  const [groups, setGroups] = useState<string[]>(() => readJSON<string[]>(GROUPS_KEY, ["Uncategory"]))
+  const [sceneOrder, setSceneOrder] = useState<Record<string, number>>(() =>
+    readJSON<Record<string, number>>(ORDER_KEY, {}),
+  )
+  const [sceneGroupOverrides, setSceneGroupOverrides] = useState<Record<string, string>>(() =>
+    readJSON<Record<string, string>>(SCENE_GROUP_KEY, {}),
+  )
+  const [imageQuality, setImageQualityState] = useState<"standard" | "high" | "original">(() =>
+    readJSON(QUALITY_KEY, "standard"),
+  )
+  const setImageQuality = useCallback((value: "standard" | "high" | "original") => {
+    setImageQualityState(value)
+    persist(QUALITY_KEY, value)
+  }, [])
   const [activeSceneId, setActiveSceneId] = useState<string>("atrium")
   const [audioByScene, setAudioByScene] = useState<Record<string, SceneAudio>>({})
   const [assetMedia, setAssetMedia] = useState<Record<string, SceneMedia>>({})
@@ -312,6 +339,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setEffectsByScene(remote.effects)
           persist(EFFECTS_KEY, remote.effects)
         }
+        if (remote.groups?.length) { setGroups(remote.groups); persist(GROUPS_KEY, remote.groups) }
+        if (remote.sceneGroups) { setSceneGroupOverrides(remote.sceneGroups); persist(SCENE_GROUP_KEY, remote.sceneGroups) }
+        if (remote.sceneOrder) { setSceneOrder(remote.sceneOrder); persist(ORDER_KEY, remote.sceneOrder) }
+        if (remote.imageQuality) { setImageQualityState(remote.imageQuality as typeof imageQuality); persist(QUALITY_KEY, remote.imageQuality) }
         if (remote.panoramas.length) {
           setPanoramas(
             remote.panoramas.map((p) => ({
@@ -342,6 +373,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         favorites,
         media: persistableMedia(mediaOverrides),
         effects: effectsByScene,
+        groups,
+        sceneGroups: sceneGroupOverrides,
+        sceneOrder,
+        imageQuality,
         // Mode server tidak punya public URL Storage, jadi metadata panorama
         // tidak ikut disinkron agar device lain tidak menampilkan gambar rusak.
         panoramas: isServerMode
@@ -355,7 +390,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }).catch(() => undefined)
     }, 800)
     return () => window.clearTimeout(timer)
-  }, [remoteReady, identityKey, hotspotOverrides, favorites, mediaOverrides, effectsByScene, panoramas, user])
+  }, [remoteReady, identityKey, hotspotOverrides, favorites, mediaOverrides, effectsByScene, groups, sceneGroupOverrides, sceneOrder, imageQuality, panoramas, user])
 
   useEffect(() => {
     return () => {
@@ -401,6 +436,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMediaOverrides({})
       setFavorites([])
       setEffectsByScene({})
+      setGroups(["Uncategory"])
+      setSceneOrder({})
+      setSceneGroupOverrides({})
+      setImageQualityState("standard")
     }
     return null
   }, [])
@@ -436,6 +475,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMediaOverrides({})
       setFavorites([])
       setEffectsByScene({})
+      setGroups(["Uncategory"])
+      setSceneOrder({})
+      setSceneGroupOverrides({})
+      setImageQualityState("standard")
     }
     return null
   }, [])
@@ -761,6 +804,68 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  /* -------------------------- Groups & scene order --------------------------- */
+
+  const createGroup = useCallback((name: string) => {
+    const clean = name.trim()
+    if (!clean) return
+    setGroups((prev) => {
+      if (prev.includes(clean)) return prev
+      const next = [...prev, clean]
+      persist(GROUPS_KEY, next)
+      return next
+    })
+  }, [])
+
+  const renameGroup = useCallback((oldName: string, newName: string) => {
+    const clean = newName.trim()
+    if (!clean || clean === oldName) return
+    setGroups((prev) => {
+      const next = prev.map((g) => (g === oldName ? clean : g))
+      persist(GROUPS_KEY, next)
+      return next
+    })
+    setSceneGroupOverrides((prev) => {
+      const next = Object.fromEntries(
+        Object.entries(prev).map(([id, group]) => [id, group === oldName ? clean : group]),
+      )
+      persist(SCENE_GROUP_KEY, next)
+      return next
+    })
+  }, [])
+
+  const deleteGroup = useCallback((name: string) => {
+    setGroups((prev) => {
+      const next = prev.filter((g) => g !== name)
+      persist(GROUPS_KEY, next.length ? next : ["Uncategory"])
+      return next.length ? next : ["Uncategory"]
+    })
+    setSceneGroupOverrides((prev) => {
+      const next = Object.fromEntries(
+        Object.entries(prev).map(([id, group]) => [id, group === name ? "Uncategory" : group]),
+      )
+      persist(SCENE_GROUP_KEY, next)
+      return next
+    })
+  }, [])
+
+  const setSceneGroup = useCallback((sceneId: string, group: string) => {
+    setSceneGroupOverrides((prev) => {
+      const next = { ...prev, [sceneId]: group }
+      persist(SCENE_GROUP_KEY, next)
+      return next
+    })
+  }, [])
+
+  const moveScene = useCallback((sceneId: string, direction: -1 | 1) => {
+    setSceneOrder((prev) => {
+      const next = { ...prev }
+      next[sceneId] = (next[sceneId] ?? 0) + direction
+      persist(ORDER_KEY, next)
+      return next
+    })
+  }, [])
+
   /* -------------------------------- Scenes ---------------------------------- */
 
   const effectiveMedia = useMemo(
@@ -786,13 +891,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         tags: ["360°", "Upload"],
       },
     }))
-    return [...staticScenes, ...uploaded].map((scene) => ({
-      ...scene,
-      ...(hotspotOverrides[scene.id] ? { hotspots: hotspotOverrides[scene.id] } : {}),
-      ...(effectiveMedia[scene.id] ?? {}),
-      ...(audioByScene[scene.id] ? { audio: audioByScene[scene.id].url } : {}),
-    }))
-  }, [panoramas, user, hotspotOverrides, effectiveMedia, audioByScene])
+    return [...staticScenes, ...uploaded]
+      .map((scene) => ({
+        ...scene,
+        ...(sceneGroupOverrides[scene.id] ? { group: sceneGroupOverrides[scene.id] } : {}),
+        ...(hotspotOverrides[scene.id] ? { hotspots: hotspotOverrides[scene.id] } : {}),
+        ...(effectiveMedia[scene.id] ?? {}),
+        ...(audioByScene[scene.id] ? { audio: audioByScene[scene.id].url } : {}),
+      }))
+      .sort((a, b) => (sceneOrder[a.id] ?? 0) - (sceneOrder[b.id] ?? 0))
+  }, [panoramas, user, hotspotOverrides, effectiveMedia, audioByScene, sceneGroupOverrides, sceneOrder])
 
   return (
     <AppContext.Provider
@@ -825,6 +933,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         audioByScene,
         favorites,
         toggleFavorite,
+        groups,
+        createGroup,
+        renameGroup,
+        deleteGroup,
+        setSceneGroup,
+        moveScene,
+        imageQuality,
+        setImageQuality,
         effectsByScene,
         setSceneEffects,
         resetSceneEffects,

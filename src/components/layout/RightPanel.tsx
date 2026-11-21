@@ -139,7 +139,7 @@ export function RightPanel({
   onRemoveAudio,
   audioName,
 }: RightPanelProps) {
-  const { effectsByScene, setSceneEffects, resetSceneEffects, notify } = useApp()
+  const { effectsByScene, setSceneEffects, resetSceneEffects, notify, imageQuality, setImageQuality } = useApp()
   const effects = effectsByScene[scene.id] ?? defaultEffects
   const patchEffects = (patch: Partial<SceneEffects>) => setSceneEffects(scene.id, patch)
 
@@ -294,6 +294,26 @@ export function RightPanel({
                   <button onClick={() => patchEffects(effectPresets.cool)} className="rounded-md border border-zinc-700 py-1.5 text-[10px] text-zinc-300 hover:border-zinc-500">Dingin</button>
                 </div>
                 <button onClick={() => { resetSceneEffects(scene.id); notify("Efek scene dikembalikan ke awal.") }} className="text-[10px] text-zinc-500 hover:text-zinc-300">Reset semua efek</button>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection title="Kualitas gambar">
+              <div className="flex flex-col gap-2">
+                <select
+                  value={imageQuality}
+                  onChange={(e) => {
+                    setImageQuality(e.target.value as typeof imageQuality)
+                    notify(`Kualitas gambar: ${e.target.value}.`)
+                  }}
+                  className="h-9 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-200 outline-none focus:border-zinc-500"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="high">High</option>
+                  <option value="original">Original</option>
+                </select>
+                <p className="text-[10px] leading-relaxed text-zinc-600">
+                  Sama seperti Panoee: Standard cepat, Original paling tajam.
+                </p>
               </div>
             </AccordionSection>
 

@@ -6,6 +6,7 @@ import { RightPanel } from "./components/layout/RightPanel"
 import { TourViewer } from "./components/viewer/TourViewer"
 import { MediaPickerModal } from "./components/viewer/MediaPickerModal"
 import { ProfileModal } from "./components/auth/ProfileModal"
+import { EmbedModal } from "./components/auth/EmbedModal"
 import { Lightbox } from "./components/ui/Lightbox"
 import { useTourViewer, type Quality } from "./hooks/useTourViewer"
 import { useFullscreen } from "./hooks/useFullscreen"
@@ -81,6 +82,7 @@ export default function App() {
   const [preview, setPreview] = useState(false)
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [embedOpen, setEmbedOpen] = useState(false)
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
@@ -240,6 +242,9 @@ export default function App() {
               <button onClick={() => { setAccountOpen(false); navigate("portfolio") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Kembali ke Portofolio user
               </button>
+              <button onClick={() => { setAccountOpen(false); setEmbedOpen(true) }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+                Embed portofolio
+              </button>
               <button onClick={() => { setAccountOpen(false); navigate("home") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Kembali ke Home
               </button>
@@ -371,6 +376,7 @@ export default function App() {
       />
 
       {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
+      {embedOpen && <EmbedModal onClose={() => setEmbedOpen(false)} />}
       {mediaPickerOpen && <MediaPickerModal activeSceneId={tour.currentScene.id} onClose={() => setMediaPickerOpen(false)} />}
       {lightboxOpen && <Lightbox src={tour.currentScene.thumbnail} title={tour.currentScene.name} onClose={() => setLightboxOpen(false)} />}
     </AppShell>

@@ -8,6 +8,7 @@ import {
   Info,
   List,
   MoreHorizontal,
+  Pencil,
   Plus,
   Search,
   Trash2,
@@ -29,8 +30,10 @@ interface LeftSidebarProps {
 type GroupMode = "none" | "source" | "category"
 
 export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCreate, onRemoveScene }: LeftSidebarProps) {
-  const { notify } = useApp()
+  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene } = useApp()
   const [view, setView] = useState<"grid" | "list">("grid")
+  const [newGroup, setNewGroup] = useState(false)
+  const [groupName, setGroupName] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [collapsed, setCollapsed] = useState(false)
@@ -46,7 +49,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
     )
   }, [scenes, query])
 
-  const groups = useMemo(() => {
+  const groupedScenes = useMemo(() => {
     const bucket = new Map<string, Scene[]>()
     filtered.forEach((scene) => {
       const key =
@@ -163,16 +166,34 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
 
       {/* Daftar scene */}
       <div className="hide-scrollbar flex min-h-0 flex-1 flex-col overflow-auto">
-        {groups.map(([label, items]) => (
+        {groupedScenes.map(([label, items]) => (
           <div key={label}>
-            <button
-              onClick={() => setCollapsed((v) => !v)}
-              className="flex h-8 w-full items-center gap-1.5 px-1 text-left"
-            >
-              {collapsed ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
-              <span className="truncate text-xs font-medium text-zinc-300">{label}</span>
-              <span className="ml-auto text-[10px] text-zinc-600">{items.length}</span>
-            </button>
+            <div className="flex h-8 items-center gap-1.5 px-1">
+              <button onClick={() => setCollapsed((v) => !v)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                {collapsed ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
+                <span className="truncate text-xs font-medium text-zinc-300">{label}</span>
+                <span className="text-[10px] text-zinc-600">{items.length}</span>
+              </button>
+              <button
+                onClick={() => {
+                  const next = window.prompt("Nama grup baru", label)
+                  if (next && next.trim() && next.trim() !== label) { renameGroup(label, next.trim()); notify("Grup diganti nama.") }
+                }}
+                title="Ganti nama grup"
+                className="grid size-6 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200"
+              >
+                <Pencil size={11} />
+              </button>
+              {allGroups.length > 1 && (
+                <button
+                  onClick={() => { deleteGroup(label); notify("Grup dihapus — scene dipindah ke Uncategory.") }}
+                  title="Hapus grup"
+                  className="grid size-6 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-red-400"
+                >
+                  <Trash2 size={11} />
+                </button>
+              )}
+            </div>
 
             {!collapsed && (
               <div className="mb-2 flex flex-col gap-2 rounded-2xl border border-zinc-800 bg-black p-2">
@@ -196,6 +217,16 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
                             <img src={scene.thumbnail} alt="" className="size-8 rounded object-cover" />
                             <span className={`min-w-0 flex-1 truncate text-[11px] ${active ? "text-amber-300" : "text-zinc-200"}`}>{scene.name}</span>
                           </button>
+                          <button onClick={() => moveScene(scene.id, -1)} title="Naik" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">↑</button>
+                          <button onClick={() => moveScene(scene.id, 1)} title="Turun" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">↓</button>
+                          <select
+                            value={scene.group || "Uncategory"}
+                            onChange={(e) => { setSceneGroup(scene.id, e.target.value); notify(`Scene dipindah ke grup ${e.target.value}.`) }}
+                            title="Pindah grup"
+                            className="h-6 max-w-16 shrink-0 rounded border border-zinc-700 bg-zinc-950 px-1 text-[9px] text-zinc-400 outline-none"
+                          >
+                            {allGroups.map((g) => <option key={g} value={g}>{g}</option>)}
+                          </select>
                           {uploaded && <button onClick={() => onRemoveScene(scene.id)} title="Hapus scene" className="grid size-6 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-red-400"><Trash2 size={11} /></button>}
                         </div>
                       )
@@ -237,6 +268,32 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
           </div>
         ))}
         {filtered.length === 0 && <p className="py-4 text-center text-[11px] text-zinc-600">Tidak ada scene cocok.</p>}
+
+        {newGroup ? (
+          <div className="mt-2 flex gap-1">
+            <input
+              autoFocus
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  createGroup(groupName)
+                  notify(`Grup "${groupName.trim()}" dibuat.`)
+                  setGroupName("")
+                  setNewGroup(false)
+                }
+                if (e.key === "Escape") setNewGroup(false)
+              }}
+              placeholder="Nama grup"
+              className="h-8 min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none"
+            />
+            <button onClick={() => setNewGroup(false)} className="grid size-8 place-items-center rounded-lg border border-zinc-700 text-zinc-400"><X size={12} /></button>
+          </div>
+        ) : (
+          <button onClick={() => setNewGroup(true)} className="mt-2 flex h-8 items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-700 text-[11px] text-zinc-500 hover:border-zinc-500 hover:text-zinc-300">
+            <Plus size={12} /> Grup baru
+          </button>
+        )}
       </div>
     </aside>
   )

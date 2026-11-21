@@ -24,6 +24,10 @@ export interface RemoteState {
   media: Record<string, { panorama?: string; thumbnail?: string }>
   panoramas: RemotePanorama[]
   effects: Record<string, SceneEffects>
+  groups: string[]
+  sceneGroups: Record<string, string>
+  sceneOrder: Record<string, number>
+  imageQuality: string
 }
 
 export const emptyRemoteState: RemoteState = {
@@ -33,6 +37,10 @@ export const emptyRemoteState: RemoteState = {
   media: {},
   panoramas: [],
   effects: {},
+  groups: ["Uncategory"],
+  sceneGroups: {},
+  sceneOrder: {},
+  imageQuality: "standard",
 }
 
 export async function loadRemoteState(stateId: string): Promise<RemoteState | null> {
