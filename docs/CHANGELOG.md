@@ -68,6 +68,17 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Portofolio per kreator (explore orang lain)
+- `src/data/creators.ts`: daftar kreator contoh dipindah dari Home ke file bersama.
+- `navigation.ts`: `navigateCreator(id)` + `creatorFromHash()`; route `#/portfolio/<id>`.
+- Klik nama kreator di Home sekarang membuka portofolio orang itu, bukan halaman generik.
+- `PublicPortfolioView`: membaca `creatorId` dari hash (reaktif terhadap hashchange),
+  mencari kreator di data database/local, menampilkan nama/initials & posts miliknya;
+  folder pemilik disembunyikan saat membuka kreator lain.
+- Fallback nama tidak lagi "Ardhana Wicaksono" → "Kreator Virtour360".
+- Verifikasi: klik "Ruang Kreatif" → `#/portfolio/c2`, nama & 1 post kreator tampil,
+  tidak ada nama lama, console error 0.
+
 ## 2026-11-22 — Skill design layout terpasang & diterapkan
 - Install skill via `npx skills add`: `wensity-layout`, `wensity-typography`,
   `wensity-ui-copy`, `dashboard-design` di `.agents/skills/` (kompatibel OpenCode).

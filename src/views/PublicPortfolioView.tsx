@@ -16,8 +16,9 @@ import {
 import { useApp } from "../context/AppContext"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
-import { navigate } from "../lib/navigation"
+import { creatorFromHash, navigate } from "../lib/navigation"
 import { buildPublicFolders, loadPublicPayload, type PublicPayload } from "../lib/publicStore"
+import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
 
 const THUMBS = [
@@ -253,7 +254,14 @@ export function PublicPortfolioView() {
   const [allPosts, setAllPosts] = useState(false)
   const [allTours, setAllTours] = useState(false)
   const [openFolder, setOpenFolder] = useState<string | null>(null)
+  const [creatorId, setCreatorId] = useState<string | null>(creatorFromHash())
   const rootRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const onHash = () => setCreatorId(creatorFromHash())
+    window.addEventListener("hashchange", onHash)
+    return () => window.removeEventListener("hashchange", onHash)
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -283,14 +291,14 @@ export function PublicPortfolioView() {
   // Pengunjung melihat data hasil publish; fallback ke data lokal.
   const sourceScenes = publicData?.scenes?.length ? publicData.scenes : scenes
   const uploaded = sourceScenes.filter((s) => s.id.startsWith("pano-"))
-  const posts: CardItem[] = useMemo(
+  const basePosts: CardItem[] = useMemo(
     () => [
       ...uploaded.map((s) => ({ id: s.id, title: s.name, image: s.thumbnail, panorama: s.panorama, count: 1, sceneId: s.id })),
       ...postCards.map((item, i) => ({ id: `post-${i}`, ...item })),
     ],
     [uploaded],
   )
-  const tours: CardItem[] = useMemo(
+  const baseTours: CardItem[] = useMemo(
     () => [
       ...uploaded.map((s) => ({ id: `tour-${s.id}`, title: s.name, image: s.thumbnail, panorama: s.panorama, likes: 0, sceneId: s.id })),
       ...tourCards.map((item, i) => ({ id: `tour-${i}`, ...item })),
@@ -298,11 +306,43 @@ export function PublicPortfolioView() {
     [uploaded],
   )
 
+  // Portofolio yang dibuka mengikuti kreator yang dipilih di Home.
+  const remoteCreator = publicData?.creators?.find((c) => c.id === creatorId)
+  const localCreator = LOCAL_CREATORS.find((c) => c.id === creatorId)
+  const selected = remoteCreator ?? localCreator ?? null
+
+  const displayName = selected?.name ?? publicData?.profile.name ?? user?.name ?? "Kreator Virtour360"
+  const displayInitials = selected?.initials ?? publicData?.profile.initials ?? user?.initials ?? "V3"
+
+  // Saat membuka kreator tertentu, karya yang tampil adalah milik kreator itu.
+  const creatorPosts: CardItem[] = selected
+    ? "posts" in selected && Array.isArray(selected.posts)
+      ? selected.posts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          image: post.image,
+          panorama: post.panorama,
+          count: 1,
+        }))
+      : "title" in selected
+        ? [{
+            id: selected.id,
+            title: selected.title,
+            image: selected.image,
+            panorama: selected.panorama,
+            count: 1,
+          }]
+        : []
+    : []
+
+  const posts = creatorPosts.length ? creatorPosts : basePosts
+  const tours = creatorPosts.length
+    ? creatorPosts.map((item, i) => ({ ...item, id: `tour-${item.id}-${i}`, likes: 0 }))
+    : baseTours
+
   const matches = (item: CardItem) => item.title.toLowerCase().includes(query.trim().toLowerCase())
   const shownPosts = (allPosts ? posts : posts.slice(0, 4)).filter(matches)
   const shownTours = (allTours ? tours : tours.slice(0, 3)).filter(matches)
-  const displayName = publicData?.profile.name ?? user?.name ?? "Ardhana Wicaksono"
-  const displayInitials = publicData?.profile.initials ?? user?.initials ?? "AW"
 
   return (
     <div ref={rootRef} id="portfolio-root" className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
@@ -311,7 +351,7 @@ export function PublicPortfolioView() {
 
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
         {/* Struktur folder hasil publish: Project → Scenes */}
-        {!!publicData?.folders?.length && (
+        {!selected && !!publicData?.folders?.length && (
           <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-folders">
             <SectionTitle>Project &amp; folder</SectionTitle>
             <p className="mb-4 text-xs text-slate-500">

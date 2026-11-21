@@ -3,7 +3,8 @@ import { Bell, Camera, Compass, Heart, MapPin, Search, Sparkles, User } from "lu
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/AppContext"
-import { navigate } from "../lib/navigation"
+import { navigate, navigateCreator } from "../lib/navigation"
+import { LOCAL_CREATORS } from "../data/creators"
 import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 
 const ITEMS = [
@@ -16,16 +17,6 @@ const ITEMS = [
 ]
 
 const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
-
-/** Fallback kreator saat backend belum dikonfigurasi — tiap kreator 1 post 360°. */
-const CREATORS = [
-  { id: "c1", name: "Atrium Studio", initials: "AS", color: "bg-amber-100 text-amber-700", title: "Atrium — The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "12 post" },
-  { id: "c2", name: "Ruang Kreatif", initials: "RK", color: "bg-sky-100 text-sky-700", title: "Studio — Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "8 post" },
-  { id: "c3", name: "Sunset Living", initials: "SL", color: "bg-rose-100 text-rose-700", title: "Terrace — Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", views: "21 post" },
-  { id: "c4", name: "Arda Visual", initials: "AV", color: "bg-emerald-100 text-emerald-700", title: "Living Room 360", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "5 post" },
-  { id: "c5", name: "Nusantara Tour", initials: "NT", color: "bg-violet-100 text-violet-700", title: "Trungtamyte", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Outdoor", views: "14 post" },
-  { id: "c6", name: "Harbor 360", initials: "H3", color: "bg-cyan-100 text-cyan-700", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", views: "9 post" },
-]
 
 export function PublicHomeView() {
   const { user, setAuthOpen, favorites, toggleFavorite } = useApp()
@@ -206,7 +197,7 @@ export function PublicHomeView() {
               </p>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
-              {(publicData?.creators?.length ?? CREATORS.length)} kreator
+              {(publicData?.creators?.length ?? LOCAL_CREATORS.length)} kreator
             </span>
           </div>
           <div className="mt-6 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
@@ -222,7 +213,7 @@ export function PublicHomeView() {
                   category: creator.posts?.[0]?.category ?? "360°",
                   views: creator.posts?.[0]?.views ?? "1 post",
                 }))
-              : CREATORS
+              : LOCAL_CREATORS
             ).map((creator) => {
               const title = creator.title
               const image = creator.image
@@ -244,7 +235,7 @@ export function PublicHomeView() {
                       {creator.initials}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <button onClick={() => navigate("portfolio")} className="block max-w-full truncate text-left text-xs font-semibold text-slate-800 hover:text-[#d1005c]">
+                      <button onClick={() => navigateCreator(creator.id)} className="block max-w-full truncate text-left text-xs font-semibold text-slate-800 hover:text-[#d1005c]">
                         {creator.name}
                       </button>
                       <span className="block truncate text-[10px] text-slate-500">{title}</span>

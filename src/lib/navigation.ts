@@ -16,3 +16,14 @@ export function navigate(view: View) {
 export function navigateHash(path: string) {
   window.location.hash = path
 }
+
+/** Buka portofolio kreator tertentu. */
+export function navigateCreator(id: string) {
+  window.location.hash = `#/portfolio/${id}`
+}
+
+/** Id kreator dari hash `#/portfolio/<id>`. */
+export function creatorFromHash(): string | null {
+  const match = window.location.hash.match(/^#\/portfolio\/([^/?]+)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
