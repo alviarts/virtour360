@@ -105,18 +105,38 @@ Kelebihannya: panorama yang diunggah ikut tersimpan di Supabase Storage
 > Catatan: policy di `schema.sql` sengaja permisif untuk demo 2–5 orang.
 > Untuk produksi, ganti dengan aturan auth yang tepat.
 
-## Mode tamu (tanpa login)
+## Seed data dummy (5 user + panorama gratis)
 
-Login **tidak wajib**. Tanpa akun, pengguna tetap bisa:
-- menjelajahi & memutar tur 360°
-- menambah/mengedit/menghapus hotspot
-- mengunggah panorama 360° (tersimpan di browser/IndexedDB)
-- menyimpan favorit & mengatur scene
+Script `scripts/seed-supabase.mjs` mengisi Supabase dengan 5 user bohongan
+(password `demo1234`) dan 5 panorama 360° gratis dari Pannellum demo:
 
-Identitas tamu dibuat otomatis (`guest:<id>` di localStorage) dan dipakai sebagai
-kunci state di backend, sehingga data tamu tidak tercampur dengan user lain.
-Saat login, kunci berubah menjadi `user:<email>` dan data dimuat ulang.
-Tombol "Lanjut sebagai tamu" tersedia di modal login & pengaturan akun.
+```bash
+SEED_DB_PASSWORD=<password-db> node scripts/seed-supabase.mjs
+```
+
+Koneksi default: `aws-0-ap-southeast-2.pooler.supabase.com:6543`,
+user `postgres.zhkswftjzddnmlqdiupp`. Bisa dioverride lewat env
+`SEED_DB_HOST`, `SEED_DB_PORT`, `SEED_DB_USER`, `SEED_DB_PASSWORD`.
+
+Panorama contoh (equirectangular, gratis untuk demo):
+- `https://pannellum.org/images/alma.jpg`
+- `https://pannellum.org/images/bma-1.jpg`
+- `https://pannellum.org/images/cerro-toco-0.jpg`
+- `https://pannellum.org/images/from-tree.jpg`
+- `https://pannellum.org/images/jfk.jpg`
+
+> Kredensial tidak pernah ditulis ke file. Jangan commit password Anda.
+
+## Mode publik (tanpa login)
+
+Publik bisa **melihat & menjelajahi** tur 360° tanpa login. Untuk **menyimpan,
+mengunggah, dan mempublikasikan**, pengguna harus masuk ke akunnya.
+
+- Publik: lihat Home, Portofolio, dan viewer 360°
+- User login: Studio (hotspot, efek, audio, upload), favorit, publish
+
+Identitas publik disimpan lokal (`public:<id>`) hanya untuk state sementara;
+saat login, kunci berubah menjadi `user:<email>` dan data dimuat ulang dari database.
 
 ## Struktur
 

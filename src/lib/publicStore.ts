@@ -21,11 +21,32 @@ export interface PublicFolder {
   year: string
 }
 
+export interface PublicCreatorPost {
+  id: string
+  title: string
+  image: string
+  panorama: string
+  category: string
+  views: string
+}
+
+/** Kreator/publik yang karyanya tampil di Home (dari database). */
+export interface PublicCreator {
+  id: string
+  name: string
+  initials: string
+  color: string
+  email: string
+  posts: PublicCreatorPost[]
+}
+
 export interface PublicPayload {
   profile: PublicProfile
   scenes: Scene[]
   /** Struktur folder hasil publish: Project → Scenes */
   folders: PublicFolder[]
+  /** Banyak kreator/public user (hasil seed / publish) */
+  creators?: PublicCreator[]
   updatedAt: string
 }
 

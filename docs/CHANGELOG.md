@@ -68,6 +68,16 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
   dan ikut tersinkron di state remote.
 - **Bug fixing**: build rusak akibat edit bertahal (import tak terpakai) diperbaiki.
 
+## 2026-11-22 — Seed 5 user dummy & panorama 360° gratis
+- `scripts/seed-supabase.mjs`: bootstrap schema + 5 user dummy (password `demo1234`)
+  + payload publik `virtour:public` berisi 5 kreator dengan panorama gratis
+  (Pannellum demo: alma, bma-1, cerro-toco-0, from-tree, jfk).
+- `src/lib/publicStore.ts`: `PublicCreator`/`PublicCreatorPost` ditambahkan ke payload.
+- `PublicHomeView`: section kreator memakai data dari database bila tersedia,
+  fallback ke 6 kreator lokal bila backend belum dikonfigurasi.
+- **Verifikasi**: 5 user di `virtour_users`, hash password cocok `demo1234`,
+  5 kreator & 5 panorama di `virtour:public`. Kredensial tidak disimpan di file.
+
 ## 2026-11-22 — Revisi komentar user (tamu/public, multi-user, gating, navigasi)
 - **Hapus konsep "tamu"**: semua label UI jadi "publik"/"Kembali ke publik";
   modal login tidak lagi menawarkan "Lanjut sebagai tamu".

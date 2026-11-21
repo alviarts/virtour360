@@ -17,14 +17,14 @@ const ITEMS = [
 
 const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
 
-/** Banyak kreator di halaman publik — tiap kreator punya 1 post gambar 360°. */
+/** Fallback kreator saat backend belum dikonfigurasi — tiap kreator 1 post 360°. */
 const CREATORS = [
-  { id: "c1", name: "Atrium Studio", initials: "AS", color: "bg-amber-100 text-amber-700", title: "Atrium — The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", posts: 12 },
-  { id: "c2", name: "Ruang Kreatif", initials: "RK", color: "bg-sky-100 text-sky-700", title: "Studio — Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", posts: 8 },
-  { id: "c3", name: "Sunset Living", initials: "SL", color: "bg-rose-100 text-rose-700", title: "Terrace — Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", posts: 21 },
-  { id: "c4", name: "Arda Visual", initials: "AV", color: "bg-emerald-100 text-emerald-700", title: "Living Room 360", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", posts: 5 },
-  { id: "c5", name: "Nusantara Tour", initials: "NT", color: "bg-violet-100 text-violet-700", title: "Trungtamyte", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Outdoor", posts: 14 },
-  { id: "c6", name: "Harbor 360", initials: "H3", color: "bg-cyan-100 text-cyan-700", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", posts: 9 },
+  { id: "c1", name: "Atrium Studio", initials: "AS", color: "bg-amber-100 text-amber-700", title: "Atrium — The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "12 post" },
+  { id: "c2", name: "Ruang Kreatif", initials: "RK", color: "bg-sky-100 text-sky-700", title: "Studio — Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "8 post" },
+  { id: "c3", name: "Sunset Living", initials: "SL", color: "bg-rose-100 text-rose-700", title: "Terrace — Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", views: "21 post" },
+  { id: "c4", name: "Arda Visual", initials: "AV", color: "bg-emerald-100 text-emerald-700", title: "Living Room 360", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "5 post" },
+  { id: "c5", name: "Nusantara Tour", initials: "NT", color: "bg-violet-100 text-violet-700", title: "Trungtamyte", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Outdoor", views: "14 post" },
+  { id: "c6", name: "Harbor 360", initials: "H3", color: "bg-cyan-100 text-cyan-700", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", views: "9 post" },
 ]
 
 export function PublicHomeView() {
@@ -186,43 +186,66 @@ export function PublicHomeView() {
           )}
         </section>
 
-        {/* Banyak user / kreator — 1 post gambar untuk 1 user */}
+        {/* Banyak user / kreator — 1 post gambar untuk 1 user (dari database jika ada) */}
         <section id="home-creators" className="mt-12">
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Kreator &amp; karya mereka</h2>
-              <p className="mt-1 text-xs text-slate-500">Satu post 360° untuk setiap kreator — jelajahi semuanya</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {publicData?.creators?.length
+                  ? `${publicData.creators.length} kreator dari database · satu post 360° untuk setiap kreator`
+                  : "Satu post 360° untuk setiap kreator — jelajahi semuanya"}
+              </p>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
-              {CREATORS.length} kreator
+              {(publicData?.creators?.length ?? CREATORS.length)} kreator
             </span>
           </div>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {CREATORS.map((creator) => (
-              <div key={creator.id} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <button
-                    onClick={() => setExploring({ id: creator.id, title: creator.title, image: creator.image, panorama: creator.panorama, category: creator.category, views: `${creator.posts} post` })}
-                    className="block h-full w-full"
-                  >
-                    <img src={creator.image} alt={creator.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  </button>
-                  <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
-                </div>
-                <div className="flex items-center gap-3 p-3">
-                  <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${creator.color}`}>
-                    {creator.initials}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <button onClick={() => navigate("portfolio")} className="block max-w-full truncate text-left text-xs font-semibold text-slate-800 hover:text-[#d1005c]">
-                      {creator.name}
+            {(publicData?.creators?.length
+              ? publicData.creators.map((creator) => ({
+                  id: creator.id,
+                  name: creator.name,
+                  initials: creator.initials,
+                  color: creator.color,
+                  title: creator.posts?.[0]?.title ?? "360° panorama",
+                  image: creator.posts?.[0]?.image ?? "",
+                  panorama: creator.posts?.[0]?.panorama ?? "",
+                  category: creator.posts?.[0]?.category ?? "360°",
+                  views: creator.posts?.[0]?.views ?? "1 post",
+                }))
+              : CREATORS
+            ).map((creator) => {
+              const title = creator.title
+              const image = creator.image
+              const panorama = creator.panorama
+              const views = creator.views
+              return (
+                <div key={creator.id} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <button
+                      onClick={() => setExploring({ id: creator.id, title, image, panorama, category: creator.category, views })}
+                      className="block h-full w-full"
+                    >
+                      <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </button>
-                    <span className="block truncate text-[10px] text-slate-500">{creator.title}</span>
-                  </span>
-                  <span className="shrink-0 text-[10px] text-slate-400">{creator.posts} post</span>
+                    <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3">
+                    <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${creator.color}`}>
+                      {creator.initials}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <button onClick={() => navigate("portfolio")} className="block max-w-full truncate text-left text-xs font-semibold text-slate-800 hover:text-[#d1005c]">
+                        {creator.name}
+                      </button>
+                      <span className="block truncate text-[10px] text-slate-500">{title}</span>
+                    </span>
+                    <span className="shrink-0 text-[10px] text-slate-400">{views}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
 
