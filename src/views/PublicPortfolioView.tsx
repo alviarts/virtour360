@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import {
   Bell,
   ChevronDown,
@@ -20,6 +20,7 @@ import { creatorFromHash, navigate } from "../lib/navigation"
 import { buildPublicFolders, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
+import { normalizeStudioConfig } from "../types/studio"
 
 const THUMBS = [
   "/media/thumbnails/entrance_hall.jpg",
@@ -70,12 +71,14 @@ function Header({
   userName,
   query,
   onQuery,
+  primaryColor,
 }: {
   onCreate: () => void
   onLogin: () => void
   userName?: string
   query: string
   onQuery: (value: string) => void
+  primaryColor: string
 }) {
   const { notify } = useApp()
   return (
@@ -99,7 +102,7 @@ function Header({
         <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
           <Upload size={13} /> Create
         </button>
-        <button onClick={() => (userName ? navigate("studio") : onLogin())} className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]">
+        <button onClick={() => (userName ? navigate("studio") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
           <Compass size={13} /> Studio
         </button>
         {userName && (
@@ -115,7 +118,7 @@ function Header({
   )
 }
 
-function ProfileHeader({ name, initials, postCount, tourCount, likes, badge }: { name: string; initials: string; postCount: number; tourCount: number; likes: number; badge?: string }) {
+function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, showBadge = true }: { name: string; initials: string; postCount: number; tourCount: number; likes: number; badge?: string; showBadge?: boolean }) {
   const stats = [
     { value: String(postCount), label: "Posts" },
     { value: String(tourCount), label: "Tours" },
@@ -129,7 +132,7 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge }: {
       </div>
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{name}</h1>
       <p className="mt-0.5 text-sm text-slate-400">
-        {badge ? (
+        {badge && showBadge ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-semibold text-cyan-700">
             <Folder size={11} /> {badge}
           </span>
@@ -256,7 +259,7 @@ function FloatingNav() {
 }
 
 export function PublicPortfolioView() {
-  const { scenes, user, setAuthOpen, favorites, toggleFavorite } = useApp()
+  const { scenes, user, setAuthOpen, favorites, toggleFavorite, studioConfig } = useApp()
   const [query, setQuery] = useState("")
   const [detail, setDetail] = useState<CardItem | null>(null)
   const [exploring, setExploring] = useState<CardItem | null>(null)
@@ -364,13 +367,53 @@ export function PublicPortfolioView() {
     ? creatorPosts.map((item, i) => ({ ...item, id: `tour-${item.id}-${i}`, likes: 0 }))
     : baseTours
 
+  /** Konfigurasi Studio hasil publish, atau config lokal jika buka portofolio sendiri. */
+  const design = useMemo(
+    () => normalizeStudioConfig(publicData?.studioConfig ?? studioConfig),
+    [publicData?.studioConfig, studioConfig],
+  )
+
   const matches = (item: CardItem) => item.title.toLowerCase().includes(query.trim().toLowerCase())
   const shownPosts = (allPosts ? posts : posts.slice(0, 4)).filter(matches)
   const shownTours = (allTours ? tours : tours.slice(0, 3)).filter(matches)
 
+  /** SEO dinamis dari panel Marketing — sebelumnya hanya meta statis. */
+  useEffect(() => {
+    const seoTitle = design.marketing.seoTitle.trim() || displayName
+    const seoDescription = design.marketing.seoDescription.trim() || "Virtual tour 360° — jelajahi panorama, scene, dan karya di Virtour360."
+    document.title = seoTitle
+    const applyMeta = (key: string, content: string, attribute: "name" | "property" = "name") => {
+      let el = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${key}"]`)
+      if (!el) {
+        el = document.createElement("meta")
+        el.setAttribute(attribute, key)
+        document.head.appendChild(el)
+      }
+      el.content = content
+    }
+    applyMeta("description", seoDescription)
+    applyMeta("og:title", seoTitle, "property")
+    applyMeta("og:description", seoDescription, "property")
+    if (design.marketing.seoImage) applyMeta("og:image", design.marketing.seoImage, "property")
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+    if (!canonical) {
+      canonical = document.createElement("link")
+      canonical.rel = "canonical"
+      document.head.appendChild(canonical)
+    }
+    canonical.href = window.location.href.split("#")[0]
+    return () => { document.title = "Virtour360 — Studio Virtual Tour" }
+  }, [design.marketing.seoTitle, design.marketing.seoDescription, design.marketing.seoImage, displayName])
+
+  const rootStyle = {
+    "--studio-primary": design.theme.primaryColor,
+    "--studio-text": design.theme.textColor,
+    fontFamily: `"${design.theme.primaryFont}", "${design.theme.secondaryFont}", sans-serif`,
+  } as CSSProperties
+
   return (
-    <div ref={rootRef} id="portfolio-root" className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
-      <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} />
+    <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
+      <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} primaryColor={design.theme.primaryColor} />
       <ProfileHeader
         name={displayName}
         initials={displayInitials}
@@ -378,6 +421,7 @@ export function PublicPortfolioView() {
         tourCount={tours.length}
         likes={favorites.length}
         badge={sharedUid ? `by Project · /p/${sharedUid}` : undefined}
+        showBadge={!design.theme.hideProjectTitle}
       />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
@@ -486,7 +530,7 @@ export function PublicPortfolioView() {
           <div className="relative w-2/5 bg-gradient-to-br from-fuchsia-600 via-pink-600 to-cyan-400">
             <div className="absolute inset-0 opacity-40 [background-image:repeating-linear-gradient(115deg,transparent,transparent_12px,rgba(255,255,255,0.35)_12px,rgba(255,255,255,0.35)_14px)]" />
           </div>
-          <div className="flex w-3/5 flex-col justify-center bg-[#d1005c] px-5 py-5 text-white">
+          <div className="flex w-3/5 flex-col justify-center bg-[var(--studio-primary)] px-5 py-5 text-white">
             <p className="text-sm font-bold leading-snug">
               Karya 360° untuk teman — dibuat dengan senang, tanpa biaya.
             </p>
@@ -538,6 +582,38 @@ export function PublicPortfolioView() {
             Upload your own 360   →
           </button>
         </div>
+
+        {/* Call To Action dari panel Design */}
+        {design.cta.title && (
+          <div
+            className={`mt-8 flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 ${design.cta.position === "left" ? "flex-row-reverse" : ""}`}
+            style={{ marginInline: design.cta.offset }}
+          >
+            <div>
+              <p className="text-sm font-bold text-slate-900">{design.cta.title}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{design.cta.description}</p>
+            </div>
+            <a
+              href={design.cta.href}
+              className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold text-white"
+              style={{ background: design.theme.primaryColor }}
+            >
+              {design.cta.layout === "bubble" ? "Hubungi" : "Lihat detail"}
+            </a>
+          </div>
+        )}
+
+        {/* Copyright / branding dari panel Setting */}
+        {design.setting.copyrightEnabled && (
+          <div className="py-8 text-center text-[10px] text-slate-400">
+            {design.setting.logo && <img src={design.setting.logo} alt="" className="mx-auto mb-2 max-h-8" />}
+            <a href={design.setting.copyrightLink} target="_blank" rel="noreferrer" className="font-semibold hover:underline">
+              {design.setting.copyrightAuthor}
+            </a>
+            <span className="mx-1">·</span>
+            {design.setting.copyrightDescription}
+          </div>
+        )}
       </div>
 
       {detail && (

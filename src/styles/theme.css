@@ -197,6 +197,27 @@ button { cursor: pointer; }
   .hs-pulse, .hs-blink, .hs-spin, .hs-bounce, .hs-rotate { animation: none; }
 }
 
+/* ------------------------------------------------------------------ */
+/* Desain hotspot global dari panel Design → Hotspot (ala Panoee).      */
+/* Variabel di-set oleh App.tsx dari studioConfig.hotspot.              */
+/* ------------------------------------------------------------------ */
+.hs-dot {
+  background: var(--studio-hs-bg, var(--hs-color, #facc15)) !important;
+  color: var(--studio-hs-icon, #09090b) !important;
+  border-color: var(--studio-hs-border, rgba(255, 255, 255, .85)) !important;
+}
+.hs-label {
+  font-size: var(--studio-hs-label-size, 12px) !important;
+  letter-spacing: var(--studio-hs-label-spacing, 0px) !important;
+  font-weight: var(--studio-hs-label-weight, 600) !important;
+  padding: var(--studio-hs-label-pad-y, 4px) var(--studio-hs-label-pad-x, 8px) !important;
+  border-radius: var(--studio-hs-label-radius, 12px) !important;
+  background: var(--studio-hs-label-bg, rgba(0, 0, 0, .35)) !important;
+  color: var(--studio-hs-label-color, #fff) !important;
+  text-transform: var(--studio-hs-label-transform, none) !important;
+  font-style: var(--studio-hs-label-style, normal) !important;
+}
+
 /* Kartu panorama: latar bergerak pelan seolah Sphere 360 diputar */
 @keyframes pano-drift {
   0% { object-position: 20% 50%; }

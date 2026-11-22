@@ -5,6 +5,17 @@ import type { HotspotType, Scene } from "../../types/tour"
 import type { ViewState } from "../../hooks/useTourViewer"
 import { MiniMap } from "./MiniMap"
 import { BottomToolbar } from "./BottomToolbar"
+import { useApp } from "../../context/useApp"
+
+/** "#FFFFFF,46%" → rgba(255,255,255,.46) — format warna Panoee. */
+function panoColor(value: string, fallback: string) {
+  const match = value.match(/^#([0-9a-f]{6}),(\d+)%$/i)
+  if (!match) return value || fallback
+  const r = parseInt(match[1].slice(0, 2), 16)
+  const g = parseInt(match[1].slice(2, 4), 16)
+  const b = parseInt(match[1].slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${Number(match[2]) / 100})`
+}
 
 interface TourViewerProps {
   containerRef: RefObject<HTMLDivElement | null>
@@ -85,6 +96,11 @@ export function TourViewer({
 }: TourViewerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
+  const { studioConfig } = useApp()
+  const floorplan = studioConfig.floorplan
+  const [floorOpen, setFloorOpen] = useState(floorplan.showOnStart)
+
+  useEffect(() => setFloorOpen(floorplan.showOnStart), [floorplan.showOnStart])
 
   useEffect(() => {
     setPlaying(false)
@@ -110,6 +126,42 @@ export function TourViewer({
       <div ref={containerRef} className={`absolute inset-0 ${placementType ? "cursor-crosshair" : ""}`} />
 
       {!preview && showMiniMap && <MiniMap scene={scene} view={view} hotspotCount={hotspotCount} onSeek={onSeek} />}
+
+      {/* Floorplan dari panel Design → Floorplan */}
+      {!preview && floorplan.image && floorOpen && (
+        <div
+          className={`absolute bottom-24 z-30 overflow-hidden rounded-xl border border-white/20 shadow-2xl backdrop-blur-md ${floorplan.position === "left" ? "left-3" : "right-3"}`}
+          style={{
+            width: floorplan.layout === "panel" ? 220 : 160,
+            background: panoColor(floorplan.background, "rgba(255,255,255,.46)"),
+          }}
+        >
+          <div className="flex items-center justify-between px-2 py-1.5">
+            <span className="text-[10px] font-semibold text-zinc-900">Floorplan</span>
+            <button onClick={() => setFloorOpen(false)} className="text-zinc-900/70 hover:text-zinc-900" aria-label="Tutup floorplan"><X size={12} /></button>
+          </div>
+          <img src={floorplan.image} alt="Floorplan" className="w-full object-cover" />
+          <div className="flex flex-wrap gap-1 p-1.5">
+            {scenes.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onSelectScene?.(item.id)}
+                title={item.name}
+                className="size-3.5 rounded-full border-2"
+                style={{ borderColor: floorplan.markerBorder, background: item.id === scene.id ? floorplan.markerBackground : "rgba(0,0,0,.35)" }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      {!preview && floorplan.image && !floorOpen && (
+        <button
+          onClick={() => setFloorOpen(true)}
+          className={`absolute bottom-24 z-30 rounded-full border border-white/20 bg-black/70 px-3 py-1.5 text-[10px] font-semibold text-white backdrop-blur ${floorplan.position === "left" ? "left-3" : "right-3"}`}
+        >
+          Floorplan
+        </button>
+      )}
 
       {/* Side menu — daftar scene cepat di sisi kanan viewer */}
       {!preview && showSideMenu && (

@@ -1,4 +1,5 @@
 import type { Scene } from "../types/tour"
+import type { StudioConfig } from "../types/studio"
 import { isServerMode } from "./supabase"
 
 export interface PublicProfile {
@@ -49,6 +50,8 @@ export interface PublicPayload {
   creators?: PublicCreator[]
   /** UID unik project publish — dipakai link langsung */
   uid?: string
+  /** Konfigurasi Design/CMS/Marketing/Setting dari Studio */
+  studioConfig?: StudioConfig
   updatedAt: string
 }
 

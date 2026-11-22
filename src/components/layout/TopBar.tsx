@@ -2,6 +2,7 @@ import {
   ChevronDown,
   MapPin,
   MousePointer2,
+  Palette,
   PenLine,
   Pencil,
   Play,
@@ -18,6 +19,7 @@ const tools = [
   { id: "undo", icon: Undo2, label: "Urungkan perubahan hotspot terakhir", disabled: false },
   { id: "draw", icon: PenLine, label: "Gambar area — klik panorama untuk menandai", disabled: false },
   { id: "settings", icon: Settings2, label: "Pengaturan tampilan", disabled: false },
+  { id: "design", icon: Palette, label: "Design — tema, hotspot, floorplan, CMS, SEO", disabled: false },
 ]
 
 interface TopBarProps {

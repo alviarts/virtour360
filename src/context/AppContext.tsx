@@ -132,6 +132,7 @@ const GROUPS_KEY = "virtour360.groups"
 const ORDER_KEY = "virtour360.sceneOrder"
 const SCENE_GROUP_KEY = "virtour360.sceneGroups"
 const QUALITY_KEY = "virtour360.imageQuality"
+const STUDIO_CONFIG_KEY = "virtour360.studioConfig"
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -184,7 +185,7 @@ async function resetWorkspaceIfOwnerChanged(email: string): Promise<boolean> {
   const previous = localStorage.getItem(OWNER_KEY)
   localStorage.setItem(OWNER_KEY, email)
   if (!previous || previous === email) return false
-  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY, GROUPS_KEY, ORDER_KEY, SCENE_GROUP_KEY, QUALITY_KEY].forEach((key) => localStorage.removeItem(key))
+  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY, GROUPS_KEY, ORDER_KEY, SCENE_GROUP_KEY, QUALITY_KEY, STUDIO_CONFIG_KEY].forEach((key) => localStorage.removeItem(key))
   try {
     await clearAllLocalData()
   } catch {
@@ -254,6 +255,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setImageQuality = useCallback((value: "standard" | "high" | "original") => {
     setImageQualityState(value)
     persist(QUALITY_KEY, value)
+  }, [])
+  const [studioConfig, setStudioConfig] = useState<StudioConfig>(() =>
+    normalizeStudioConfig(readJSON<Partial<StudioConfig> | null>(STUDIO_CONFIG_KEY, null)),
+  )
+  const updateStudioConfig = useCallback((patch: Partial<StudioConfig>) => {
+    setStudioConfig((prev) => {
+      const next = normalizeStudioConfig({ ...prev, ...patch })
+      persist(STUDIO_CONFIG_KEY, next)
+      return next
+    })
+  }, [])
+  const resetStudioConfig = useCallback(() => {
+    const next = normalizeStudioConfig(null)
+    setStudioConfig(next)
+    persist(STUDIO_CONFIG_KEY, next)
   }, [])
   const [activeSceneId, setActiveSceneId] = useState<string>("atrium")
   const [audioByScene, setAudioByScene] = useState<Record<string, SceneAudio>>({})
@@ -348,6 +364,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (remote.sceneGroups) { setSceneGroupOverrides(remote.sceneGroups); persist(SCENE_GROUP_KEY, remote.sceneGroups) }
         if (remote.sceneOrder) { setSceneOrder(remote.sceneOrder); persist(ORDER_KEY, remote.sceneOrder) }
         if (remote.imageQuality) { setImageQualityState(remote.imageQuality as typeof imageQuality); persist(QUALITY_KEY, remote.imageQuality) }
+        if (remote.studioConfig) {
+          const nextConfig = normalizeStudioConfig(remote.studioConfig)
+          setStudioConfig(nextConfig)
+          persist(STUDIO_CONFIG_KEY, nextConfig)
+        }
         if (remote.panoramas.length) {
           setPanoramas(
             remote.panoramas.map((p) => ({
@@ -382,6 +403,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sceneGroups: sceneGroupOverrides,
         sceneOrder,
         imageQuality,
+        studioConfig,
         // Mode server tidak punya public URL Storage, jadi metadata panorama
         // tidak ikut disinkron agar device lain tidak menampilkan gambar rusak.
         panoramas: isServerMode
@@ -395,7 +417,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }).catch(() => undefined)
     }, 800)
     return () => window.clearTimeout(timer)
-  }, [remoteReady, identityKey, hotspotOverrides, favorites, mediaOverrides, effectsByScene, groups, sceneGroupOverrides, sceneOrder, imageQuality, panoramas, user])
+  }, [remoteReady, identityKey, hotspotOverrides, favorites, mediaOverrides, effectsByScene, groups, sceneGroupOverrides, sceneOrder, imageQuality, studioConfig, panoramas, user])
 
   useEffect(() => {
     return () => {
@@ -445,6 +467,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSceneOrder({})
       setSceneGroupOverrides({})
       setImageQualityState("standard")
+      setStudioConfig(normalizeStudioConfig(null))
     }
     return null
   }, [])
@@ -484,6 +507,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSceneOrder({})
       setSceneGroupOverrides({})
       setImageQualityState("standard")
+      setStudioConfig(normalizeStudioConfig(null))
     }
     return null
   }, [])
@@ -946,6 +970,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         moveScene,
         imageQuality,
         setImageQuality,
+        studioConfig,
+        updateStudioConfig,
+        resetStudioConfig,
         effectsByScene,
         setSceneEffects,
         resetSceneEffects,

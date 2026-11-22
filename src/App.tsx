@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { AppShell } from "./components/layout/AppShell"
 import { TopBar } from "./components/layout/TopBar"
 import { LeftSidebar } from "./components/layout/LeftSidebar"
@@ -9,6 +9,7 @@ import { ProfileModal } from "./components/auth/ProfileModal"
 import { EmbedModal } from "./components/auth/EmbedModal"
 import { PublishModal } from "./components/auth/PublishModal"
 import { Lightbox } from "./components/ui/Lightbox"
+import { DesignModal } from "./components/studio/DesignModal"
 import { useTourViewer, type Quality } from "./hooks/useTourViewer"
 import { useFullscreen } from "./hooks/useFullscreen"
 import { useHotkeys } from "./hooks/useHotkeys"
@@ -108,6 +109,7 @@ export default function App() {
   const [accountOpen, setAccountOpen] = useState(false)
   const [preview, setPreview] = useState(false)
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+  const [designOpen, setDesignOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [embedOpen, setEmbedOpen] = useState(false)
   const [publishOpen, setPublishOpen] = useState(false)
@@ -141,9 +143,30 @@ export default function App() {
     logout,
     notify,
     effectsByScene,
+    studioConfig,
   } = useApp()
 
   const currentEffects = effectsByScene[activeSceneId] ?? defaultEffects
+
+  /** Terapkan desain hotspot global (panel Design → Hotspot) ke viewer. */
+  useEffect(() => {
+    const root = document.documentElement
+    const set = (key: string, value: string) => root.style.setProperty(key, value)
+    const h = studioConfig.hotspot
+    set("--studio-hs-bg", h.background)
+    set("--studio-hs-icon", h.iconColor)
+    set("--studio-hs-border", h.keepPositionOnZoom ? "rgba(255,255,255,.85)" : "transparent")
+    set("--studio-hs-label-size", `${h.label.fontSize}px`)
+    set("--studio-hs-label-spacing", `${h.label.letterSpacing}px`)
+    set("--studio-hs-label-weight", h.label.fontWeight)
+    set("--studio-hs-label-pad-x", `${h.label.paddingX}px`)
+    set("--studio-hs-label-pad-y", `${h.label.paddingY}px`)
+    set("--studio-hs-label-radius", `${h.label.radius}px`)
+    set("--studio-hs-label-bg", h.label.background.replace(",", ","))
+    set("--studio-hs-label-color", h.label.textColor)
+    set("--studio-hs-label-transform", h.label.uppercase ? "uppercase" : "none")
+    set("--studio-hs-label-style", h.label.italic ? "italic" : "normal")
+  }, [studioConfig.hotspot])
 
   const tour = useTourViewer(scenes, {
     activeSceneId,
@@ -206,6 +229,8 @@ export default function App() {
       undoEdit()
     } else if (id === "settings") {
       setSettingsOpen((v) => !v)
+    } else if (id === "design") {
+      setDesignOpen(true)
     } else if (id === "select" || id === "cursor") {
       tour.stopPlacement()
     }
@@ -432,6 +457,7 @@ export default function App() {
         }}
       />
 
+      {designOpen && <DesignModal onClose={() => setDesignOpen(false)} />}
       {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
       {embedOpen && <EmbedModal onClose={() => setEmbedOpen(false)} />}
       {publishOpen && (

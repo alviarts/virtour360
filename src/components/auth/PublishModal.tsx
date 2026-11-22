@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import QRCode from "qrcode"
 import { Check, Copy, ExternalLink, Globe, Lock, QrCode, X } from "lucide-react"
+import { useApp } from "../../context/useApp"
 import type { Scene } from "../../types/tour"
 import { profile as defaultProfile } from "../../data/profile"
 import {
@@ -30,6 +31,7 @@ export function PublishModal({ onClose, scenes, userName, userInitials, onPublis
   const [allowFullscreen, setAllowFullscreen] = useState(true)
   const [allowVr, setAllowVr] = useState(true)
   const [lazy, setLazy] = useState(true)
+  const { studioConfig } = useApp()
 
   const shareUrl = uid ? publicShareUrl(uid) : ""
   const embedCode = `<iframe src="${shareUrl}" width="100%" height="600" frameborder="0"${allowFullscreen ? ' allowfullscreen' : ""}${allowVr ? ' allow="vr"' : ""}${lazy ? ' loading="lazy"' : ""} title="Virtour360 Virtual Tour"></iframe>`
@@ -56,6 +58,7 @@ export function PublishModal({ onClose, scenes, userName, userInitials, onPublis
       scenes,
       folders: buildPublicFolders(scenes),
       creators: [],
+      studioConfig,
       updatedAt: new Date().toISOString(),
     })
     setBusy(false)

@@ -1,4 +1,5 @@
 import type { Hotspot } from "../types/tour"
+import type { StudioConfig } from "../types/studio"
 import type { SceneEffects } from "./effects"
 import { isServerMode, SHARED_STATE_ID, supabase } from "./supabase"
 import { getAuthToken } from "./authToken"
@@ -28,6 +29,7 @@ export interface RemoteState {
   sceneGroups: Record<string, string>
   sceneOrder: Record<string, number>
   imageQuality: string
+  studioConfig?: Partial<StudioConfig>
 }
 
 export const emptyRemoteState: RemoteState = {
@@ -41,6 +43,7 @@ export const emptyRemoteState: RemoteState = {
   sceneGroups: {},
   sceneOrder: {},
   imageQuality: "standard",
+  studioConfig: undefined,
 }
 
 export async function loadRemoteState(stateId: string): Promise<RemoteState | null> {
