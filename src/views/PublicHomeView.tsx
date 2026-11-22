@@ -9,9 +9,9 @@ import { buildExampleScenes } from "../data/examples"
 import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 
 const ITEMS = [
-  { id: "h1", title: "Atrium � The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "2.4k" },
-  { id: "h2", title: "Studio � Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "1.8k" },
-  { id: "h3", title: "Terrace � Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", views: "3.1k" },
+  { id: "h1", title: "Atrium — The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "2.4k" },
+  { id: "h2", title: "Studio — Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "1.8k" },
+  { id: "h3", title: "Terrace — Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", views: "3.1k" },
   { id: "h4", title: "Living Room 360", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "956" },
   { id: "h5", title: "Trungtamyte", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Outdoor", views: "1.2k" },
   { id: "h6", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", views: "4.7k" },
@@ -154,7 +154,7 @@ export function PublicHomeView() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-slate-200 bg-white px-4 py-24 text-center sm:px-6 lg:px-8 lg:py-32">
-        {/* Panorama 360° bergerak pelan sebagai latar � sengaja redup agar teks tetap jelas */}
+        {/* Panorama 360° bergerak pelan sebagai latar — sengaja redup agar teks tetap jelas */}
         <div
           className="hero-360 pointer-events-none absolute inset-0 opacity-[0.14]"
           style={{
@@ -213,7 +213,7 @@ export function PublicHomeView() {
               <p className="mt-1 text-xs text-slate-500">Paling banyak dijelajahi minggu ini</p>
             </div>
             <button onClick={() => { setCategory("Semua"); setQuery("") }} className="text-xs font-semibold text-cyan-600 hover:text-cyan-700">
-              Browse more � 
+              Browse more  →
             </button>
           </div>
 
@@ -249,7 +249,7 @@ export function PublicHomeView() {
           )}
         </section>
 
-        {/* Banyak user / kreator � 1 post gambar untuk 1 user (dari database jika ada) */}
+        {/* Banyak user / kreator — 1 post gambar untuk 1 user (dari database jika ada) */}
         <section id="home-creators" className="mt-16">
           <div className="flex items-end justify-between">
             <div>
@@ -257,7 +257,7 @@ export function PublicHomeView() {
               <p className="mt-1 text-xs text-slate-500">
                 {publicData?.creators?.length
                   ? `${publicData.creators.length} kreator dari database · satu post 360° untuk setiap kreator`
-                  : "Satu post 360° untuk setiap kreator � jelajahi semuanya"}
+                  : "Satu post 360° untuk setiap kreator — jelajahi semuanya"}
               </p>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
@@ -340,7 +340,7 @@ export function PublicHomeView() {
             </div>
           </div>
           <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
-            Upload your own 360 � 
+            Upload your own 360  →
           </button>
         </div>
       </main>
@@ -348,7 +348,7 @@ export function PublicHomeView() {
       <footer className="border-t border-slate-200 bg-white px-6 py-8">
         <div className="mx-auto flex max-w-[1120px] flex-col items-center justify-between gap-4 sm:flex-row">
           <Logo360 tone="dark" size={26} />
-          <p className="text-[11px] text-slate-400">© 2026 Virtour360 � Jelajahi dunia dalam satu panorama.</p>
+          <p className="text-[11px] text-slate-400">© 2026 Virtour360 — Jelajahi dunia dalam satu panorama.</p>
           <button onClick={() => navigate("portfolio")} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-900">
             <User size={13} /> Portofolio
           </button>

@@ -85,7 +85,7 @@ export function UploadModal() {
             <p className="mt-1 text-[11px] text-zinc-500">
               {replaceSceneId
                 ? `Gambar baru akan dipakai scene "${replaceTarget?.name ?? ""}". Tersimpan di browser ini.`
-                : "Gambar equirectangular rasio 2:1 (mis. 4096�2048). Tersimpan di browser ini."}
+                : "Gambar equirectangular rasio 2:1 (mis. 4096×2048). Tersimpan di browser ini."}
             </p>
           </div>
           <button onClick={close} className="text-zinc-500 hover:text-zinc-200" aria-label="Tutup">

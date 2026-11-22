@@ -169,7 +169,7 @@ export function DashboardView() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => notify("Portofolio pribadi � dibuat untuk teman.")} className="hidden h-6 items-center rounded-full bg-amber-400 px-2.5 text-[11px] font-semibold text-black whitespace-nowrap md:flex">
+            <button onClick={() => notify("Portofolio pribadi — dibuat untuk teman.")} className="hidden h-6 items-center rounded-full bg-amber-400 px-2.5 text-[11px] font-semibold text-black whitespace-nowrap md:flex">
               Portofolio Pribadi
             </button>
             <button onClick={() => notify("Changelog: peningkatan viewer & upload 360.")} className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-700 px-3 text-xs whitespace-nowrap text-zinc-200 hover:bg-white/5 lg:flex">
@@ -184,7 +184,7 @@ export function DashboardView() {
             <div className="relative">
               <button
                 onClick={() => setAccountOpen((v) => !v)}
-                title={user ? "Akun" : "Publik � masuk untuk mengunggah"}
+                title={user ? "Akun" : "Publik — masuk untuk mengunggah"}
                 className="grid size-8 place-items-center rounded-full bg-orange-400 text-xs font-bold text-black"
               >
                 {(user?.initials ?? "G")[0]}
@@ -209,7 +209,7 @@ export function DashboardView() {
       </header>
 
       <main className="mx-auto max-w-[1400px] px-4 py-3 min-[112.5rem]:max-w-[1640px] sm:px-6 lg:px-8">
-        {/* KPI strip � ringkasan portofolio pribadi */}
+        {/* KPI strip — ringkasan portofolio pribadi */}
         <div className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-3">
           {[
             { label: "Proyek", value: String(scenes.length), hint: "scene dalam portofolio" },
@@ -240,7 +240,7 @@ export function DashboardView() {
               ))}
             </div>
             <button onClick={() => navigate("portfolio")} className="flex items-center gap-1.5 text-xs font-medium text-zinc-200 hover:text-white">
-              �  View Public Profile
+              — View Public Profile
             </button>
           </div>
 
@@ -321,7 +321,7 @@ export function DashboardView() {
           </div>
           <h3 className="mt-3 text-sm font-semibold text-zinc-50">Portofolio untuk teman</h3>
           <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-            Tempat berbagi karya 360° dengan teman dekat � dibuat dengan senang.
+            Tempat berbagi karya 360° dengan teman dekat — dibuat dengan senang.
           </p>
           <button onClick={() => notify("Dibuat dengan senang untuk teman-teman.")} className="mt-3 text-xs font-semibold text-zinc-100 hover:text-white">Selengkapnya</button>
         </div>

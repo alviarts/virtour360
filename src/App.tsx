@@ -46,7 +46,7 @@ function SettingsPopover({
             <button
               key={q}
               onClick={() => setQuality(q)}
-              title={`Kualitas ${q} � mengubah zoom & batas detail`}
+              title={`Kualitas ${q} — mengubah zoom & batas detail`}
               className={`px-1.5 py-0.5 text-[10px] capitalize ${quality === q ? "bg-white text-black" : "text-zinc-400 hover:bg-white/10"}`}
             >
               {q}
@@ -197,7 +197,7 @@ export default function App() {
               notify(
                 published
                   ? "Portofolio berhasil dipublikasikan."
-                  : "Mode lokal � portofolio tersimpan di browser ini.",
+                  : "Mode lokal — portofolio tersimpan di browser ini.",
               )
               navigate("portfolio")
             }}

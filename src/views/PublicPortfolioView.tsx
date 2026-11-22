@@ -34,9 +34,9 @@ const PANOS = [
 ]
 
 const postCards = [
-  { title: "Atrium � The Gallery", image: THUMBS[0], panorama: PANOS[0], count: 4 },
-  { title: "Studio � Creative Room", image: THUMBS[1], panorama: PANOS[1], count: 1 },
-  { title: "Terrace � Sunset View", image: THUMBS[2], panorama: PANOS[2], count: 2 },
+  { title: "Atrium — The Gallery", image: THUMBS[0], panorama: PANOS[0], count: 4 },
+  { title: "Studio — Creative Room", image: THUMBS[1], panorama: PANOS[1], count: 1 },
+  { title: "Terrace — Sunset View", image: THUMBS[2], panorama: PANOS[2], count: 2 },
   { title: "2BR MASTER BEDROOM", image: THUMBS[0], panorama: PANOS[0], count: 1 },
   { title: "Living Room 360", image: THUMBS[1], panorama: PANOS[1], count: 3 },
   { title: "Trungtamyte", image: THUMBS[2], panorama: PANOS[2], count: 1 },
@@ -144,7 +144,7 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes }: { name: 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-slate-900">
-      <span className="text-lg">��</span> {children}
+      <Folder size={18} className="text-slate-900" /> {children}
     </h2>
   )
 }
@@ -175,7 +175,7 @@ function Card({
         </button>
         <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-emerald-500 px-1.5 text-[10px] font-bold text-white">360°</span>
         {item.count !== undefined && (
-          <span className="pointer-events-none absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">{item.count} ��</span>
+          <span className="pointer-events-none absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">{item.count} ▣</span>
         )}
         {!!item.comments && (
           <span className="pointer-events-none absolute right-2 top-10 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] text-white">
@@ -203,7 +203,7 @@ function DetailModal({ item, onClose, onExplore }: { item: CardItem; onClose: ()
           <p className="mt-1 text-xs text-slate-500">Panorama 360° · {item.count ?? 1} scene</p>
           <div className="mt-4 flex gap-2">
             <button onClick={onExplore} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#d1005c] text-xs font-semibold text-white hover:bg-[#b80051]">
-              Jelajahi 360° � 
+              Jelajahi 360°  →
             </button>
             <button
               onClick={() => toggleFavorite(item.id)}
@@ -355,7 +355,7 @@ export function PublicPortfolioView() {
       <ProfileHeader name={displayName} initials={displayInitials} postCount={posts.length} tourCount={tours.length} likes={favorites.length} />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
-        {/* Struktur folder hasil publish: Project �  Scenes */}
+        {/* Struktur folder hasil publish: Project  → Scenes */}
         {!selected && !!publicData?.folders?.length && (
           <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-folders">
             <SectionTitle>Project &amp; folder</SectionTitle>
@@ -429,7 +429,7 @@ export function PublicPortfolioView() {
 
         {query && (
           <p className="mt-4 text-xs text-slate-500">
-            Hasil pencarian "{query}" � {posts.filter(matches).length} post, {tours.filter(matches).length} tour.
+            Hasil pencarian "{query}" — {posts.filter(matches).length} post, {tours.filter(matches).length} tour.
           </p>
         )}
 
@@ -462,10 +462,10 @@ export function PublicPortfolioView() {
           </div>
           <div className="flex w-3/5 flex-col justify-center bg-[#d1005c] px-5 py-5 text-white">
             <p className="text-sm font-bold leading-snug">
-              Karya 360° untuk teman � dibuat dengan senang, tanpa biaya.
+              Karya 360° untuk teman — dibuat dengan senang, tanpa biaya.
             </p>
             <button onClick={() => navigate("home")} className="mt-3 w-fit rounded border border-white/60 px-3 py-1.5 text-[10px] font-semibold tracking-wide">
-              JELAJAHI � 
+              JELAJAHI  →
             </button>
           </div>
         </div>
@@ -509,7 +509,7 @@ export function PublicPortfolioView() {
             </p>
           </div>
           <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
-            Upload your own 360 � 
+            Upload your own 360  →
           </button>
         </div>
       </div>

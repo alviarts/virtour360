@@ -186,7 +186,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               </button>
               {allGroups.length > 1 && (
                 <button
-                  onClick={() => { deleteGroup(label); notify("Grup dihapus � scene dipindah ke Uncategory.") }}
+                  onClick={() => { deleteGroup(label); notify("Grup dihapus — scene dipindah ke Uncategory.") }}
                   title="Hapus grup"
                   className="grid size-6 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-red-400"
                 >
@@ -217,8 +217,8 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
                             <img src={scene.thumbnail} alt="" className="size-8 rounded object-cover" />
                             <span className={`min-w-0 flex-1 truncate text-[11px] ${active ? "text-amber-300" : "text-zinc-200"}`}>{scene.name}</span>
                           </button>
-                          <button onClick={() => moveScene(scene.id, -1)} title="Naik" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">� </button>
-                          <button onClick={() => moveScene(scene.id, 1)} title="Turun" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">� </button>
+                          <button onClick={() => moveScene(scene.id, -1)} title="Naik" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200"> ↑</button>
+                          <button onClick={() => moveScene(scene.id, 1)} title="Turun" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200"> ↓</button>
                           <select
                             value={scene.group || "Uncategory"}
                             onChange={(e) => { setSceneGroup(scene.id, e.target.value); notify(`Scene dipindah ke grup ${e.target.value}.`) }}

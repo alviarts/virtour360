@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 const PUBLIC_ID = "virtour:public"
 
 /**
- * Endpoint publik  dibaca pengunjung tanpa login.
+ * Endpoint publik — dibaca pengunjung tanpa login.
  * Ditulis hanya oleh pemilik lewat tombol "Published" di Studio.
  * Kredensial tetap hanya di server.
  */
