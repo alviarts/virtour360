@@ -226,7 +226,7 @@ export function PublicHomeView() {
                 <div key={item.id} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <button onClick={() => { setExploringScenes(exampleScenes); setExploring(item) }} className="block h-full w-full">
-                      <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <img src={item.image} alt={item.title} className="pano-drift h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </button>
                     <button
                       onClick={() => toggleFavorite(item.id)}
@@ -298,7 +298,7 @@ export function PublicHomeView() {
                       }}
                       className="block h-full w-full"
                     >
-                      <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <img src={image} alt={title} className="pano-drift h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </button>
                     <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
                   </div>

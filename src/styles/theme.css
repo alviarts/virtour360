@@ -76,6 +76,23 @@ button { cursor: pointer; }
   .globe-spin { animation: none; }
 }
 
+/* Kartu panorama: latar bergerak pelan seolah Sphere 360 diputar */
+@keyframes pano-drift {
+  0% { object-position: 20% 50%; }
+  50% { object-position: 80% 50%; }
+  100% { object-position: 20% 50%; }
+}
+
+.pano-drift {
+  animation: pano-drift 22s ease-in-out infinite;
+}
+
+.pano-drift:hover { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pano-drift { animation: none; }
+}
+
 /* Efek mengetik pada placeholder pencarian */
 @keyframes caret-blink {
   0%, 49% { opacity: 1; }
