@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react"
 import {
-  Gift,
   Grid2X2,
   List,
   LogOut,
@@ -394,10 +393,6 @@ export function DashboardView() {
           <button onClick={() => notify("Dibuat dengan senang untuk teman-teman.")} className="mt-3 text-xs font-semibold text-zinc-100 hover:text-white">Selengkapnya</button>
         </div>
       )}
-
-      <button onClick={() => notify("Terima kasih sudah mampir!")} className="fixed bottom-6 left-6 z-30 grid size-10 place-items-center rounded-full bg-amber-500 text-black shadow-lg" title="Ucapan untuk teman">
-        <Gift size={17} />
-      </button>
 
       {newProjectOpen && (
         <NewProjectModal onClose={() => setNewProjectOpen(false)} onCreate={handleCreateProject} />
