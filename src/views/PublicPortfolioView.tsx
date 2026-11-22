@@ -17,7 +17,7 @@ import { useApp } from "../context/useApp"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { creatorFromHash, navigate } from "../lib/navigation"
-import { buildPublicFolders, loadPublicPayload, type PublicPayload } from "../lib/publicStore"
+import { buildPublicFolders, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
 
@@ -267,7 +267,7 @@ export function PublicPortfolioView() {
 
   useEffect(() => {
     let alive = true
-    loadPublicPayload().then((data) => {
+    loadPublicPayload(publicUidFromHash()).then((data) => {
       if (!alive) return
       setPublicData(
         data ?? {

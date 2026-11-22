@@ -4,7 +4,7 @@ export function currentView(): View {
   const hash = window.location.hash.replace(/^#\/?/, "")
   if (hash.startsWith("dashboard")) return "dashboard"
   if (hash.startsWith("studio")) return "studio"
-  if (hash.startsWith("portfolio")) return "portfolio"
+  if (hash.startsWith("portfolio") || hash.startsWith("p/")) return "portfolio"
   if (hash.startsWith("home") || hash === "") return "home"
   return "home"
 }

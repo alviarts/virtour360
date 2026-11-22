@@ -14,7 +14,7 @@ import { useHotkeys } from "./hooks/useHotkeys"
 import { useApp } from "./context/useApp"
 import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
-import { buildPublicFolders, publishPublicPayload } from "./lib/publicStore"
+import { buildPublicFolders, publishPublicPayload, publicShareUrl } from "./lib/publicStore"
 import { defaultEffects } from "./lib/effects"
 import { defaultSceneId } from "./data/scenes"
 
@@ -83,6 +83,9 @@ export default function App() {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [embedOpen, setEmbedOpen] = useState(false)
+  const [publishedUid, setPublishedUid] = useState<string | null>(
+    () => localStorage.getItem("virtour360.publishedUid"),
+  )
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
@@ -194,11 +197,14 @@ export default function App() {
                 folders: buildPublicFolders(scenes),
                 updatedAt: new Date().toISOString(),
               })
-              notify(
-                published
-                  ? "Portofolio berhasil dipublikasikan."
-                  : "Mode lokal — portofolio tersimpan di browser ini.",
-              )
+              if (published.ok) {
+                setPublishedUid(published.uid)
+                localStorage.setItem("virtour360.publishedUid", published.uid)
+                try { await navigator.clipboard.writeText(publicShareUrl(published.uid)) } catch { /* abaikan */ }
+                notify(`Link publish disalin: ${publicShareUrl(published.uid)}`)
+              } else {
+                notify("Mode lokal — portofolio tersimpan di browser ini.")
+              }
               navigate("portfolio")
             }}
           />
@@ -245,6 +251,18 @@ export default function App() {
               <button onClick={() => { setAccountOpen(false); setEmbedOpen(true) }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Embed portofolio
               </button>
+              {publishedUid && (
+                <button
+                  onClick={async () => {
+                    try { await navigator.clipboard.writeText(publicShareUrl(publishedUid)); notify("Link publish disalin.") }
+                    catch { notify(publicShareUrl(publishedUid)) }
+                    setAccountOpen(false)
+                  }}
+                  className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-emerald-400 hover:bg-emerald-500/10"
+                >
+                  Salin link publish
+                </button>
+              )}
               <button onClick={() => { setAccountOpen(false); navigate("home") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Kembali ke Home
               </button>

@@ -47,6 +47,8 @@ export interface PublicPayload {
   folders: PublicFolder[]
   /** Banyak kreator/public user (hasil seed / publish) */
   creators?: PublicCreator[]
+  /** UID unik project publish — dipakai link langsung */
+  uid?: string
   updatedAt: string
 }
 
@@ -58,10 +60,25 @@ function slug(value: string) {
     .replace(/^-|-$/g, "") || "project"
 }
 
-/**
- * Susun scene menjadi folder per project.
- * Scene dengan project title sama digabung dalam satu folder yang rapi.
- */
+/** UID pendek, aman untuk URL. */
+export function makePublicUid(): string {
+  const bytes = new Uint8Array(6)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("").slice(0, 10)
+}
+
+/** Link langsung yang bisa dibagikan. */
+export function publicShareUrl(uid: string): string {
+  const base = typeof window !== "undefined" ? window.location.origin : ""
+  return `${base}/#/p/${encodeURIComponent(uid)}`
+}
+
+/** Baca UID dari hash `#/p/<uid>`. */
+export function publicUidFromHash(): string | null {
+  const match = window.location.hash.match(/^#\/p\/([^/?]+)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
   const groups = new Map<string, Scene[]>()
 
@@ -78,9 +95,7 @@ export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
     return {
       id: `folder-${key}`,
       name: first.project?.title || first.group || "Lainnya",
-      description: items.length > 1
-        ? `${items.length} scene dalam project ini.`
-        : first.description || "Panorama 360°.",
+      description: items.length > 1 ? `${items.length} scene dalam project ini.` : first.description || "Panorama 360°.",
       cover: first.thumbnail,
       sceneIds: items.map((scene) => scene.id),
       tags: first.project?.tags ?? [],
@@ -89,39 +104,47 @@ export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
   })
 }
 
-/** Data publik diambil tanpa login oleh pengunjung. */
-export async function loadPublicPayload(): Promise<PublicPayload | null> {
+/** Data publik diambil tanpa login. Bisa memakai UID project tertentu. */
+export async function loadPublicPayload(uid?: string | null): Promise<PublicPayload | null> {
   if (!isServerMode) return null
   try {
-    const response = await fetch("/api/public", { cache: "no-store" })
+    const query = uid ? `?id=${encodeURIComponent(uid)}` : ""
+    const response = await fetch(`/api/public${query}`, { cache: "no-store" })
     if (!response.ok) return null
     const json = (await response.json()) as { payload?: PublicPayload }
     if (!json.payload) return null
-    // Kompatibel dengan payload lama yang belum punya folders.
     return { ...json.payload, folders: json.payload.folders ?? buildPublicFolders(json.payload.scenes ?? []) }
   } catch {
     return null
   }
 }
 
-/** Dipanggil saat pemilik menekan tombol Published di Studio. */
-export async function publishPublicPayload(payload: PublicPayload): Promise<boolean> {
-  if (!isServerMode) return false
+/**
+ * Publish project. Mengembalikan UID unik untuk link langsung.
+ */
+export async function publishPublicPayload(
+  payload: PublicPayload,
+  uid?: string,
+): Promise<{ ok: boolean; uid: string }> {
+  const finalUid = uid || payload.uid || makePublicUid()
+  if (!isServerMode) return { ok: false, uid: finalUid }
   try {
+    const previous = await loadPublicPayload()
     const response = await fetch("/api/public", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        // Pertahankan daftar kreator hasil seed/publish sebelumnya.
+        uid: finalUid,
         payload: {
           ...payload,
-          creators: payload.creators?.length ? payload.creators : (await loadPublicPayload())?.creators ?? [],
+          uid: finalUid,
+          creators: payload.creators?.length ? payload.creators : previous?.creators ?? [],
           folders: buildPublicFolders(payload.scenes),
         },
       }),
     })
-    return response.ok
+    return { ok: response.ok, uid: finalUid }
   } catch {
-    return false
+    return { ok: false, uid: finalUid }
   }
 }
