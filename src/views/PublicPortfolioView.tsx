@@ -81,7 +81,7 @@ function Header({
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-5 backdrop-blur">
       <div className="flex items-center gap-4">
-        <button onClick={() => document.getElementById("portfolio-root")?.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center">
+        <button onClick={() => navigate("home")} title="Kembali ke Home" aria-label="Kembali ke Home" className="flex items-center">
           <Logo360 tone="dark" size={28} />
         </button>
         <div className="flex h-9 w-64 items-center gap-2 rounded-full bg-slate-100 px-3.5">
