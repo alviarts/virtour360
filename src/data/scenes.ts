@@ -6,7 +6,7 @@ const T = "/media/thumbnails"
 export const scenes: Scene[] = [
   {
     id: "atrium",
-    name: "Atrium â€” The Gallery",
+    name: "Atrium — The Gallery",
     description: "Ruang pamer utama dengan pencahayaan alami dan artefak pilihan.",
     group: "Uncategory",
     panorama: `${P}/entrance_hall.jpg`,
@@ -19,7 +19,7 @@ export const scenes: Scene[] = [
         yaw: 18,
         pitch: -4,
         title: "Tentang karya ini",
-        description: "Panorama 360Â° pertama dalam seri galeri. Setiap sudut dipotret dan dijahit menjadi satu ruang yang bisa dijelajahi.",
+        description: "Panorama 360° pertama dalam seri galeri. Setiap sudut dipotret dan dijahit menjadi satu ruang yang bisa dijelajahi.",
       },
       {
         id: "hs-next",
@@ -33,15 +33,15 @@ export const scenes: Scene[] = [
     ],
     project: {
       title: "The Gallery",
-      role: "360Â° Capture & Interactive Design",
+      role: "360° Capture & Interactive Design",
       client: "Diraja Art Space",
       year: "2025",
-      tags: ["360Â°", "Photography", "WebGL"],
+      tags: ["360°", "Photography", "WebGL"],
     },
   },
   {
     id: "studio",
-    name: "Studio â€” Creative Room",
+    name: "Studio — Creative Room",
     description: "Ruang kerja kreatif tempat ide, sketsa, dan prototipe dibentuk.",
     group: "Uncategory",
     panorama: `${P}/art_studio.jpg`,
@@ -83,7 +83,7 @@ export const scenes: Scene[] = [
   },
   {
     id: "terrace",
-    name: "Terrace â€” Sunset View",
+    name: "Terrace — Sunset View",
     description: "Area terbuka dengan panorama langit dan cakrawala yang luas.",
     group: "Uncategory",
     panorama: `${P}/hotel_room.jpg`,
@@ -113,7 +113,7 @@ export const scenes: Scene[] = [
       role: "Panoramic Content & Color Grading",
       client: "Sunset Harbor",
       year: "2024",
-      tags: ["360Â°", "Grading", "Hospitality"],
+      tags: ["360°", "Grading", "Hospitality"],
     },
   },
 ]
