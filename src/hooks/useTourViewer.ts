@@ -239,7 +239,16 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     if (!container || !viewer || !isReady) return
 
     let draggingId: string | null = null
-    let lastMove = 0
+    let latest: { yaw: number; pitch: number } | null = null
+
+    const coordsFromEvent = (event: PointerEvent) => {
+      const rect = container.getBoundingClientRect()
+      const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      })
+      return { yaw: round(radToDeg(coords.yaw), 0), pitch: round(radToDeg(coords.pitch), 0) }
+    }
 
     const onDown = (event: PointerEvent) => {
       const target = event.target as HTMLElement | null
@@ -251,29 +260,34 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       event.preventDefault()
     }
 
+    // Gerakkan marker LANGSUNG di viewer (tanpa menunggu React), baru simpan saat lepas.
     const onMove = (event: PointerEvent) => {
       if (!draggingId) return
-      const now = Date.now()
-      if (now - lastMove < 40) return // batasi updates
-      lastMove = now
-      const rect = container.getBoundingClientRect()
       try {
-        const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({
-          x: event.clientX - rect.left,
-          y: event.clientY - rect.top,
-        })
-        live.current.options.onMoveHotspot?.(
-          live.current.currentSceneId,
-          draggingId,
-          round(radToDeg(coords.yaw), 0),
-          round(radToDeg(coords.pitch), 0),
-        )
+        const next = coordsFromEvent(event)
+        latest = next
+        const scene = findScene(live.current.scenes, live.current.currentSceneId)
+        const spot = scene.hotspots.find((h) => h.id === draggingId)
+        if (spot) {
+          markersRef.current?.updateMarker(markerConfig({ ...spot, ...next }))
+        }
       } catch {
         /* abaikan koordinat di luar sphere */
       }
     }
 
-    const onUp = () => { draggingId = null }
+    const onUp = () => {
+      if (draggingId && latest) {
+        live.current.options.onMoveHotspot?.(
+          live.current.currentSceneId,
+          draggingId,
+          latest.yaw,
+          latest.pitch,
+        )
+      }
+      draggingId = null
+      latest = null
+    }
 
     container.addEventListener("pointerdown", onDown, { capture: true })
     window.addEventListener("pointermove", onMove)
