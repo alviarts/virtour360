@@ -134,7 +134,7 @@ export function PublishModal({ onClose, scenes, userName, userInitials, onPublis
         {uid && (
           <>
             <div className="mt-5 rounded-xl border border-zinc-800 bg-black/40 p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Share link · /p/{uid}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Link project · by Project · /p/{uid}</p>
               <div className="mt-2 flex gap-2">
                 <input readOnly value={shareUrl} className="h-9 min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-2.5 font-mono text-[10px] text-zinc-300" />
                 <button onClick={() => copy(shareUrl, "link")} title="Salin link" className="grid size-9 shrink-0 place-items-center rounded-lg bg-white text-black hover:bg-zinc-200">

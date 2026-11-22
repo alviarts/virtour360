@@ -115,7 +115,7 @@ function Header({
   )
 }
 
-function ProfileHeader({ name, initials, postCount, tourCount, likes }: { name: string; initials: string; postCount: number; tourCount: number; likes: number }) {
+function ProfileHeader({ name, initials, postCount, tourCount, likes, badge }: { name: string; initials: string; postCount: number; tourCount: number; likes: number; badge?: string }) {
   const stats = [
     { value: String(postCount), label: "Posts" },
     { value: String(tourCount), label: "Tours" },
@@ -128,7 +128,15 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes }: { name: 
         {initials.toUpperCase()}
       </div>
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{name}</h1>
-      <p className="mt-0.5 text-sm text-slate-400">@virtour360</p>
+      <p className="mt-0.5 text-sm text-slate-400">
+        {badge ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-semibold text-cyan-700">
+            <Folder size={11} /> {badge}
+          </span>
+        ) : (
+          "@virtour360"
+        )}
+      </p>
       <div className="mt-6 flex items-start gap-8 sm:gap-10">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col items-center">
@@ -316,8 +324,19 @@ export function PublicPortfolioView() {
   const localCreator = LOCAL_CREATORS.find((c) => c.id === creatorId)
   const selected = remoteCreator ?? localCreator ?? null
 
-  const displayName = selected?.name ?? publicData?.profile.name ?? user?.name ?? "Kreator Virtour360"
-  const displayInitials = selected?.initials ?? publicData?.profile.initials ?? user?.initials ?? "V3"
+  // Link publish (#/p/<uid>) membuka portofolio PER PROJECT, bukan profil user.
+  const sharedUid = publicUidFromHash()
+  const projectName =
+    publicData?.folders?.[0]?.name ??
+    publicData?.scenes?.[0]?.project?.title ??
+    null
+
+  const displayName = sharedUid
+    ? projectName ?? "Project Virtour360"
+    : selected?.name ?? publicData?.profile.name ?? user?.name ?? "Kreator Virtour360"
+  const displayInitials = sharedUid
+    ? (projectName ?? "Project").slice(0, 2).toUpperCase()
+    : selected?.initials ?? publicData?.profile.initials ?? user?.initials ?? "V3"
 
   // Saat membuka kreator tertentu, karya yang tampil adalah milik kreator itu.
   const creatorPosts: CardItem[] = selected
@@ -352,7 +371,14 @@ export function PublicPortfolioView() {
   return (
     <div ref={rootRef} id="portfolio-root" className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
       <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} />
-      <ProfileHeader name={displayName} initials={displayInitials} postCount={posts.length} tourCount={tours.length} likes={favorites.length} />
+      <ProfileHeader
+        name={displayName}
+        initials={displayInitials}
+        postCount={posts.length}
+        tourCount={tours.length}
+        likes={favorites.length}
+        badge={sharedUid ? `by Project · /p/${sharedUid}` : undefined}
+      />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
         {/* Struktur folder hasil publish: Project   → Scenes */}
@@ -434,7 +460,7 @@ export function PublicPortfolioView() {
         )}
 
         <section className="mt-4 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-explore">
-          <SectionTitle>360° posts by {displayInitials}</SectionTitle>
+          <SectionTitle>{sharedUid ? `360° posts — ${displayName}` : `360° posts by ${displayInitials}`}</SectionTitle>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-6">
             {shownPosts.map((item) => (
               <Card
@@ -471,7 +497,7 @@ export function PublicPortfolioView() {
         </div>
 
         <section className="mt-10 rounded-2xl bg-[#eef2f8] p-6" id="portfolio-tours">
-          <SectionTitle>Virtual tours by {displayInitials}</SectionTitle>
+          <SectionTitle>{sharedUid ? `Virtual tours — ${displayName}` : `Virtual tours by ${displayInitials}`}</SectionTitle>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
             {shownTours.map((item) => (
               <Card
