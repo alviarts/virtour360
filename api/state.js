@@ -11,7 +11,7 @@ function safeId(input) {
 }
 
 /**
- * Serverless function — kredensial Supabase HANYA di server (env Vercel,
+ * Serverless function  kredensial Supabase HANYA di server (env Vercel,
  * tanpa prefix VITE_), tidak pernah dikirim ke browser.
  *
  * Setiap identitas (user login atau tamu) punya baris state sendiri:
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
   const session = verifySession(token)
-  // User login selalu memakai state privat sendiri — tidak bisa membaca state orang lain.
+  // User login selalu memakai state privat sendiri  tidak bisa membaca state orang lain.
   const stateId = session
     ? `user:${session.email}`
     : safeId(req.query?.key ?? req.body?.key ?? req.headers?.["x-virtour-key"])

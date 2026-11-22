@@ -20,7 +20,7 @@ const PublicHomeView = lazy(() =>
 function Loader() {
   return (
     <div className="grid h-full w-full place-items-center bg-zinc-950 text-xs text-zinc-500">
-      Memuatâ€¦
+      Memuat⬦
     </div>
   )
 }

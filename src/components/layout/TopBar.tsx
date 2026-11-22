@@ -14,9 +14,9 @@ import { theme } from "../../config/theme"
 const tools = [
   { id: "select", icon: Pencil, label: "Pilih & edit hotspot", disabled: false },
   { id: "cursor", icon: MousePointer2, label: "Kursor (navigasi panorama)", disabled: false },
-  { id: "pin", icon: MapPin, label: "Hotspot — klik panorama untuk menaruh", disabled: false },
+  { id: "pin", icon: MapPin, label: "Hotspot  klik panorama untuk menaruh", disabled: false },
   { id: "undo", icon: Undo2, label: "Urungkan perubahan hotspot terakhir", disabled: false },
-  { id: "draw", icon: PenLine, label: "Gambar area — klik panorama untuk menandai", disabled: false },
+  { id: "draw", icon: PenLine, label: "Gambar area  klik panorama untuk menandai", disabled: false },
   { id: "settings", icon: Settings2, label: "Pengaturan tampilan", disabled: false },
 ]
 
@@ -49,7 +49,7 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex h-14">
-      {/* Area kiri — workspace */}
+      {/* Area kiri  workspace */}
       <div
         className="pointer-events-auto flex shrink-0 items-center bg-zinc-900 px-2"
         style={{ width: theme.size.sidebar }}
@@ -66,7 +66,7 @@ export function TopBar({
         </button>
       </div>
 
-      {/* Area tengah — toolbar mengambang */}
+      {/* Area tengah  toolbar mengambang */}
       <div className="relative flex min-w-0 flex-1">
         <div className="pointer-events-auto absolute left-1/2 top-2 flex -translate-x-1/2 items-center gap-0.5 rounded-full bg-black/60 p-1 backdrop-blur-md">
           {tools.map((tool) => {
@@ -96,7 +96,7 @@ export function TopBar({
         </div>
       </div>
 
-      {/* Area kanan — aksi global */}
+      {/* Area kanan  aksi global */}
       <div
         className="pointer-events-auto flex shrink-0 items-center justify-between bg-zinc-900 px-2"
         style={{ width: theme.size.inspector }}

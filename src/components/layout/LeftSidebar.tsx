@@ -157,7 +157,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari nama / tagâ€¦"
+            placeholder="Cari nama / tag⬦"
             className="min-w-0 flex-1 bg-transparent text-[11px] text-zinc-100 outline-none placeholder:text-zinc-600"
           />
           {query && <button onClick={() => setQuery("")} title="Hapus" className="text-zinc-600 hover:text-zinc-200"><X size={11} /></button>}
@@ -186,7 +186,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               </button>
               {allGroups.length > 1 && (
                 <button
-                  onClick={() => { deleteGroup(label); notify("Grup dihapus â€” scene dipindah ke Uncategory.") }}
+                  onClick={() => { deleteGroup(label); notify("Grup dihapus � scene dipindah ke Uncategory.") }}
                   title="Hapus grup"
                   className="grid size-6 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-red-400"
                 >
@@ -217,8 +217,8 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
                             <img src={scene.thumbnail} alt="" className="size-8 rounded object-cover" />
                             <span className={`min-w-0 flex-1 truncate text-[11px] ${active ? "text-amber-300" : "text-zinc-200"}`}>{scene.name}</span>
                           </button>
-                          <button onClick={() => moveScene(scene.id, -1)} title="Naik" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">â†‘</button>
-                          <button onClick={() => moveScene(scene.id, 1)} title="Turun" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">â†“</button>
+                          <button onClick={() => moveScene(scene.id, -1)} title="Naik" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">� </button>
+                          <button onClick={() => moveScene(scene.id, 1)} title="Turun" className="grid size-5 shrink-0 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200">� </button>
                           <select
                             value={scene.group || "Uncategory"}
                             onChange={(e) => { setSceneGroup(scene.id, e.target.value); notify(`Scene dipindah ke grup ${e.target.value}.`) }}

@@ -40,7 +40,7 @@ function openDB(): Promise<IDBDatabase> {
   })
 }
 
-/** Hapus semua data lokal — dipakai saat identitas akun berganti. */
+/** Hapus semua data lokal  dipakai saat identitas akun berganti. */
 export async function clearAllLocalData(): Promise<void> {
   const db = await openDB()
   await Promise.all(

@@ -56,7 +56,7 @@ export function AuthModal() {
               {mode === "login" ? "Masuk ke Virtour360" : "Buat akun baru"}
             </h2>
             <p className="mt-1 text-[11px] text-zinc-500">
-              {mode === "login" ? "Kelola panorama dan proyek 360Â° Anda." : "Mulai unggah panorama 360Â° pertama Anda."}
+              {mode === "login" ? "Kelola panorama dan proyek 360° Anda." : "Mulai unggah panorama 360° pertama Anda."}
             </p>
           </div>
           <button onClick={() => setAuthOpen(false)} className="text-zinc-500 hover:text-zinc-200" aria-label="Tutup">
@@ -144,7 +144,7 @@ export function AuthModal() {
         </button>
 
         <p className="mt-3 text-center text-[10px] leading-relaxed text-zinc-600">
-          Publik bisa melihat karya tanpa login. Masuk diperlukan untuk menyimpan &amp; mengunggah 360Â°.
+          Publik bisa melihat karya tanpa login. Masuk diperlukan untuk menyimpan &amp; mengunggah 360°.
         </p>
       </div>
     </div>

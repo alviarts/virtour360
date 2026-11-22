@@ -6,7 +6,7 @@ interface Logo360Props {
 }
 
 /**
- * Logo Virtour360 — cincin penuh + orbit + angka 360.
+ * Logo Virtour360  cincin penuh + orbit + angka 360.
  * tone "pink" untuk header gelap, "dark" untuk header terang, "white" untuk overlay.
  */
 export function Logo360({ tone = "pink", showText = true, size = 30, className = "" }: Logo360Props) {

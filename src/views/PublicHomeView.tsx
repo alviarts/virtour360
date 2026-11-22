@@ -9,9 +9,9 @@ import { buildExampleScenes } from "../data/examples"
 import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 
 const ITEMS = [
-  { id: "h1", title: "Atrium â€” The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "2.4k" },
-  { id: "h2", title: "Studio â€” Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "1.8k" },
-  { id: "h3", title: "Terrace â€” Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", views: "3.1k" },
+  { id: "h1", title: "Atrium � The Gallery", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Interior", views: "2.4k" },
+  { id: "h2", title: "Studio � Creative Room", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "1.8k" },
+  { id: "h3", title: "Terrace � Sunset View", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Outdoor", views: "3.1k" },
   { id: "h4", title: "Living Room 360", image: "/media/thumbnails/key-biscayne-1.jpg", panorama: "/media/panoramas/key-biscayne-2.jpg", category: "Interior", views: "956" },
   { id: "h5", title: "Trungtamyte", image: "/media/thumbnails/key-biscayne-2.jpg", panorama: "/media/panoramas/key-biscayne-1.jpg", category: "Outdoor", views: "1.2k" },
   { id: "h6", title: "Sunset Harbor", image: "/media/thumbnails/key-biscayne-3.jpg", panorama: "/media/panoramas/key-biscayne-3.jpg", category: "Travel", views: "4.7k" },
@@ -35,9 +35,9 @@ export function PublicHomeView() {
       return
     }
     const phrases = [
-      "Cari panorama, tempat, atau kreatorâ€¦",
-      "Cari Apartemen 360Â°â€¦",
-      "Cari ruang publikâ€¦",
+      "Cari panorama, tempat, atau kreator⬦",
+      "Cari Apartemen 360°⬦",
+      "Cari ruang publik⬦",
     ]
     let phrase = 0
     let char = 0
@@ -119,7 +119,7 @@ export function PublicHomeView() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => (user ? navigate("studio") : setAuthOpen(true))}
-            title={user ? "Buka Studio untuk membuat" : "Masuk untuk membuat 360Â°"}
+            title={user ? "Buka Studio untuk membuat" : "Masuk untuk membuat 360°"}
             className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600"
           >
             <Camera size={13} /> Create
@@ -154,7 +154,7 @@ export function PublicHomeView() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-slate-200 bg-white px-4 py-24 text-center sm:px-6 lg:px-8 lg:py-32">
-        {/* Panorama 360Â° bergerak pelan sebagai latar â€” sengaja redup agar teks tetap jelas */}
+        {/* Panorama 360° bergerak pelan sebagai latar � sengaja redup agar teks tetap jelas */}
         <div
           className="hero-360 pointer-events-none absolute inset-0 opacity-[0.14]"
           style={{
@@ -168,13 +168,13 @@ export function PublicHomeView() {
         <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-[520px] -translate-x-1/2 rounded-full bg-cyan-200/30 blur-3xl" />
         <div className="relative mx-auto max-w-2xl">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-[11px] font-semibold text-cyan-700">
-            <Sparkles size={12} /> 360Â° Virtual Tour
+            <Sparkles size={12} /> 360° Virtual Tour
           </span>
           <h1 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             Jelajahi dunia dalam <span className="text-[#d1005c]">satu panorama.</span>
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-slate-500">
-            Temukan ruang, tempat, dan karya dalam pengalaman 360Â° yang imersif.
+            Temukan ruang, tempat, dan karya dalam pengalaman 360° yang imersif.
             Geser, zoom, dan jelajahi setiap sudutnya.
           </p>
           <div className="mx-auto mt-7 flex h-12 max-w-lg items-center gap-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm">
@@ -213,7 +213,7 @@ export function PublicHomeView() {
               <p className="mt-1 text-xs text-slate-500">Paling banyak dijelajahi minggu ini</p>
             </div>
             <button onClick={() => { setCategory("Semua"); setQuery("") }} className="text-xs font-semibold text-cyan-600 hover:text-cyan-700">
-              Browse more â†’
+              Browse more � 
             </button>
           </div>
 
@@ -233,7 +233,7 @@ export function PublicHomeView() {
                     >
                       <Heart size={13} fill={favorite ? "currentColor" : "none"} />
                     </button>
-                    <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360Â°</span>
+                    <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
                     <span className="pointer-events-none absolute bottom-2 right-2 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] text-white">{item.views} views</span>
                   </div>
                   <div className="flex items-center justify-between p-4">
@@ -249,15 +249,15 @@ export function PublicHomeView() {
           )}
         </section>
 
-        {/* Banyak user / kreator â€” 1 post gambar untuk 1 user (dari database jika ada) */}
+        {/* Banyak user / kreator � 1 post gambar untuk 1 user (dari database jika ada) */}
         <section id="home-creators" className="mt-16">
           <div className="flex items-end justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">Kreator &amp; karya mereka</h2>
               <p className="mt-1 text-xs text-slate-500">
                 {publicData?.creators?.length
-                  ? `${publicData.creators.length} kreator dari database Â· satu post 360Â° untuk setiap kreator`
-                  : "Satu post 360Â° untuk setiap kreator â€” jelajahi semuanya"}
+                  ? `${publicData.creators.length} kreator dari database · satu post 360° untuk setiap kreator`
+                  : "Satu post 360° untuk setiap kreator � jelajahi semuanya"}
               </p>
             </div>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-500">
@@ -271,10 +271,10 @@ export function PublicHomeView() {
                   name: creator.name,
                   initials: creator.initials,
                   color: creator.color,
-                  title: creator.posts?.[0]?.title ?? "360Â° panorama",
+                  title: creator.posts?.[0]?.title ?? "360° panorama",
                   image: creator.posts?.[0]?.image ?? "",
                   panorama: creator.posts?.[0]?.panorama ?? "",
-                  category: creator.posts?.[0]?.category ?? "360Â°",
+                  category: creator.posts?.[0]?.category ?? "360°",
                   views: creator.posts?.[0]?.views ?? "1 post",
                 }))
               : LOCAL_CREATORS
@@ -292,7 +292,7 @@ export function PublicHomeView() {
                     >
                       <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </button>
-                    <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360Â°</span>
+                    <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold text-white">360°</span>
                   </div>
                   <div className="flex items-center gap-3 p-4">
                     <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[11px] font-bold ${creator.color}`}>
@@ -335,12 +335,12 @@ export function PublicHomeView() {
           <div className="flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rose-50 text-[#d1005c]"><MapPin size={19} /></span>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Punya panorama 360Â° sendiri?</h3>
+              <h3 className="text-sm font-bold text-slate-900">Punya panorama 360° sendiri?</h3>
               <p className="mt-1 text-xs text-slate-500">Unggah dan bagikan karyamu dalam beberapa menit.</p>
             </div>
           </div>
           <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-cyan-500 px-4 text-xs font-semibold text-white hover:bg-cyan-600">
-            Upload your own 360 â†’
+            Upload your own 360 � 
           </button>
         </div>
       </main>
@@ -348,7 +348,7 @@ export function PublicHomeView() {
       <footer className="border-t border-slate-200 bg-white px-6 py-8">
         <div className="mx-auto flex max-w-[1120px] flex-col items-center justify-between gap-4 sm:flex-row">
           <Logo360 tone="dark" size={26} />
-          <p className="text-[11px] text-slate-400">Â© 2026 Virtour360 â€” Jelajahi dunia dalam satu panorama.</p>
+          <p className="text-[11px] text-slate-400">© 2026 Virtour360 � Jelajahi dunia dalam satu panorama.</p>
           <button onClick={() => navigate("portfolio")} className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-900">
             <User size={13} /> Portofolio
           </button>

@@ -57,7 +57,7 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
             <User size={24} className="text-zinc-600" />
             <p className="text-xs leading-relaxed text-zinc-400">
               Anda sedang melihat sebagai <span className="font-semibold text-zinc-200">publik</span>.
-              Masuk diperlukan untuk menyimpan karya dan mengunggah panorama 360Â°.
+              Masuk diperlukan untuk menyimpan karya dan mengunggah panorama 360°.
             </p>
             <div className="flex w-full gap-2">
               <button onClick={onClose} className="h-9 flex-1 rounded-lg border border-zinc-700 text-xs font-medium text-zinc-300 hover:bg-white/5">

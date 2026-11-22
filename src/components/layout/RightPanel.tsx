@@ -240,7 +240,7 @@ export function RightPanel({
                 Luruskan panorama yang miring. Utara / yaw tidak berubah.
               </p>
               <div className="flex flex-col gap-3">
-                <EffectSlider label="Roll" value={effects.roll} min={-20} max={20} suffix="Â°" onChange={(roll) => patchEffects({ roll })} />
+                <EffectSlider label="Roll" value={effects.roll} min={-20} max={20} suffix="°" onChange={(roll) => patchEffects({ roll })} />
                 <ActionButton onClick={() => { patchEffects({ roll: 0 }); notify("Scene berhasil diratakan.") }}>Level this scene</ActionButton>
               </div>
             </AccordionSection>
@@ -280,7 +280,7 @@ export function RightPanel({
 
             <AccordionSection title="Filter Processing">
               <div className="flex flex-col gap-3">
-                <EffectSlider label="Hue" value={effects.hue} min={-180} max={180} suffix="Â°" onChange={(hue) => patchEffects({ hue })} />
+                <EffectSlider label="Hue" value={effects.hue} min={-180} max={180} suffix="°" onChange={(hue) => patchEffects({ hue })} />
                 <EffectSlider label="Grayscale" value={effects.grayscale} min={0} max={100} suffix="%" onChange={(grayscale) => patchEffects({ grayscale })} />
                 <EffectSlider label="Sepia" value={effects.sepia} min={0} max={100} suffix="%" onChange={(sepia) => patchEffects({ sepia })} />
               </div>
@@ -403,7 +403,7 @@ export function RightPanel({
                     <input
                       value={href}
                       onChange={(e) => setHref(e.target.value)}
-                      placeholder="https://â€¦"
+                      placeholder="https://⬦"
                       className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
                     />
                   </label>
