@@ -17,6 +17,7 @@ import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
 import { publicShareUrl } from "./lib/publicStore"
 import { defaultEffects } from "./lib/effects"
+import type { HotspotIcon, HotspotType } from "./types/tour"
 import { defaultSceneId } from "./data/scenes"
 
 interface SettingsPopoverProps {
@@ -154,6 +155,24 @@ export default function App() {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen(shellRef)
 
   const currentIndex = Math.max(0, scenes.findIndex((s) => s.id === tour.currentSceneId))
+
+  // Pemetaan jenis hotspot Panoee → tipe + ikon internal.
+  const pickHotspot = (label: string) => {
+    const map: Record<string, [HotspotType, HotspotIcon]> = {
+      Point: ["info", "point"],
+      Chevron: ["scene", "point"],
+      Image: ["info", "image"],
+      Article: ["info", "info"],
+      Video: ["info", "video"],
+      Sound: ["info", "sound"],
+      Link: ["link", "link"],
+      Compact: ["info", "product"],
+      Product: ["project", "product"],
+    }
+    const [type, icon] = map[label] ?? ["info", "point"]
+    tour.startPlacement(type, icon)
+    notify(`Klik gambar untuk menaruh hotspot ${label}.`)
+  }
 
   const goRelative = useCallback(
     (delta: number) => {
@@ -312,6 +331,7 @@ export default function App() {
         isAutorotate={tour.isAutorotate}
         onToggleAutorotate={tour.toggleAutorotate}
         onAddHotspot={() => { tour.startPlacement("info"); notify("Klik gambar untuk menaruh hotspot.") }}
+        onPickHotspot={pickHotspot}
         onReset={tour.resetView}
         onZoomIn={() => tour.zoomBy(6)}
         onZoomOut={() => tour.zoomBy(-6)}

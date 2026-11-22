@@ -72,6 +72,9 @@ polygon_config
 - CSS animasi `hs-pulse`, `hs-blink`, `hs-spin`, `hs-bounce`, `hs-rotate`
   (mati dengan reduced-motion) + bentuk via `clip-path` (diamond/star/hexagon/triangle/heart).
 - Ikon SVG custom untuk point/info/image/video/sound/link/product/star/heart.
+- **Hotspot picker 9 jenis** ala Panoee (Point, Chevron, Image, Article, Video,
+  Sound, Link, Compact, Product) di toolbar bawah; tiap jenis memetakan ke tipe +
+  ikon internal, lalu masuk mode penempatan klik-di-gambar.
 
 ### Belum (butuh engine/pipeline)
 - Polygon hotspots (`polygon_config` + mode gambar area) baru sebatas tombol "Gambar area".

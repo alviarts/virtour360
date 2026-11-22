@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Camera, Eye, Maximize2, Minus, Plus, Sparkles } from "lucide-react"
 import { formatAngle } from "../../lib/format"
 import type { ViewState } from "../../hooks/useTourViewer"
@@ -7,6 +8,7 @@ interface BottomToolbarProps {
   isAutorotate: boolean
   onToggleAutorotate: () => void
   onAddHotspot: () => void
+  onPickHotspot?: (label: string) => void
   onReset: () => void
   onZoomIn: () => void
   onZoomOut: () => void
@@ -21,6 +23,7 @@ export function BottomToolbar({
   isAutorotate,
   onToggleAutorotate,
   onAddHotspot,
+  onPickHotspot,
   onReset,
   onZoomIn,
   onZoomOut,
@@ -29,6 +32,9 @@ export function BottomToolbar({
   onDraw,
   onUploadAudio,
 }: BottomToolbarProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const PICKER = ["Point", "Chevron", "Image", "Article", "Video", "Sound", "Link", "Compact", "Product"]
+
   return (
     <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 flex max-w-[calc(100%-24px)] -translate-x-1/2 items-center">
       <div className="hide-scrollbar pointer-events-auto flex max-w-full items-center gap-2 overflow-x-auto rounded-full bg-black/70 p-1.5 backdrop-blur-md">
@@ -46,14 +52,37 @@ export function BottomToolbar({
 
         <span className="h-5 w-px bg-white/10" />
 
-        <button
-          type="button"
-          onClick={onAddHotspot}
-          className="flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-xs font-medium text-black transition-colors hover:bg-zinc-200"
-        >
-          <Plus size={13} strokeWidth={2.6} />
-          Hotspot
-        </button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              if (onPickHotspot) setPickerOpen((v) => !v)
+              else onAddHotspot()
+            }}
+            className="flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-xs font-medium text-black transition-colors hover:bg-zinc-200"
+          >
+            <Plus size={13} strokeWidth={2.6} />
+            Hotspot
+          </button>
+          {pickerOpen && onPickHotspot && (
+            <div className="absolute bottom-10 left-1/2 z-20 w-40 -translate-x-1/2 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-1.5 shadow-2xl">
+              <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-zinc-500">Jenis hotspot</p>
+              {PICKER.map((label) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    setPickerOpen(false)
+                    onPickHotspot(label)
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] text-zinc-300 hover:bg-white/10 hover:text-white"
+                >
+                  <span className="size-2 rounded-full bg-amber-400" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button type="button" onClick={onUploadAudio} title="Unggah audio untuk scene ini" className="flex h-8 items-center gap-1.5 rounded-full px-3 text-xs text-zinc-400 transition-colors hover:bg-white/10 hover:text-white">
           <Sparkles size={13} />
           Media

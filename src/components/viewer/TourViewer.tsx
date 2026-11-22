@@ -16,6 +16,7 @@ interface TourViewerProps {
   isAutorotate: boolean
   onToggleAutorotate: () => void
   onAddHotspot: () => void
+  onPickHotspot?: (label: string) => void
   onReset: () => void
   onZoomIn: () => void
   onZoomOut: () => void
@@ -54,6 +55,7 @@ export function TourViewer({
   isAutorotate,
   onToggleAutorotate,
   onAddHotspot,
+  onPickHotspot,
   onReset,
   onZoomIn,
   onZoomOut,
@@ -226,6 +228,7 @@ export function TourViewer({
         isAutorotate={isAutorotate}
         onToggleAutorotate={onToggleAutorotate}
         onAddHotspot={onAddHotspot}
+        onPickHotspot={onPickHotspot}
         onReset={onReset}
         onZoomIn={onZoomIn}
         onZoomOut={onZoomOut}

@@ -10,7 +10,7 @@ import { defaultSceneId } from "../data/scenes"
 import { tourConfig } from "../config/tour.config"
 import { contentHotspots, findScene, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
-import { defaultHotspotStyle, type Hotspot, type HotspotType, type Scene } from "../types/tour"
+import { defaultHotspotStyle, type Hotspot, type HotspotIcon, type HotspotType, type Scene } from "../types/tour"
 import { effectsToCss, type SceneEffects } from "../lib/effects"
 
 export type Quality = "hemat" | "standar" | "tinggi"
@@ -204,6 +204,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       if (!data || data.rightclick) return
       placeHotspot(radToDeg(data.yaw), radToDeg(data.pitch), placementRef.current)
       placementRef.current = null
+      placementIconRef.current = null
       setPlacementType(null)
     }
 
@@ -272,6 +273,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
 
   const placementRef = useRef<HotspotType | null>(null)
   placementRef.current = placementType
+  const placementIconRef = useRef<HotspotIcon | null>(null)
 
   const placeHotspot = useCallback(
     (yaw: number, pitch: number, type: HotspotType) => {
@@ -289,6 +291,10 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
         pitch: round(pitch, 0),
         title: titles[type],
         description: "Hotspot baru. Ubah judul dan deskripsi di panel Hotspot.",
+        style: {
+          ...defaultHotspotStyle,
+          icon: placementIconRef.current ?? defaultHotspotStyle.icon,
+        },
       }
       live.current.options.onAddHotspot(sceneId, spot)
       setSelectedHotspot(spot)
@@ -372,13 +378,15 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     placeHotspot(radToDeg(pos.yaw), radToDeg(pos.pitch), "info")
   }, [placeHotspot])
 
-  const startPlacement = useCallback((type: HotspotType) => {
+  const startPlacement = useCallback((type: HotspotType, icon?: HotspotIcon) => {
     placementRef.current = type
+    placementIconRef.current = icon ?? null
     setPlacementType(type)
   }, [])
 
   const stopPlacement = useCallback(() => {
     placementRef.current = null
+    placementIconRef.current = null
     setPlacementType(null)
   }, [])
 
