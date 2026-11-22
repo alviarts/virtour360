@@ -601,9 +601,20 @@ export function RightPanel({
             <div className="mt-3 flex flex-col gap-2">
               {scene.hotspots.map((spot) => (
                 <div key={spot.id} className="flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 transition-colors hover:border-zinc-600">
-                  <button onClick={() => onSelectHotspot(spot.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                    <span className="size-1.5 shrink-0 rounded-full bg-amber-400" />
+                  <button
+                    onClick={() => {
+                      if (spot.type === "scene" && spot.targetSceneId) {
+                        onGoToScene(spot.targetSceneId)
+                      } else {
+                        onSelectHotspot(spot.id)
+                      }
+                    }}
+                    title={spot.type === "scene" && spot.targetSceneId ? `Pindah ke ${scene.name === spot.targetSceneId ? spot.title : (scenes.find((s) => s.id === spot.targetSceneId)?.name ?? spot.title)}` : `Pilih ${spot.title}`}
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                  >
+                    <span className={`size-1.5 shrink-0 rounded-full ${spot.type === "scene" ? "bg-sky-400" : "bg-amber-400"}`} />
                     <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">{spot.title}</span>
+                    {spot.type === "scene" && <ArrowUpRight size={11} className="shrink-0 text-sky-400" />}
                     <span className="font-mono text-[10px] text-zinc-600">{spot.yaw}</span>
                   </button>
                   <button

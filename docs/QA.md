@@ -63,6 +63,8 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - Marker hotspot bisa **di-geser (drag)** dengan mouse: `data-hs-id` pada marker,
   konversi `viewerCoordsToSphericalCoords` → yaw/pitch baru, disimpan via `onMoveHotspot`.
   Uji produksi: `hs-process` yaw −40°/pitch −6° → yaw 126°/pitch 48° setelah di-drag.
+- Baris hotspot bertipe **scene** di tabel panel kanan sekarang langsung memindahkan
+  ke `targetSceneId` (ditandai ikon panah biru), bukan hanya memilih marker.
 
 ## 4. Catatan
 - PasswordDB & secret key tidak disimpan di source; hanya env var Vercel / environment variable lokal.
