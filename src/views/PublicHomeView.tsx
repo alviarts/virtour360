@@ -5,7 +5,8 @@ import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/useApp"
 import { navigate, navigateCreator } from "../lib/navigation"
 import { LOCAL_CREATORS } from "../data/creators"
-import { buildExampleScenes } from "../data/examples"
+import { buildCreatorScenes, buildExampleScenes, CREATOR_PANORAMAS } from "../data/examples"
+import type { Scene } from "../types/tour"
 import { loadPublicPayload, type PublicPayload } from "../lib/publicStore"
 
 const ITEMS = [
@@ -24,6 +25,7 @@ export function PublicHomeView() {
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("Semua")
   const [exploring, setExploring] = useState<(typeof ITEMS)[number] | null>(null)
+  const [exploringScenes, setExploringScenes] = useState<Scene[] | null>(null)
   const [publicData, setPublicData] = useState<PublicPayload | null>(null)
   const [typed, setTyped] = useState("")
   const exampleScenes = useMemo(() => buildExampleScenes(), [])
@@ -223,7 +225,7 @@ export function PublicHomeView() {
               return (
                 <div key={item.id} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <button onClick={() => setExploring(item)} className="block h-full w-full">
+                    <button onClick={() => { setExploringScenes(exampleScenes); setExploring(item) }} className="block h-full w-full">
                       <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </button>
                     <button
@@ -237,7 +239,7 @@ export function PublicHomeView() {
                     <span className="pointer-events-none absolute bottom-2 right-2 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] text-white">{item.views} views</span>
                   </div>
                   <div className="flex items-center justify-between p-4">
-                    <button onClick={() => setExploring(item)} className="min-w-0 truncate text-left text-xs font-semibold text-slate-800 hover:text-slate-950">{item.title}</button>
+                    <button onClick={() => { setExploringScenes(exampleScenes); setExploring(item) }} className="min-w-0 truncate text-left text-xs font-semibold text-slate-800 hover:text-slate-950">{item.title}</button>
                     <span className="ml-2 shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">{item.category}</span>
                   </div>
                 </div>
@@ -278,16 +280,22 @@ export function PublicHomeView() {
                   views: creator.posts?.[0]?.views ?? "1 post",
                 }))
               : LOCAL_CREATORS
-            ).map((creator) => {
+            ).map((creator, index) => {
               const title = creator.title
-              const image = creator.image
-              const panorama = creator.panorama
+              // Panorama interior matching judul kreator, bukan panorama demo outdoor.
+              const matched = CREATOR_PANORAMAS[index % CREATOR_PANORAMAS.length]
+              const image = matched.image
+              const panorama = matched.panorama
               const views = creator.views
               return (
                 <div key={creator.id} className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <button
-                      onClick={() => setExploring({ id: creator.id, title, image, panorama, category: creator.category, views })}
+                      onClick={() => {
+                        const scenes = buildCreatorScenes(index)
+                        setExploringScenes(scenes)
+                        setExploring({ id: scenes[0].id, title, image, panorama, category: creator.category, views })
+                      }}
                       className="block h-full w-full"
                     >
                       <img src={image} alt={title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -367,9 +375,9 @@ export function PublicHomeView() {
         <PublicViewerModal
           title={exploring.title}
           panorama={exploring.panorama}
-          scenes={exampleScenes}
+          scenes={exploringScenes ?? exampleScenes}
           sceneId={exploring.id}
-          onClose={() => setExploring(null)}
+          onClose={() => { setExploring(null); setExploringScenes(null) }}
         />
       )}
     </div>

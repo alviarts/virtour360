@@ -1,11 +1,13 @@
+import type { Scene } from "../types/tour"
+
 /**
- * 3 contoh panorama 360° gratis untuk demo (Panoee / Photo Sphere Viewer demo data).
- * Alur: ruang publik → apartemen → terrace, supaya perpindahan scene terasa alami.
+ * 3 contoh panorama interior 360° gratis (Poly Haven, CC0).
+ * Alur: Atrium/lobby → Studio kreatif → Kamar apartemen.
  */
 export interface Example360 {
   id: string
   title: string
-  kind: "umum" | "Apartemen" | "Terrace"
+  kind: string
   image: string
   panorama: string
   description: string
@@ -13,42 +15,89 @@ export interface Example360 {
   pitch: number
 }
 
-import type { Scene } from "../types/tour"
-
 export const EXAMPLES_360: Example360[] = [
   {
-    id: "public-square",
-    title: "Ruang Publik — Taman & Monumen",
-    kind: "umum",
-    image: "/media/thumbnails/key-biscayne-1.jpg",
-    panorama: "/media/panoramas/key-biscayne-1.jpg",
-    description: "Jalur pejalan kaki terbuka dengan taman dan monumen — cocok untuk scene pembuka.",
+    id: "atrium",
+    title: "Atrium — The Gallery",
+    kind: "Interior",
+    image: "/media/thumbnails/entrance_hall.jpg",
+    panorama: "/media/panoramas/entrance_hall.jpg",
+    description: "Lobby bergaya klasik dengan lengkungan dan cahaya hangat — cocok sebagai scene pembuka.",
     yaw: 0,
     pitch: 0,
   },
   {
-    id: "apartment",
-    title: "Apartemen — Ruang Kerja",
-    kind: "Apartemen",
-    image: "/media/thumbnails/key-biscayne-2.jpg",
-    panorama: "/media/panoramas/key-biscayne-2.jpg",
-    description: "Interior apartemen dengan meja kerja dan pencahayaan alami.",
+    id: "studio",
+    title: "Studio — Creative Room",
+    kind: "Interior",
+    image: "/media/thumbnails/art_studio.jpg",
+    panorama: "/media/panoramas/art_studio.jpg",
+    description: "Ruang studio seni dengan lukisan dan area kerja kreatif.",
     yaw: 30,
     pitch: 0,
   },
   {
-    id: "terrace",
-    title: "Terrace — Pemandangan",
-    kind: "Terrace",
-    image: "/media/thumbnails/key-biscayne-3.jpg",
-    panorama: "/media/panoramas/key-biscayne-3.jpg",
-    description: "Area terbuka dengan panorama langit — penutup alur tur.",
+    id: "apartment",
+    title: "Apartemen — Kamar & Ruang Kerja",
+    kind: "Interior",
+    image: "/media/thumbnails/hotel_room.jpg",
+    panorama: "/media/panoramas/hotel_room.jpg",
+    description: "Kamar dan ruang kerja yang hangat — penutup alur tur.",
     yaw: -20,
-    pitch: 4,
+    pitch: 0,
   },
 ]
 
-/** Susun 3 contoh menjadi tur dengan alur: umum → apartemen → terrace → umum. */
+/** Tur 3 scene yang dimulai dari panorama khas kreator. */
+export function buildCreatorScenes(index: number): Scene[] {
+  const ordered = [
+    CREATOR_PANORAMAS[index % CREATOR_PANORAMAS.length],
+    ...CREATOR_PANORAMAS.filter((_, i) => i !== index % CREATOR_PANORAMAS.length),
+  ].slice(0, 3)
+  const labels = ["Scene utama", "Scene lanjutan", "Scene terakhir"]
+
+  return ordered.map((item, i) => {
+    return {
+      id: `creator-${index}-${i}`,
+      name: `${labels[i]} — kreator ${index + 1}`,
+      description: "Panorama interior dari karya kreator ini.",
+      group: "Kreator",
+      panorama: item.panorama,
+      thumbnail: item.image,
+      initialView: { yaw: 0, pitch: 0, zoom: 70 },
+      hotspots: [
+        {
+          id: `next-c${index}-${i}`,
+          type: "scene",
+          yaw: 90,
+          pitch: 0,
+          title: "Lanjut ke scene berikutnya",
+          targetSceneId: `creator-${index}-${(i + 1) % ordered.length}`,
+        },
+        {
+          id: `info-c${index}-${i}`,
+          type: "info",
+          yaw: -60,
+          pitch: -5,
+          title: labels[i],
+          description: "Geser untuk menjelajahi ruang ini.",
+        },
+      ],
+      project: { title: labels[i], role: "Kreator", client: "Virtour360", year: "2026", tags: ["Interior"] },
+    }
+  })
+}
+
+/** Panorama interior cadangan untuk kreator demo. */
+export const CREATOR_PANORAMAS = [
+  { image: "/media/thumbnails/entrance_hall.jpg", panorama: "/media/panoramas/entrance_hall.jpg" },
+  { image: "/media/thumbnails/art_studio.jpg", panorama: "/media/panoramas/art_studio.jpg" },
+  { image: "/media/thumbnails/hotel_room.jpg", panorama: "/media/panoramas/hotel_room.jpg" },
+  { image: "/media/thumbnails/artist_workshop.jpg", panorama: "/media/panoramas/artist_workshop.jpg" },
+  { image: "/media/thumbnails/ballroom.jpg", panorama: "/media/panoramas/ballroom.jpg" },
+]
+
+/** Susun 3 contoh menjadi tur dengan alur yang pas. */
 export function buildExampleScenes(): Scene[] {
   return EXAMPLES_360.map((item, index) => {
     const next = EXAMPLES_360[(index + 1) % EXAMPLES_360.length]
