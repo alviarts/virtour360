@@ -67,6 +67,11 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
   di-update via `requestAnimationFrame` + `translate3d` (GPU), tanpa menunggu React.
   Uji produksi: ghost muncul (1 elemen) dan `style.transform` berubah saat pointermove;
   elemen hilang saat `pointerup`, lalu posisi hotspot tersimpan.
+- HUD penempatan: reticle + label `yaw/pitch` mengikuti cursor via rAF.
+  Uji produksi: label berubah `yaw 0°/pitch 0°` → `yaw 9°/pitch 11°`, transform mengikuti pointer.
+- Penempatan titik penuh 360°: klik di luar bola tetap menaruh hotspot lewat fallback
+  offset kamera; uji produksi hotspot bertambah setelah klik.
+- Animasi kartu hanya berjalan saat hover/fokus (tidak muter sendiri).
 - Baris hotspot bertipe **scene** di tabel panel kanan sekarang langsung memindahkan
   ke `targetSceneId` (ditandai ikon panah biru), bukan hanya memilih marker.
 
