@@ -63,6 +63,10 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - Marker hotspot bisa **di-geser (drag)** dengan mouse: `data-hs-id` pada marker,
   konversi `viewerCoordsToSphericalCoords` → yaw/pitch baru, disimpan via `onMoveHotspot`.
   Uji produksi: `hs-process` yaw −40°/pitch −6° → yaw 126°/pitch 48° setelah di-drag.
+- Drag realtime: ghost marker `.hs-drag-ghost` dibuat saat `pointerdown`, posisinya
+  di-update via `requestAnimationFrame` + `translate3d` (GPU), tanpa menunggu React.
+  Uji produksi: ghost muncul (1 elemen) dan `style.transform` berubah saat pointermove;
+  elemen hilang saat `pointerup`, lalu posisi hotspot tersimpan.
 - Baris hotspot bertipe **scene** di tabel panel kanan sekarang langsung memindahkan
   ke `targetSceneId` (ditandai ikon panah biru), bukan hanya memilih marker.
 
