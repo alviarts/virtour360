@@ -60,7 +60,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
             .map((h) => ({
               id: h.id,
               position: { yaw: h.yaw, pitch: h.pitch },
-              circle: 16,
+              size: [16, 16],
               html: `<div style="width:16px;height:16px;border-radius:9999px;background:#facc15;border:2px solid rgba(0,0,0,.5)"></div>`,
               tooltip: { content: h.title, position: "top" as const },
             })),
