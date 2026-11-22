@@ -105,7 +105,7 @@ export function TourViewer({
       style={{ left: inset?.left ?? theme.size.sidebar, right: inset?.right ?? theme.size.inspector }}
     >
       {/* Kanvas Photo Sphere Viewer */}
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} className={`absolute inset-0 ${placementType ? "cursor-crosshair" : ""}`} />
 
       {!preview && showMiniMap && <MiniMap scene={scene} view={view} hotspotCount={hotspotCount} onSeek={onSeek} />}
 

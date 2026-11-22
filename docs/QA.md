@@ -54,6 +54,12 @@ Build: `npm run build` sukses (2222 modul).
 
 Detail stack & teknik ada di `docs/RESEARCH.md`.
 
+## 3c. Verifikasi penempatan hotspot sesuai kursor (2026-11-22)
+- Masuk mode penempatan via tombol **+ Hotspot**, klik di viewer pada `y = 15%` dari atas.
+- Hotspot baru tercatat `yaw 50°, pitch +24°` (sebelumnya fallback tengah `pitch -8°`).
+- Kursor berubah menjadi crosshair saat mode penempatan aktif.
+- Kesimpulan: hotspot mengikuti posisi klik, bukan acak di bawah.
+
 ## 4. Catatan
 - PasswordDB & secret key tidak disimpan di source; hanya env var Vercel / environment variable lokal.
 - Mode server aktif di production; mode lokal (tanpa env) tetap berfungsi penuh.
