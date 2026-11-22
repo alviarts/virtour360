@@ -62,7 +62,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
               position: { yaw: h.yaw, pitch: h.pitch },
               size: { width: 44, height: 44 },
               html: `<div class="hs-marker" style="--hs-color:${h.style?.color ?? "#facc15"};opacity:${(h.style?.opacity ?? 100) / 100}">
-                <span class="hs-dot${h.style?.effect && h.style.effect !== "normal" ? ` hs-${h.style.effect}` : ""}${h.style?.shape && h.style.shape !== "circle" ? ` hs-shape-${h.style.shape}` : ""}" style="width:${14 + (h.style?.size ?? 3) * 2.4}px;height:${14 + (h.style?.size ?? 3) * 2.4}px;transform:rotate(${h.style?.rotate ?? 0}deg)"></span>
+                <span class="hs-dot${h.style?.effect && h.style.effect !== "normal" ? ` hs-${h.style.effect}` : ""}${h.style?.shape && h.style.shape !== "circle" ? ` hs-shape-${h.style.shape}` : ""}" data-hs-id="${h.id}" style="width:${14 + (h.style?.size ?? 3) * 2.4}px;height:${14 + (h.style?.size ?? 3) * 2.4}px;transform:rotate(${h.style?.rotate ?? 0}deg)"></span>
                 ${h.style?.showLabel ? `<span class="hs-label${h.style?.labelOnHover ? " hs-label-on-hover" : ""}">${String(h.title).replace(/[&<>"']/g, "")}</span>` : ""}
               </div>`,
               tooltip: { content: h.title, position: "top" as const },
@@ -98,9 +98,23 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
     }
     markersPlugin?.addEventListener?.("select-marker", onSelectMarker)
 
+    // Klik langsung pada marker (fallback bila event PSV tidak terpicu).
+    const onClickMarker = (event: MouseEvent) => {
+      const dot = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-hs-id]")
+      if (!dot) return
+      const nodeId = tourPlugin?.getCurrentNode?.()?.id
+      const scene = list.find((s) => s.id === nodeId)
+      const spot = scene?.hotspots.find((h) => h.id === dot.dataset.hsId)
+      if (spot?.targetSceneId && list.some((s) => s.id === spot.targetSceneId)) {
+        tourPlugin?.setCurrentNode(spot.targetSceneId).catch(() => undefined)
+      }
+    }
+    containerRef.current?.addEventListener("click", onClickMarker)
+
     return () => {
       tourPlugin?.removeEventListener("node-changed", onNodeChanged)
       markersPlugin?.removeEventListener?.("select-marker", onSelectMarker)
+      containerRef.current?.removeEventListener("click", onClickMarker)
       viewer.destroy()
       tourRef.current = null
     }
