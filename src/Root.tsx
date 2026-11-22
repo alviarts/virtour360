@@ -6,12 +6,16 @@ import { UploadModal } from "./components/auth/UploadModal"
 import { AppProvider } from "./context/AppContext"
 import { useApp } from "./context/useApp"
 import { currentView, type View } from "./lib/navigation"
+import { publicUidFromHash } from "./lib/publicStore"
 
 const DashboardView = lazy(() =>
   import("./views/DashboardView").then((m) => ({ default: m.DashboardView })),
 )
 const PublicPortfolioView = lazy(() =>
   import("./views/PublicPortfolioView").then((m) => ({ default: m.PublicPortfolioView })),
+)
+const PublicTourView = lazy(() =>
+  import("./views/PublicTourView").then((m) => ({ default: m.PublicTourView })),
 )
 const PublicHomeView = lazy(() =>
   import("./views/PublicHomeView").then((m) => ({ default: m.PublicHomeView })),
@@ -29,6 +33,7 @@ function Shell() {
   const [view, setView] = useState<View>(currentView())
   const { toast, user } = useApp()
   const isPrivate = view === "studio" || view === "dashboard"
+  const isPublishedTour = view === "portfolio" && !!publicUidFromHash()
 
   useEffect(() => {
     const onHash = () => setView(currentView())
@@ -46,6 +51,8 @@ function Shell() {
         <Suspense fallback={<Loader />}>
           {view === "dashboard" ? (
             <DashboardView />
+          ) : isPublishedTour ? (
+            <PublicTourView />
           ) : view === "portfolio" ? (
             <PublicPortfolioView />
           ) : (

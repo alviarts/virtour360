@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { tourConfig } from "../../config/tour.config"
 import { contentHotspots, navigationTarget, sceneLinks } from "../../lib/sceneGraph"
 import type { Hotspot, Scene } from "../../types/tour"
+import { HotspotPopup } from "./HotspotPopup"
 
 interface PublicViewerModalProps {
   title: string
@@ -13,14 +14,17 @@ interface PublicViewerModalProps {
   onClose: () => void
   scenes?: Scene[]
   sceneId?: string
+  /** Dipakai rute publish: viewer mengisi halaman, bukan overlay modal. */
+  inline?: boolean
 }
 
 /** Viewer 360° penuh layar untuk pengunjung public view (tanpa masuk Studio). */
-export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }: PublicViewerModalProps) {
+export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId, inline = false }: PublicViewerModalProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const tourRef = useRef<VirtualTourPlugin | null>(null)
   const [currentTitle, setCurrentTitle] = useState(title)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
   const lastActivationRef = useRef<{ id: string; at: number } | null>(null)
 
   const hasTour = !!scenes?.length
@@ -88,6 +92,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
       setCurrentTitle(event.node.name ?? title)
       const index = list.findIndex((s) => s.id === event.node.id)
       if (index >= 0) setCurrentIndex(index)
+      setActiveHotspot(null)
     }
     tourPlugin?.addEventListener("node-changed", onNodeChanged)
 
@@ -95,13 +100,22 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
        aktif, bukan hanya mempercayai `data.targetSceneId` yang bisa basi. */
     const activateSpot = (spot: Hotspot | undefined) => {
       if (!spot) return
-      const target = navigationTarget(spot)
-      if (!target || !list.some((s) => s.id === target)) return
       const now = Date.now()
       const last = lastActivationRef.current
       if (last && last.id === spot.id && now - last.at < 400) return
       lastActivationRef.current = { id: spot.id, at: now }
-      tourPlugin?.setCurrentNode(target).catch(() => undefined)
+      const target = navigationTarget(spot)
+      if (target && list.some((s) => s.id === target)) {
+        setActiveHotspot(null)
+        tourPlugin?.setCurrentNode(target).catch(() => undefined)
+        return
+      }
+      // Hotspot konten (image/video/sound/article/product/link/compact) → popup.
+      if (spot.type === "link" && spot.href) {
+        window.open(spot.href, "_blank", "noopener,noreferrer")
+        return
+      }
+      setActiveHotspot(spot)
     }
     const spotById = (id: string | undefined): Hotspot | undefined => {
       if (!id) return undefined
@@ -152,8 +166,10 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
   })
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black">
+    <div className={inline ? "absolute inset-0 bg-black" : "fixed inset-0 z-[120] bg-black"}>
       <div ref={containerRef} className="absolute inset-0" />
+
+      {activeHotspot && <HotspotPopup spot={activeHotspot} onClose={() => setActiveHotspot(null)} />}
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between bg-gradient-to-b from-black/70 to-transparent p-4">
         <div>
@@ -184,7 +200,9 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
       )}
 
       <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-2 text-center text-[11px] text-white/80 backdrop-blur">
-        Geser untuk melihat 360° · scroll zoom · klik penanda pintu atau panah untuk pindah scene · Esc keluar
+        {inline
+          ? "Geser untuk melihat 360° · scroll zoom · klik penanda untuk detail · panah untuk pindah scene"
+          : "Geser untuk melihat 360° · scroll zoom · klik penanda pintu atau panah untuk pindah scene · Esc keluar"}
       </div>
     </div>
   )
