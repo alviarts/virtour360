@@ -200,6 +200,10 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       })
     }
     const onClick = (e: any) => {
+      if (placementHandledRef.current) {
+        placementHandledRef.current = false
+        return
+      }
       if (!placementRef.current) return
       const data = e.data
       if (!data || data.rightclick) return
@@ -231,6 +235,82 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /* HUD penempatan: reticle + koordinat mengikuti cursor (tanpa re-render React). */
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !placementType) return
+
+    const hud = document.createElement("div")
+    hud.className = "hs-hud"
+    hud.innerHTML = `<div class="hs-hud-reticle"><span class="hs-hud-dot"></span></div><span class="hs-hud-label">yaw 0° · pitch 0°</span>`
+    container.appendChild(hud)
+    const label = hud.querySelector<HTMLElement>(".hs-hud-label")
+
+    let pointer: { x: number; y: number } | null = null
+    let raf = 0
+    const draw = () => {
+      if (!pointer) return
+      const rect = container.getBoundingClientRect()
+      hud.style.transform = `translate3d(${pointer.x - rect.left - 20}px, ${pointer.y - rect.top - 20}px, 0)`
+      raf = 0
+    }
+    const onMove = (event: PointerEvent) => {
+      pointer = { x: event.clientX, y: event.clientY }
+      const viewer = viewerRef.current
+      if (viewer && label) {
+        try {
+          const rect = container.getBoundingClientRect()
+          const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          })
+          label.textContent = `yaw ${round(radToDeg(coords.yaw), 0)}° · pitch ${round(radToDeg(coords.pitch), 0)}°`
+        } catch {
+          label.textContent = "klik untuk menaruh hotspot"
+        }
+      }
+      if (!raf) raf = requestAnimationFrame(draw)
+    }
+
+    // Klik di mana saja di viewer (termasuk area di luar bola) tetap menaruh titik.
+    const onUp = (event: PointerEvent) => {
+      const viewer = viewerRef.current
+      if (!viewer || !placementRef.current) return
+      const rect = container.getBoundingClientRect()
+      let yaw = 0
+      let pitch = 0
+      try {
+        const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        })
+        yaw = radToDeg(coords.yaw)
+        pitch = radToDeg(coords.pitch)
+      } catch {
+        // Fallback penuh 360° berdasarkan posisi kamera + offset pointer.
+        const dx = ((event.clientX - rect.left) / rect.width) * 2 - 1
+        const dy = ((event.clientY - rect.top) / rect.height) * 2 - 1
+        const pos = viewer.getPosition()
+        yaw = radToDeg(pos.yaw) + dx * 180
+        pitch = clamp(radToDeg(pos.pitch) - dy * 90, -90, 90)
+      }
+      placeHotspot(yaw, pitch, placementRef.current)
+      placementHandledRef.current = true
+      placementRef.current = null
+      placementIconRef.current = null
+      setPlacementType(null)
+    }
+
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
+    return () => {
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+      if (raf) cancelAnimationFrame(raf)
+      hud.remove()
+    }
+  }, [placementType])
 
   /* Geser marker hotspot ke posisi baru dengan mouse (drag). */
   useEffect(() => {
@@ -379,6 +459,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   const placementRef = useRef<HotspotType | null>(null)
   placementRef.current = placementType
   const placementIconRef = useRef<HotspotIcon | null>(null)
+  const placementHandledRef = useRef(false)
 
   const placeHotspot = useCallback(
     (yaw: number, pitch: number, type: HotspotType) => {
@@ -484,6 +565,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   }, [placeHotspot])
 
   const startPlacement = useCallback((type: HotspotType, icon?: HotspotIcon) => {
+    placementHandledRef.current = false
     placementRef.current = type
     placementIconRef.current = icon ?? null
     setPlacementType(type)

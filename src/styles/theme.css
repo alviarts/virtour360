@@ -108,6 +108,49 @@ button { cursor: pointer; }
   border: 2px solid rgba(255, 255, 255, .85);
   box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
 }
+/* HUD penempatan hotspot: reticle + koordinat, mengikuti cursor */
+.hs-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 55;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  will-change: transform;
+}
+
+.hs-hud-reticle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, .85);
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), inset 0 0 0 1px rgba(0, 0, 0, .35);
+}
+.hs-hud-reticle::before,
+.hs-hud-reticle::after {
+  content: "";
+  position: absolute;
+  background: rgba(255, 255, 255, .9);
+}
+.hs-hud-reticle::before { left: 50%; top: -8px; bottom: -8px; width: 1px; transform: translateX(-50%); }
+.hs-hud-reticle::after { top: 50%; left: -8px; right: -8px; height: 1px; transform: translateY(-50%); }
+.hs-hud-dot { position: absolute; inset: 16px; border-radius: 9999px; background: #facc15; box-shadow: 0 0 10px rgba(250, 204, 21, .9); }
+
+.hs-hud-label {
+  white-space: nowrap;
+  border-radius: 9999px;
+  background: rgba(9, 9, 11, .82);
+  padding: 3px 9px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
 /* Ghost marker saat drag — digerakkan langsung via transform (GPU) */
 .hs-drag-ghost {
   position: absolute;
@@ -161,11 +204,14 @@ button { cursor: pointer; }
   100% { object-position: 20% 50%; }
 }
 
+/* Hanya berputar saat pengguna benar-benar mengaktifkan (hover/fokus). */
 .pano-drift {
   animation: pano-drift 22s ease-in-out infinite;
+  animation-play-state: paused;
 }
 
-.pano-drift:hover { animation-play-state: paused; }
+.group:hover .pano-drift,
+.pano-drift:hover { animation-play-state: running; }
 
 @media (prefers-reduced-motion: reduce) {
   .pano-drift { animation: none; }
