@@ -306,9 +306,19 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   useEffect(() => {
     if (!isReady) return
     tourRef.current?.setNodes(buildNodes(scenes), currentSceneId)
+    // Pastikan marker aktif ikut ter-render setelah node di-refresh.
+    const scene = findScene(scenes, currentSceneId)
+    markersRef.current?.setMarkers(contentHotspots(scene).map(markerConfig))
     // currentSceneId sengaja tidak diikutsertakan agar tidak loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenes, isReady])
+
+  /* Marker mengikuti scene aktif (termasuk saat pindah scene). */
+  useEffect(() => {
+    if (!isReady) return
+    const scene = findScene(scenes, currentSceneId)
+    markersRef.current?.setMarkers(contentHotspots(scene).map(markerConfig))
+  }, [currentSceneId, isReady, scenes])
 
   /*Efek warna & leveling diterapkan ke kanvas viewer secara langsung.*/
   useEffect(() => {
