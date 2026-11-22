@@ -60,8 +60,11 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
             .map((h) => ({
               id: h.id,
               position: { yaw: h.yaw, pitch: h.pitch },
-              size: { width: 16, height: 16 },
-              html: `<div style="width:16px;height:16px;border-radius:9999px;background:#facc15;border:2px solid rgba(0,0,0,.5)"></div>`,
+              size: { width: 44, height: 44 },
+              html: `<div class="hs-marker" style="--hs-color:${h.style?.color ?? "#facc15"};opacity:${(h.style?.opacity ?? 100) / 100}">
+                <span class="hs-dot${h.style?.effect && h.style.effect !== "normal" ? ` hs-${h.style.effect}` : ""}" style="width:${20 + (h.style?.size ?? 3) * 4}px;height:${20 + (h.style?.size ?? 3) * 4}px"></span>
+                ${h.style?.showLabel ? `<span class="hs-label">${String(h.title).replace(/[&<>"']/g, "")}</span>` : ""}
+              </div>`,
               tooltip: { content: h.title, position: "top" as const },
             })),
         })),

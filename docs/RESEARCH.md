@@ -35,6 +35,31 @@ Sumber: bundle JS publik `studio.panoee.net/assets/index-CW7_RMMO.js` (~1 MB),
 4. Sudah ada sebelumnya: hotspot CRUD, tur multi-scene, mini-map, leveling (roll),
    nadir, quick/custom fix, filter, day-to-dusk, sun light, publish, akun.
 
+## Pendalaman hotspot & point setup
+Dari bundle (`vme`, `IAe`, `NAe`, `DAe`) model hotspot Panoee:
+```
+id, ath (yaw), atv (pitch), title, type,
+config.style: { type:"icon", effect, rotate, opacity, size, icon{icon_type,svg,icon,bg_color},
+                lottie, marker, callout, zoomRange, label },
+polygon_config
+```
+- `ath/atv` = yaw/pitch (krpano), sama dengan model yaw/pitch kita.
+- Nilai `effect`: `normal`, `pulse`, `blink`, `spin`, `bounce`, `rotate`, `none`.
+- Tipe point: `info`, `scene`, `link`, `url`, `image`, `video`, `audio`, `text`, `html`,
+  `map`, `product`; ada juga polygon (`polygon_config`) dan `isDrawingHotspot`.
+- Style default: `size: 3`, `opacity: 100`, `effect: normal`, warna dari `bgColor`.
+- `defaultPointStyle` bisa dipakai untuk semua point baru.
+
+### Diimplementasikan
+- `Hotspot.style` (size 1–5, effect, color, opacity, showLabel) di `src/types/tour.ts`.
+- Marker viewer Studio & publik dirender dengan kelas efek + warna + label.
+- Panel **Point setup** di editor hotspot: ukuran, opacity, efek, warna, label.
+- CSS animasi `hs-pulse`, `hs-blink`, `hs-spin`, `hs-bounce`, `hs-rotate` (mati dengan reduced-motion).
+
+### Belum (butuh engine/pipeline)
+- Polygon hotspots (`polygon_config` + mode gambar area) baru sebatas tombol "Gambar area".
+- Lottie/callout/zoomRange penuh.
+
 ## Tidak diimplementasikan (alasan)
 - krpano → tetap pakai Photo Sphere Viewer 5 (MIT, hasil setara).
 - Pusher/PostHog/pembayaran/domain kustom/SEO — butuh infrastruktur berbayar &

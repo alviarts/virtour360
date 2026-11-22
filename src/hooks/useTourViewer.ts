@@ -10,7 +10,7 @@ import { defaultSceneId } from "../data/scenes"
 import { tourConfig } from "../config/tour.config"
 import { contentHotspots, findScene, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
-import type { Hotspot, HotspotType, Scene } from "../types/tour"
+import { defaultHotspotStyle, type Hotspot, type HotspotType, type Scene } from "../types/tour"
 import { effectsToCss, type SceneEffects } from "../lib/effects"
 
 export type Quality = "hemat" | "standar" | "tinggi"
@@ -30,15 +30,28 @@ const ICONS: Record<string, string> = {
 }
 
 function markerConfig(spot: Hotspot) {
+  const style = { ...defaultHotspotStyle, ...(spot.style ?? {}) }
+  const px = 20 + style.size * 6
+  const effectClass = style.effect === "normal" ? "" : ` hs-${style.effect}`
+  const label = style.showLabel ? `<span class="hs-label">${escapeHtml(spot.title)}</span>` : ""
   return {
     id: spot.id,
     position: { yaw: spot.yaw, pitch: spot.pitch },
-    size: { width: 34, height: 34 },
-    anchor: "center center",
-    html: `<div class="hotspot hotspot--${spot.type}">${ICONS[spot.type] ?? ICONS.info}</div>`,
+    size: { width: px * 2, height: px * 2 },
+    anchor: "center center" as const,
+    html: `<div class="hs-marker" style="--hs-color:${escapeHtml(style.color)};opacity:${style.opacity / 100}">
+      <span class="hs-dot${effectClass}" style="width:${px}px;height:${px}px">${ICONS[spot.type] ?? ICONS.info}</span>
+      ${label}
+    </div>`,
     tooltip: { content: spot.title, position: "top" as const },
     data: { hotspotId: spot.id },
   }
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char,
+  )
 }
 
 function buildNodes(scenes: Scene[]) {

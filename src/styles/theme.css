@@ -76,6 +76,56 @@ button { cursor: pointer; }
   .globe-spin { animation: none; }
 }
 
+/* Efek point/hotspot — sama seperti Panoee: normal, pulse, blink, spin, bounce, rotate */
+@keyframes hs-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 8px transparent; }
+}
+@keyframes hs-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .25; } }
+@keyframes hs-spin { to { transform: rotate(360deg); } }
+@keyframes hs-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes hs-rotate { to { transform: rotateY(360deg); } }
+
+.hs-pulse { animation: hs-pulse 1.8s ease-in-out infinite; }
+.hs-blink { animation: hs-blink 1.2s step-end infinite; }
+.hs-spin { animation: hs-spin 4s linear infinite; }
+.hs-bounce { animation: hs-bounce 1.4s ease-in-out infinite; }
+.hs-rotate { animation: hs-rotate 5s linear infinite; }
+
+.hs-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--hs-color, #facc15);
+}
+.hs-dot {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  background: var(--hs-color, #facc15);
+  color: #09090b;
+  border: 2px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+}
+.hs-label {
+  max-width: 130px;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(9, 9, 11, .8);
+  color: #fff;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-pulse, .hs-blink, .hs-spin, .hs-bounce, .hs-rotate { animation: none; }
+}
+
 /* Kartu panorama: latar bergerak pelan seolah Sphere 360 diputar */
 @keyframes pano-drift {
   0% { object-position: 20% 50%; }

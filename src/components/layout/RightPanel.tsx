@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { theme } from "../../config/theme"
 import { profile } from "../../data/profile"
-import type { Hotspot, Scene } from "../../types/tour"
+import { defaultHotspotStyle, type Hotspot, type HotspotStyle, type Scene } from "../../types/tour"
 import { AccordionSection } from "../ui/AccordionSection"
 import { Badge } from "../ui/Badge"
 import { useApp } from "../../context/useApp"
@@ -366,6 +366,79 @@ export function RightPanel({
                     <option value="link">Tautan</option>
                   </select>
                 </label>
+
+                {/* Point setup — style marker dari Panoee */}
+                <div className="flex flex-col gap-2 rounded-lg border border-zinc-800 bg-black/30 p-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Point setup</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                      Ukuran ({selectedHotspot.style?.size ?? 3})
+                      <input
+                        type="range"
+                        min={1}
+                        max={5}
+                        value={selectedHotspot.style?.size ?? 3}
+                        onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                          style: { ...defaultHotspotStyle, ...selectedHotspot.style, size: Number(e.target.value) },
+                        })}
+                        className="h-1.5 w-full accent-amber-400"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                      Opacity ({selectedHotspot.style?.opacity ?? 100}%)
+                      <input
+                        type="range"
+                        min={20}
+                        max={100}
+                        value={selectedHotspot.style?.opacity ?? 100}
+                        onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                          style: { ...defaultHotspotStyle, ...selectedHotspot.style, opacity: Number(e.target.value) },
+                        })}
+                        className="h-1.5 w-full accent-amber-400"
+                      />
+                    </label>
+                  </div>
+                  <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                    Efek
+                    <select
+                      value={selectedHotspot.style?.effect ?? "normal"}
+                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                        style: { ...defaultHotspotStyle, ...selectedHotspot.style, effect: e.target.value as HotspotStyle["effect"] },
+                      })}
+                      className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none"
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="pulse">Pulse</option>
+                      <option value="blink">Blink</option>
+                      <option value="spin">Spin</option>
+                      <option value="bounce">Bounce</option>
+                      <option value="rotate">Rotate</option>
+                      <option value="none">None</option>
+                    </select>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={selectedHotspot.style?.color ?? "#facc15"}
+                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                        style: { ...defaultHotspotStyle, ...selectedHotspot.style, color: e.target.value },
+                      })}
+                      className="size-8 cursor-pointer rounded border border-zinc-700 bg-transparent"
+                    />
+                    <span className="text-[10px] text-zinc-500">Warna marker</span>
+                  </div>
+                  <label className="flex items-center gap-2 text-[10px] text-zinc-400">
+                    <input
+                      type="checkbox"
+                      checked={selectedHotspot.style?.showLabel ?? false}
+                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                        style: { ...defaultHotspotStyle, ...selectedHotspot.style, showLabel: e.target.checked },
+                      })}
+                      className="accent-amber-400"
+                    />
+                    Tampilkan label
+                  </label>
+                </div>
 
                 {selectedHotspot.type === "scene" && scenes.length > 1 && (
                   <button
