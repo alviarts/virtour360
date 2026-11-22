@@ -18,10 +18,11 @@ export function isNodeLink(spot: Hotspot): boolean {
 }
 
 /** Link antar scene untuk VirtualTourPlugin (panah PSV). */
-export function sceneLinks(scene: Scene): { nodeId: string; position: { yaw: number; pitch: number } }[] {
+export function sceneLinks(scene: Scene): { nodeId: string; position: { yaw: string; pitch: string } }[] {
   return scene.hotspots
     .filter(isNodeLink)
-    .map((h) => ({ nodeId: h.targetSceneId!, position: { yaw: h.yaw, pitch: h.pitch } }))
+    // PSV menerima angka sebagai radian; data kita derajat → kirim sebagai string "Ndeg".
+    .map((h) => ({ nodeId: h.targetSceneId!, position: { yaw: `${h.yaw}deg`, pitch: `${h.pitch}deg` } }))
 }
 
 /** Marker konten: semua hotspot kecuali yang sudah dirender sebagai panah navigasi. */

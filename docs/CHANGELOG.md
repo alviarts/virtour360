@@ -23,7 +23,7 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
 - **Bug fix**: `speed: "600ms"` → `speed: 600` (PSV menolak satuan ms).
 
 ## 2026-11-20 — Branding
-- **Nama**: semua "Panoee" → "Virtour360" di UI, README, PLAN, banner, judul halaman.
+- **Nama**: semua "platform referensi" → "Virtour360" di UI, README, PLAN, banner, judul halaman.
 - **Logo**: komponen `src/components/ui/Logo360.tsx` (cincin + orbit + angka 360),
   dipakai di Dashboard (pink) & Public (dark). Favicon diganti ke logo 360.
 

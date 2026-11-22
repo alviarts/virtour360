@@ -17,7 +17,7 @@ import { useApp } from "../context/useApp"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { creatorFromHash, navigate } from "../lib/navigation"
-import { buildPublicFolders, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
+import { buildPublicFolders, hashPassword, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
 import { normalizeStudioConfig } from "../types/studio"
@@ -72,6 +72,7 @@ function Header({
   query,
   onQuery,
   primaryColor,
+  hideActions = false,
 }: {
   onCreate: () => void
   onLogin: () => void
@@ -79,6 +80,7 @@ function Header({
   query: string
   onQuery: (value: string) => void
   primaryColor: string
+  hideActions?: boolean
 }) {
   const { notify } = useApp()
   return (
@@ -98,22 +100,25 @@ function Header({
           {query && <button onClick={() => onQuery("")} title="Hapus" className="text-slate-400 hover:text-slate-700"><X size={13} /></button>}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
-          <Upload size={13} /> Create
-        </button>
-        <button onClick={() => (userName ? navigate("studio") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
-          <Compass size={13} /> Studio
-        </button>
-        {userName && (
-          <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500">
-            <Bell size={15} />
+      {!hideActions && (
+        <div className="flex items-center gap-2">
+          <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
+            <Upload size={13} /> Create
           </button>
-        )}
-        <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">
-          {userName ?? "Masuk"}
-        </button>
-      </div>
+          <button onClick={() => (userName ? navigate("studio") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
+            <Compass size={13} /> Studio
+          </button>
+          {userName && (
+            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-slate-200 text-slate-500">
+              <Bell size={15} />
+            </button>
+          )}
+          <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-700">
+            {userName ?? "Masuk"}
+          </button>
+        </div>
+      )}
+      {hideActions && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-500">Tour privat</span>}
     </header>
   )
 }
@@ -268,6 +273,9 @@ export function PublicPortfolioView() {
   const [allTours, setAllTours] = useState(false)
   const [openFolder, setOpenFolder] = useState<string | null>(null)
   const [creatorId, setCreatorId] = useState<string | null>(creatorFromHash())
+  const [gatePassword, setGatePassword] = useState("")
+  const [gateError, setGateError] = useState("")
+  const [unlocked, setUnlocked] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -405,6 +413,60 @@ export function PublicPortfolioView() {
     return () => { document.title = "Virtour360 — Studio Virtual Tour" }
   }, [design.marketing.seoTitle, design.marketing.seoDescription, design.marketing.seoImage, displayName])
 
+  /* ------------------------- Gate akses publish ------------------------ */
+  const shareUid = publicUidFromHash()
+  const gateKey = `virtour360.unlocked:${shareUid ?? "default"}`
+  useEffect(() => setUnlocked(sessionStorage.getItem(gateKey) === "1"), [gateKey])
+
+  const access = publicData?.access ?? "public"
+  const isLocked = access === "draft" || (access === "password" && !unlocked)
+
+  const unlock = () => {
+    const expected = publicData?.passwordHash ?? ""
+    if (hashPassword(gatePassword) !== expected) {
+      setGateError("Password salah.")
+      return
+    }
+    sessionStorage.setItem(gateKey, "1")
+    setUnlocked(true)
+    setGateError("")
+  }
+
+  if (isLocked) {
+    return (
+      <div className="grid h-full w-full place-items-center bg-[#f7f9fc] px-4 text-slate-900">
+        <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-xl">
+          <div className="mx-auto grid size-12 place-items-center rounded-full bg-slate-100 text-slate-500">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+          </div>
+          <h1 className="mt-4 text-lg font-bold">
+            {access === "draft" ? "Tour masih dalam draft" : "Tour dilindungi password"}
+          </h1>
+          <p className="mt-2 text-xs text-slate-500">
+            {access === "draft"
+              ? "Pemilik belum mempublikasikan tour ini."
+              : "Masukkan password untuk melihat virtual tour ini."}
+          </p>
+          {access === "password" && (
+            <div className="mt-4 flex flex-col gap-2">
+              <input
+                type="password"
+                value={gatePassword}
+                onChange={(e) => setGatePassword(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") unlock() }}
+                placeholder="Password tour"
+                className="h-10 rounded-lg border border-slate-300 px-3 text-sm outline-none focus:border-sky-500"
+              />
+              {gateError && <p className="text-[11px] text-red-500">{gateError}</p>}
+              <button onClick={unlock} className="h-10 rounded-lg bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600">Buka tour</button>
+            </div>
+          )}
+          <button onClick={() => navigate("home")} className="mt-4 text-[11px] text-slate-400 hover:underline">Kembali ke Home</button>
+        </div>
+      </div>
+    )
+  }
+
   const rootStyle = {
     "--studio-primary": design.theme.primaryColor,
     "--studio-text": design.theme.textColor,
@@ -413,7 +475,7 @@ export function PublicPortfolioView() {
 
   return (
     <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#f7f9fc] text-slate-900">
-      <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} primaryColor={design.theme.primaryColor} />
+      <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} primaryColor={design.theme.primaryColor} hideActions={access !== "public"} />
       <ProfileHeader
         name={displayName}
         initials={displayInitials}

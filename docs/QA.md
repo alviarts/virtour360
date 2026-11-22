@@ -41,7 +41,7 @@ Build: `npm run build` sukses (2222 modul).
 3. **Data kreator di DB tertimpa bentuk lama** — `scripts/restore-creators.mjs`
    ditambahkan untuk memulihkan/menyesuaikan bentuk `{ payload, creators }`.
 
-## 3b. QA tambahan (fitur hasil reverse-engineering Panoee), 2026-11-22
+## 3b. QA tambahan (fitur hasil reverse-engineering platform referensi), 2026-11-22
 | Fitur | Hasil di produksi |
 |---|---|
 | Buat grup baru "Apartemen" | PASS (localStorage + backend `user:<email>`) |
@@ -59,7 +59,7 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - Hotspot baru tercatat `yaw 50°, pitch +24°` (sebelumnya fallback tengah `pitch -8°`).
 - Kursor berubah menjadi crosshair saat mode penempatan aktif.
 - Kesimpulan: hotspot mengikuti posisi klik, bukan acak di bawah.
-- Picker 9 jenis Panoee menghasilkan hotspot dengan ikon sesuai jenis.
+- Picker 9 jenis platform referensi menghasilkan hotspot dengan ikon sesuai jenis.
 - Marker hotspot bisa **di-geser (drag)** dengan mouse: `data-hs-id` pada marker,
   konversi `viewerCoordsToSphericalCoords` → yaw/pitch baru, disimpan via `onMoveHotspot`.
   Uji produksi: `hs-process` yaw −40°/pitch −6° → yaw 126°/pitch 48° setelah di-drag.

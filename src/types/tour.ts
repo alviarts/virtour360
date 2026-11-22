@@ -1,12 +1,30 @@
 export type HotspotType = "info" | "project" | "link" | "scene"
 
-/** Gaya point/hotspot — diadaptasi dari model `config.style` Panoee. */
+/** 9 jenis hotspot ala platform referensi — sekarang benar-benar disimpan per hotspot. */
+export const hotspotKinds = [
+  "point", "chevron", "image", "article", "video", "sound", "link", "compact", "product",
+] as const
+export type HotspotKind = (typeof hotspotKinds)[number]
+
+export const hotspotKindLabels: Record<HotspotKind, string> = {
+  point: "Point",
+  chevron: "Chevron",
+  image: "Image",
+  article: "Article",
+  video: "Video",
+  sound: "Sound",
+  link: "Link",
+  compact: "Compact",
+  product: "Product",
+}
+
+/** Gaya point/hotspot — diadaptasi dari model `config.style` platform referensi. */
 export type HotspotShape = "circle" | "square" | "diamond" | "star" | "hexagon" | "triangle" | "heart"
 export type HotspotIcon = "point" | "info" | "link" | "image" | "video" | "sound" | "product" | "star" | "heart"
 
-/** Gaya point/hotspot — diadaptasi dari `config.style` Panoee. */
+/** Gaya point/hotspot — diadaptasi dari `config.style` platform referensi. */
 export interface HotspotStyle {
-  /** Ukuran marker 1..15 (sama seperti Panoee) */
+  /** Ukuran marker 1..15 (sama seperti platform referensi) */
   size: number
   /** Efek animasi marker */
   effect: "normal" | "pulse" | "blink" | "spin" | "bounce" | "rotate" | "none"
@@ -48,6 +66,14 @@ export interface Hotspot {
   href?: string
   /** Boleh dipakai tipe hotspot apa pun; jika terisi, klik hotspot pindah ke scene ini. */
   targetSceneId?: string
+  /** Jenis hotspot (9 tipe). Kosong = dibaca dari `type` lama. */
+  kind?: HotspotKind
+  /** Media/content untuk tipe image, video, sound, article. */
+  mediaUrl?: string
+  /** Product: harga & tombol CTA. */
+  price?: string
+  ctaLabel?: string
+  ctaHref?: string
   style?: HotspotStyle
 }
 

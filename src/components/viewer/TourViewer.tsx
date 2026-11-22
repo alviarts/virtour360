@@ -22,13 +22,14 @@ import {
   ZoomOut,
 } from "lucide-react"
 import { theme } from "../../config/theme"
-import type { HotspotType, Scene } from "../../types/tour"
+import type { Hotspot, HotspotType, Scene } from "../../types/tour"
 import type { ViewState } from "../../hooks/useTourViewer"
 import { MiniMap } from "./MiniMap"
 import { BottomToolbar } from "./BottomToolbar"
 import { useApp } from "../../context/useApp"
+import { HotspotPopup } from "./HotspotPopup"
 
-/** "#FFFFFF,46%" → rgba(255,255,255,.46) — format warna Panoee. */
+/** "#FFFFFF,46%" → rgba(255,255,255,.46) — format warna platform referensi. */
 function panoColor(value: string, fallback: string) {
   const match = value.match(/^#([0-9a-f]{6}),(\d+)%$/i)
   if (!match) return value || fallback
@@ -76,6 +77,8 @@ interface TourViewerProps {
   onPrevScene?: () => void
   onNextScene?: () => void
   onOpenDesign?: () => void
+  selectedHotspot?: Hotspot | null
+  onClearSelectedHotspot?: () => void
 }
 
 export function TourViewer({
@@ -116,6 +119,8 @@ export function TourViewer({
   onPrevScene,
   onNextScene,
   onOpenDesign,
+  selectedHotspot,
+  onClearSelectedHotspot,
 }: TourViewerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
@@ -324,6 +329,9 @@ export function TourViewer({
           </div>
         </div>
       )}
+
+      {/* Popup konten hotspot ala Panoee */}
+      {selectedHotspot && <HotspotPopup spot={selectedHotspot} onClose={() => onClearSelectedHotspot?.()} />}
 
       {/* Side menu — daftar scene cepat di sisi kanan viewer */}
       {!preview && showSideMenu && (

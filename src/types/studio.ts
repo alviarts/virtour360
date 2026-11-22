@@ -1,5 +1,5 @@
 /**
- * Konfigurasi Studio ala Panoee — dipakai oleh editor Design/CMS/Marketing/Setting
+ * Konfigurasi Studio ala platform referensi — dipakai oleh editor Design/CMS/Marketing/Setting
  * dan ikut terkirim saat tour dipublish (PublicPayload.studioConfig).
  */
 
@@ -292,7 +292,7 @@ export const defaultStudioConfig: StudioConfig = {
     backgroundSound: "",
     location: "",
     copyrightEnabled: true,
-    copyrightLink: "https://panoee.com",
+    copyrightLink: typeof window === "undefined" ? "" : window.location.origin,
     copyrightAuthor: "Virtour360",
     copyrightDescription: "Made with Virtour360",
     multiLanguage: false,

@@ -61,7 +61,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
           markers: contentHotspots(scene)
             .map((h) => ({
               id: h.id,
-              position: { yaw: h.yaw, pitch: h.pitch },
+              position: { yaw: `${h.yaw}deg`, pitch: `${h.pitch}deg` },
               size: { width: 44, height: 44 },
               html: `<div class="hs-marker" style="--hs-color:${h.style?.color ?? "#facc15"};opacity:${(h.style?.opacity ?? 100) / 100}">
                 <span class="hs-dot${h.style?.effect && h.style.effect !== "normal" ? ` hs-${h.style.effect}` : ""}${h.style?.shape && h.style.shape !== "circle" ? ` hs-shape-${h.style.shape}` : ""}" data-hs-id="${h.id}" style="width:${14 + (h.style?.size ?? 3) * 2.4}px;height:${14 + (h.style?.size ?? 3) * 2.4}px;transform:rotate(${h.style?.rotate ?? 0}deg)"></span>

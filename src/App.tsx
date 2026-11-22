@@ -18,7 +18,7 @@ import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
 import { publicShareUrl } from "./lib/publicStore"
 import { defaultEffects } from "./lib/effects"
-import type { HotspotIcon, HotspotType } from "./types/tour"
+import type { HotspotIcon, HotspotKind, HotspotType } from "./types/tour"
 import { defaultSceneId } from "./data/scenes"
 
 interface SettingsPopoverProps {
@@ -180,7 +180,7 @@ export default function App() {
 
   const currentIndex = Math.max(0, scenes.findIndex((s) => s.id === tour.currentSceneId))
 
-  // Pemetaan jenis hotspot Panoee → tipe + ikon internal.
+  // Pemetaan jenis hotspot platform referensi → tipe + ikon internal.
   const pickHotspot = (label: string) => {
     const map: Record<string, [HotspotType, HotspotIcon]> = {
       Point: ["info", "point"],
@@ -194,8 +194,9 @@ export default function App() {
       Product: ["project", "product"],
     }
     const [type, icon] = map[label] ?? ["info", "point"]
-    tour.startPlacement(type, icon)
-    notify(`Klik gambar untuk menaruh hotspot ${label}.`)
+    const kind = label.toLowerCase() as HotspotKind
+    tour.startPlacement(type, icon, kind)
+    notify(`Klik gambar untuk menaruh hotspot ${label}. Kontennya bisa diisi di panel Hotspot.`)
   }
 
   const goRelative = useCallback(
@@ -402,6 +403,8 @@ export default function App() {
         onCancelPlacement={tour.stopPlacement}
         onDraw={() => tour.startPlacement("project")}
         onOpenDesign={() => setDesignOpen(true)}
+        selectedHotspot={tour.selectedHotspot}
+        onClearSelectedHotspot={tour.clearSelectedHotspot}
         onUploadAudio={() => audioInputRef.current?.click()}
       />
 
@@ -467,6 +470,7 @@ export default function App() {
           scenes={scenes}
           userName={user?.name}
           userInitials={user?.initials}
+          existingUid={publishedUid}
           onPublished={(uid) => {
             setPublishedUid(uid)
             localStorage.setItem("virtour360.publishedUid", uid)

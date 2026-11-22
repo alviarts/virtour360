@@ -40,7 +40,7 @@ export function MiniMap({ scene, view, hotspotCount, onSeek }: MiniMapProps) {
           className="relative h-40 w-full cursor-crosshair overflow-hidden bg-zinc-900"
           onPointerDown={(event) => {
             dragging.current = true
-            event.currentTarget.setPointerCapture(event.pointerId)
+            event.currentTarget.setPointerCapture?.(event.pointerId)
             seek(event.clientX, event.currentTarget)
           }}
           onPointerMove={(event) => {
@@ -48,17 +48,21 @@ export function MiniMap({ scene, view, hotspotCount, onSeek }: MiniMapProps) {
           }}
           onPointerUp={(event) => {
             dragging.current = false
-            event.currentTarget.releasePointerCapture(event.pointerId)
+            event.currentTarget.releasePointerCapture?.(event.pointerId)
           }}
           onPointerCancel={() => { dragging.current = false }}
           title="Klik atau geser untuk mengarahkan pandangan"
         >
+          {/* Pakai panorama equirectangular (2:1), bukan thumbnail crop — dan geser
+              sesuai yaw agar seluruh 360° bisa dijelajah dari mini-map. */}
           <img
-            src={scene.thumbnail}
-            alt="Pratinjau panorama"
-            className="h-full w-full select-none object-cover opacity-90"
+            src={scene.panorama || scene.thumbnail}
+            alt="Pratinjau panorama 360°"
+            className="pointer-events-none absolute top-0 h-full w-[200%] max-w-none select-none object-cover opacity-90"
+            style={{ left: `-${Math.max(0, Math.min(100, markerLeft / 2))}%` }}
             draggable={false}
           />
+          <span className="pointer-events-none absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] text-white/80">360°</span>
           <span className="pointer-events-none absolute left-2 top-2 rounded bg-black/50 px-1.5 py-0.5 font-mono text-[10px] text-white">
             {hotspotCount} hotspots · yaw {formatAngle(view.yaw)}°
           </span>
@@ -71,7 +75,7 @@ export function MiniMap({ scene, view, hotspotCount, onSeek }: MiniMapProps) {
             <span className="absolute -left-[3px] top-0 size-2 rounded-full bg-amber-400" />
           </span>
 
-          {/* Titik hotspot — seperti mini-map Panoee */}
+          {/* Titik hotspot — seperti mini-map platform referensi */}
           {scene.hotspots.map((spot) => {
             const left = Math.max(0, Math.min(100, ((spot.yaw + 180) / 360) * 100))
             const top = Math.max(0, Math.min(100, ((90 - spot.pitch) / 180) * 100))

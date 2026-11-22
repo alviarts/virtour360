@@ -76,7 +76,7 @@ button { cursor: pointer; }
   .globe-spin { animation: none; }
 }
 
-/* Efek point/hotspot — sama seperti Panoee: normal, pulse, blink, spin, bounce, rotate */
+/* Efek point/hotspot — sama seperti platform referensi: normal, pulse, blink, spin, bounce, rotate */
 @keyframes hs-pulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
   50% { transform: scale(1.15); box-shadow: 0 0 0 8px transparent; }
@@ -168,7 +168,7 @@ button { cursor: pointer; }
   will-change: transform;
 }
 
-/* Bentuk point — Panoee: square, diamond, star, hexagon, triangle, heart */
+/* Bentuk point — platform referensi: square, diamond, star, hexagon, triangle, heart */
 .hs-shape-square { border-radius: 4px !important; }
 .hs-shape-diamond { border-radius: 6px !important; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
 .hs-shape-star { border-radius: 0 !important; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
@@ -198,7 +198,7 @@ button { cursor: pointer; }
 }
 
 /* ------------------------------------------------------------------ */
-/* Desain hotspot global dari panel Design → Hotspot (ala Panoee).      */
+/* Desain hotspot global dari panel Design → Hotspot (ala platform referensi).      */
 /* Variabel di-set oleh App.tsx dari studioConfig.hotspot.              */
 /* ------------------------------------------------------------------ */
 .hs-dot {

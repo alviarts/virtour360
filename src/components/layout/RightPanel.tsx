@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { theme } from "../../config/theme"
 import { profile } from "../../data/profile"
-import { defaultHotspotStyle, type Hotspot, type HotspotStyle, type Scene } from "../../types/tour"
+import { defaultHotspotStyle, hotspotKindLabels, hotspotKinds, type Hotspot, type HotspotStyle, type Scene } from "../../types/tour"
 import { AccordionSection } from "../ui/AccordionSection"
 import { Badge } from "../ui/Badge"
 import { useApp } from "../../context/useApp"
@@ -312,7 +312,7 @@ export function RightPanel({
                   <option value="original">Original</option>
                 </select>
                 <p className="text-[10px] leading-relaxed text-zinc-600">
-                  Sama seperti Panoee: Standard cepat, Original paling tajam.
+                  Sama seperti platform referensi: Standard cepat, Original paling tajam.
                 </p>
               </div>
             </AccordionSection>
@@ -343,7 +343,9 @@ export function RightPanel({
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-zinc-100">Edit hotspot</span>
                   <div className="flex items-center gap-1.5">
-                    <Badge tone={selectedHotspot.type === "scene" ? "blue" : "amber"}>{selectedHotspot.type}</Badge>
+                    <Badge tone={selectedHotspot.type === "scene" ? "blue" : "amber"}>
+                      {hotspotKindLabels[selectedHotspot.kind ?? "point"]}
+                    </Badge>
                     <button onClick={() => { onRemoveHotspot(selectedHotspot.id); onClearHotspot() }} title="Hapus hotspot" className="text-zinc-500 hover:text-red-400">
                       <Trash2 size={13} />
                     </button>
@@ -367,7 +369,61 @@ export function RightPanel({
                   </select>
                 </label>
 
-                {/* Point setup — style marker dari Panoee */}
+                {/* 9 jenis hotspot sesungguhnya (bukan alias kosmetik) */}
+                 <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                   Jenis konten
+                   <select
+                     value={selectedHotspot.kind ?? "point"}
+                     onChange={(e) => {
+                       const kind = e.target.value as NonNullable<Hotspot["kind"]>
+                       const iconForKind: Record<NonNullable<Hotspot["kind"]>, HotspotStyle["icon"]> = {
+                         point: "point", chevron: "point", image: "image", article: "info",
+                         video: "video", sound: "sound", link: "link", compact: "product", product: "product",
+                       }
+                       onUpdateHotspot(selectedHotspot.id, {
+                         kind,
+                         style: { ...defaultHotspotStyle, ...selectedHotspot.style, icon: iconForKind[kind] },
+                       })
+                     }}
+                     className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                   >
+                     {hotspotKinds.map((kind) => (
+                       <option key={kind} value={kind}>{hotspotKindLabels[kind]}</option>
+                     ))}
+                   </select>
+                 </label>
+
+                 {["image", "video", "sound"].includes(selectedHotspot.kind ?? "point") && (
+                   <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                     Media URL ({selectedHotspot.kind})
+                     <input
+                       value={selectedHotspot.mediaUrl ?? ""}
+                       onChange={(e) => onUpdateHotspot(selectedHotspot.id, { mediaUrl: e.target.value })}
+                       placeholder={selectedHotspot.kind === "image" ? "https://…/gambar.jpg" : selectedHotspot.kind === "video" ? "https://…/video.mp4" : "https://…/audio.mp3"}
+                       className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                     />
+                   </label>
+                 )}
+
+                 {selectedHotspot.kind === "product" && (
+                   <div className="flex flex-col gap-2 rounded-lg border border-zinc-800 bg-black/30 p-2">
+                     <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Produk &amp; e-commerce</p>
+                     <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                       Harga
+                       <input value={selectedHotspot.price ?? ""} onChange={(e) => onUpdateHotspot(selectedHotspot.id, { price: e.target.value })} placeholder="Rp 199.000" className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none" />
+                     </label>
+                     <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                       Label tombol
+                       <input value={selectedHotspot.ctaLabel ?? ""} onChange={(e) => onUpdateHotspot(selectedHotspot.id, { ctaLabel: e.target.value })} placeholder="Beli sekarang" className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none" />
+                     </label>
+                     <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                       URL checkout
+                       <input value={selectedHotspot.ctaHref ?? ""} onChange={(e) => onUpdateHotspot(selectedHotspot.id, { ctaHref: e.target.value })} placeholder="https://…" className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none" />
+                     </label>
+                   </div>
+                 )}
+
+                 {/* Point setup — style marker dari platform referensi */}
                 <div className="flex flex-col gap-2 rounded-lg border border-zinc-800 bg-black/30 p-2">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Point setup</p>
                   <div className="grid grid-cols-2 gap-2">

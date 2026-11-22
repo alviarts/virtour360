@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import {
+  Check,
   ChevronDown,
   ChevronUp,
   Folder,
@@ -65,6 +66,21 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
 
   const hotspots = scenes.reduce((sum, s) => sum + s.hotspots.length, 0)
   const uploads = scenes.filter((s) => s.id.startsWith("pano-")).length
+
+  const submitGroup = () => {
+    const name = groupName.trim()
+    if (!name) { notify("Nama grup tidak boleh kosong."); return }
+    if (allGroups.some((g) => g.toLowerCase() === name.toLowerCase())) {
+      notify(`Grup "${name}" sudah ada.`)
+      return
+    }
+    createGroup(name)
+    setSceneGroup(currentSceneId, name)
+    notify(`Grup "${name}" dibuat dan scene aktif dipindahkan ke sana.`)
+    setGroupName("")
+    setNewGroup(false)
+    setGroupMode("category")
+  }
 
   const quickActions = [
     { label: "Group", icon: Group, action: () => setGroupMode((m) => (m === "none" ? "source" : m === "source" ? "category" : "none")) },
@@ -282,18 +298,21 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  createGroup(groupName)
-                  notify(`Grup "${groupName.trim()}" dibuat.`)
-                  setGroupName("")
-                  setNewGroup(false)
-                }
-                if (e.key === "Escape") setNewGroup(false)
+                if (e.key === "Enter") { e.preventDefault(); submitGroup() }
+                if (e.key === "Escape") { setGroupName(""); setNewGroup(false) }
               }}
               placeholder="Nama grup"
               className="h-8 min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none"
             />
-            <button onClick={() => setNewGroup(false)} className="grid size-8 place-items-center rounded-lg border border-zinc-700 text-zinc-400"><X size={12} /></button>
+            <button
+              onClick={submitGroup}
+              title="Buat grup"
+              aria-label="Buat grup"
+              className="grid size-8 shrink-0 place-items-center rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
+            >
+              <Check size={13} />
+            </button>
+            <button onClick={() => { setGroupName(""); setNewGroup(false) }} title="Batal" className="grid size-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-400"><X size={12} /></button>
           </div>
         ) : (
           <button onClick={() => setNewGroup(true)} className="mt-2 flex h-8 items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-700 text-[11px] text-zinc-500 hover:border-zinc-500 hover:text-zinc-300">

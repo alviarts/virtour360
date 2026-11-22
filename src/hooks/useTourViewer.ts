@@ -10,7 +10,7 @@ import { defaultSceneId } from "../data/scenes"
 import { tourConfig } from "../config/tour.config"
 import { contentHotspots, findScene, navigationTarget, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
-import { defaultHotspotStyle, type Hotspot, type HotspotIcon, type HotspotType, type Scene } from "../types/tour"
+import { defaultHotspotStyle, hotspotKindLabels, type Hotspot, type HotspotIcon, type HotspotKind, type HotspotType, type Scene } from "../types/tour"
 import { effectsToCss, type SceneEffects } from "../lib/effects"
 
 export type Quality = "hemat" | "standar" | "tinggi"
@@ -22,6 +22,8 @@ const QUALITY: Record<Quality, { minFov: number; zoom: number; label: string }> 
 }
 
 const radToDeg = (rad: number) => (rad * 180) / Math.PI
+/** PSV membaca angka sebagai radian — kirim derajat sebagai string "Ndeg". */
+const deg = (value: number) => `${value}deg`
 
 const svgIcon = (path: string) =>
   `<svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`
@@ -50,7 +52,7 @@ function markerConfig(spot: Hotspot) {
     : ""
   return {
     id: spot.id,
-    position: { yaw: spot.yaw, pitch: spot.pitch },
+    position: { yaw: deg(spot.yaw), pitch: deg(spot.pitch) },
     size: { width: px * 2, height: px * 2 },
     anchor: "center center" as const,
     html: `<div class="hs-marker" style="--hs-color:${escapeHtml(style.color)};opacity:${style.opacity / 100}">
@@ -166,7 +168,15 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
           },
           showLinkTooltip: true,
         }),
-        AutorotatePlugin.withConfig({ autorotatePitch: "5deg", autorotateSpeed: "2rpm" }),
+        // autostartOnIdle + autostartDelay bikin kamera muter sendiri setelah 2 detik idle.
+        // Matikan keduanya: rotasi HANYA jalan kalau user menekan tombol play.
+        AutorotatePlugin.withConfig({
+          autorotatePitch: "5deg",
+          autorotateSpeed: "2rpm",
+          autostartOnIdle: false,
+          // null secara runtime membuat plugin tidak mengaktifkan initialStart.
+          autostartDelay: null as unknown as number,
+        }),
         CompassPlugin.withConfig({ size: "48px" }),
         GyroscopePlugin.withConfig({}),
         SettingsPlugin.withConfig({}),
@@ -196,7 +206,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     const onReady = () => {
       setIsReady(true)
       const start = findScene(live.current.scenes, live.current.currentSceneId).initialView
-      viewer.rotate({ yaw: start.yaw, pitch: start.pitch })
+      viewer.rotate({ yaw: deg(start.yaw), pitch: deg(start.pitch) })
     }
     const onNodeChanged = (e: any) => {
       const id: string = e.node.id
@@ -504,6 +514,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   const placementRef = useRef<HotspotType | null>(null)
   placementRef.current = placementType
   const placementIconRef = useRef<HotspotIcon | null>(null)
+  const placementKindRef = useRef<HotspotKind | null>(null)
   const placementHandledRef = useRef(false)
 
   const placeHotspot = useCallback(
@@ -515,13 +526,18 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
         link: "Tautan baru",
         scene: "Navigasi baru",
       }
+      const kind = placementKindRef.current
       const spot: Hotspot = {
         id: `hs-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type,
         yaw: round(yaw, 0),
         pitch: round(pitch, 0),
-        title: titles[type],
-        description: "Hotspot baru. Ubah judul dan deskripsi di panel Hotspot.",
+        title: kind ? hotspotKindLabels[kind] : titles[type],
+        description: kind
+          ? `Hotspot ${hotspotKindLabels[kind]}. Isi kontennya di panel Hotspot.`
+          : "Hotspot baru. Ubah judul dan deskripsi di panel Hotspot.",
+        ...(kind ? { kind } : {}),
+        ...(kind === "product" ? { price: "Rp 0", ctaLabel: "Beli sekarang", ctaHref: "#" } : {}),
         style: {
           ...defaultHotspotStyle,
           icon: placementIconRef.current ?? defaultHotspotStyle.icon,
@@ -543,7 +559,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
 
   const resetView = useCallback(() => {
     const scene = findScene(live.current.scenes, live.current.currentSceneId)
-    viewerRef.current?.rotate({ yaw: scene.initialView.yaw, pitch: scene.initialView.pitch })
+    viewerRef.current?.rotate({ yaw: deg(scene.initialView.yaw), pitch: deg(scene.initialView.pitch) })
     viewerRef.current?.zoom(scene.initialView.zoom)
   }, [])
 
@@ -551,7 +567,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     const viewer = viewerRef.current
     if (!viewer) return
     const pitch = radToDeg(viewer.getPosition().pitch)
-    viewer.rotate({ yaw, pitch })
+    viewer.rotate({ yaw: deg(yaw), pitch: deg(pitch) })
   }, [])
 
   const zoomBy = useCallback((delta: number) => {
@@ -619,16 +635,18 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     placeHotspot(radToDeg(pos.yaw), radToDeg(pos.pitch), "info")
   }, [placeHotspot])
 
-  const startPlacement = useCallback((type: HotspotType, icon?: HotspotIcon) => {
+  const startPlacement = useCallback((type: HotspotType, icon?: HotspotIcon, kind?: HotspotKind) => {
     placementHandledRef.current = false
     placementRef.current = type
     placementIconRef.current = icon ?? null
+    placementKindRef.current = kind ?? null
     setPlacementType(type)
   }, [])
 
   const stopPlacement = useCallback(() => {
     placementRef.current = null
     placementIconRef.current = null
+    placementKindRef.current = null
     setPlacementType(null)
   }, [])
 
@@ -636,7 +654,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     const spot = findScene(live.current.scenes, live.current.currentSceneId).hotspots.find((h) => h.id === id)
     if (!spot) return
     setSelectedHotspot(spot)
-    viewerRef.current?.animate({ yaw: spot.yaw, pitch: spot.pitch, speed: 600 })
+    viewerRef.current?.animate({ yaw: deg(spot.yaw), pitch: deg(spot.pitch), speed: 600 })
   }, [])
 
   const clearSelectedHotspot = useCallback(() => setSelectedHotspot(null), [])

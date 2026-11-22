@@ -52,15 +52,39 @@ export interface PublicPayload {
   uid?: string
   /** Konfigurasi Design/CMS/Marketing/Setting dari Studio */
   studioConfig?: StudioConfig
+  /** Kontrol akses publish — benar-benar diterapkan di halaman publik. */
+  access?: "draft" | "public" | "password"
+  /** Hash password (bukan password mentah) untuk access=password. */
+  passwordHash?: string
+  /** Slug ramah URL; dipakai sebagai UID saat publish. */
+  slug?: string
   updatedAt: string
 }
 
-function slug(value: string) {
+const LOCAL_PUBLISH_KEY = "virtour360.published"
+
+/** Hash ringan untuk gate password (bukan password mentah yang disimpan). */
+export function hashPassword(value: string): string {
+  let hash = 5381
+  for (let i = 0; i < value.length; i++) hash = (hash * 33) ^ value.charCodeAt(i)
+  return (hash >>> 0).toString(36)
+}
+
+function localKey(uid?: string | null) {
+  return uid ? `${LOCAL_PUBLISH_KEY}:${uid}` : LOCAL_PUBLISH_KEY
+}
+
+/** Normalisasi slug: huruf besar, spasi, tanda baca yang ekuivalen → slug sama. */
+export function normalizeSlug(value: string): string {
   return value
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || "project"
+    .replace(/^-|-$/g, "")
+}
+
+function slug(value: string) {
+  return normalizeSlug(value) || "project"
 }
 
 /** UID pendek, aman untuk URL. */
@@ -109,7 +133,16 @@ export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
 
 /** Data publik diambil tanpa login. Bisa memakai UID project tertentu. */
 export async function loadPublicPayload(uid?: string | null): Promise<PublicPayload | null> {
-  if (!isServerMode) return null
+  if (!isServerMode) {
+    try {
+      const raw = localStorage.getItem(localKey(uid))
+      if (!raw) return null
+      const payload = JSON.parse(raw) as PublicPayload
+      return { ...payload, folders: payload.folders ?? buildPublicFolders(payload.scenes ?? []) }
+    } catch {
+      return null
+    }
+  }
   try {
     const query = uid ? `?id=${encodeURIComponent(uid)}` : ""
     const response = await fetch(`/api/public${query}`, { cache: "no-store" })
@@ -128,9 +161,29 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
 export async function publishPublicPayload(
   payload: PublicPayload,
   uid?: string,
-): Promise<{ ok: boolean; uid: string }> {
-  const finalUid = uid || payload.uid || makePublicUid()
-  if (!isServerMode) return { ok: false, uid: finalUid }
+): Promise<{ ok: boolean; uid: string; error?: string }> {
+  const finalUid = uid || payload.slug || payload.uid || makePublicUid()
+  if (!isServerMode) {
+    try {
+      let previous: PublicPayload | null = null
+      try {
+        const raw = localStorage.getItem(localKey(finalUid))
+        if (raw) previous = JSON.parse(raw) as PublicPayload
+      } catch { /* abaikan */ }
+      const finalPayload: PublicPayload = {
+        ...payload,
+        uid: finalUid,
+        slug: payload.slug || finalUid,
+        creators: payload.creators?.length ? payload.creators : (previous?.creators ?? []),
+        folders: buildPublicFolders(payload.scenes),
+      }
+      localStorage.setItem(localKey(finalUid), JSON.stringify(finalPayload))
+      localStorage.setItem("virtour360.publishedUid", finalUid)
+      return { ok: true, uid: finalUid }
+    } catch {
+      return { ok: false, uid: finalUid, error: "Gagal menyimpan publish di browser." }
+    }
+  }
   try {
     const previous = await loadPublicPayload()
     const response = await fetch("/api/public", {

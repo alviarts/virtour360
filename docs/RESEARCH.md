@@ -1,13 +1,13 @@
-# Reverse Engineering — Panoee (2026-11-22)
+# Reverse Engineering — platform referensi (2026-11-22)
 
-Sumber: bundle JS publik `studio.panoee.net/assets/index-CW7_RMMO.js` (~1 MB),
+Sumber: bundle JS publik `domain editor referensi/assets/index-CW7_RMMO.js` (~1 MB),
 `core/tour.js` (krpano 1.21.2 build 2023-12-11), CSS bundle, dan fiddler statis halaman.
 
 ## Stack yang terdeteksi
 | Lapisan | Teknologi |
 |---|---|
 | UI | React + Redux, React Router, Tailwind CSS, Radix, react-i18next |
-| HTTP | axios (base `https://studio-api.panoee.com/api/`, timeout 120s) |
+| HTTP | axios (base `https://API referensi/api/`, timeout 120s) |
 | Viewer | **krpano 1.21.2** (2D/3D, VR, gyro, transisi) + three.js |
 | Peta | Google Maps JS API + Leaflet |
 | Realtime | Pusher (`/pusher/auth`, `/pusher/user-auth`) |
@@ -31,12 +31,12 @@ Sumber: bundle JS publik `studio.panoee.net/assets/index-CW7_RMMO.js` (~1 MB),
 ## Teknik yang diimplementasikan ke Virtour360
 1. **Grup scene** penuh (buat/ganti nama/hapus/pindah scene) + **SortScenes** (↑/↓).
 2. **Kualitas gambar** Standard/High/Original (seperti konstanta `Kbe` di bundle).
-3. **Embed widget** — generator kode iframe, mirip `panoee.com/embed/widget.js`.
+3. **Embed widget** — generator kode iframe, mirip `domain referensi/embed/widget.js`.
 4. Sudah ada sebelumnya: hotspot CRUD, tur multi-scene, mini-map, leveling (roll),
    nadir, quick/custom fix, filter, day-to-dusk, sun light, publish, akun.
 
 ## Pendalaman hotspot & point setup
-Dari bundle (`vme`, `IAe`, `NAe`, `DAe`) model hotspot Panoee:
+Dari bundle (`vme`, `IAe`, `NAe`, `DAe`) model hotspot ref:
 ```
 id, ath (yaw), atv (pitch), title, type,
 config.style: { type:"icon", effect, rotate, opacity, size, icon{icon_type,svg,icon,bg_color},
@@ -62,7 +62,7 @@ polygon_config
 - Label: `fontSize 14`, `fontWeight 600`, `paddingX 12`, `paddingY 4`,
   `borderRadius 4`, bg `rgba(0,0,0,.35)`, `onlyShowOnHover`, `hideTitle`, text shadow.
 - `callout: { type:"image", degrees:45 }`, `zoomRange: { min:1, max:179 }`.
-- Mode viewer: `classic` | `graph3d` (disimpan di localStorage `panoee:tour-viewer-mode`).
+- Mode viewer: `classic` | `graph3d` (disimpan di localStorage `ref:tour-viewer-mode`).
 
 ### Diimplementasikan
 - `Hotspot.style` (size 1–5, effect, color, opacity, showLabel) di `src/types/tour.ts`.
@@ -72,7 +72,7 @@ polygon_config
 - CSS animasi `hs-pulse`, `hs-blink`, `hs-spin`, `hs-bounce`, `hs-rotate`
   (mati dengan reduced-motion) + bentuk via `clip-path` (diamond/star/hexagon/triangle/heart).
 - Ikon SVG custom untuk point/info/image/video/sound/link/product/star/heart.
-- **Hotspot picker 9 jenis** ala Panoee (Point, Chevron, Image, Article, Video,
+- **Hotspot picker 9 jenis** ala platform referensi (Point, Chevron, Image, Article, Video,
   Sound, Link, Compact, Product) di toolbar bawah; tiap jenis memetakan ke tipe +
   ikon internal, lalu masuk mode penempatan klik-di-gambar.
 
@@ -114,9 +114,9 @@ Route: `/dashboard/projects`, `/dashboard/media`, `/editor/:project_id`, `/profi
 - Integrate: download base .zip → tempel ke `static/static/data.js` → upload ke hosting
 - Export: berbayar, unlimited re-export
 
-## Alur kerja editor Panoee (deep dive)
+## Alur kerja editor platform referensi (deep dive)
 State Redux `tourEditor`: `editorMode:"tour"`, `tourViewerMode` (`classic`/`graph3d`,
-tersimpan di localStorage `panoee:tour-viewer-mode`), `sceneSelected`,
+tersimpan di localStorage `ref:tour-viewer-mode`), `sceneSelected`,
 `hotspotSelected`, `listHotspot`, `isDrawingHotspot`, `pendingHotspotUpdates`,
 `idHotspotDeleted`.
 

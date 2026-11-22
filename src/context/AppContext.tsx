@@ -102,7 +102,7 @@ export interface AppContextValue {
   imageQuality: "standard" | "high" | "original"
   setImageQuality: (value: "standard" | "high" | "original") => void
 
-  /** Konfigurasi Studio ala Panoee (Design / CMS / Marketing / Setting). */
+  /** Konfigurasi Studio ala platform referensi (Design / CMS / Marketing / Setting). */
   studioConfig: StudioConfig
   updateStudioConfig: (patch: Partial<StudioConfig>) => void
   resetStudioConfig: () => void

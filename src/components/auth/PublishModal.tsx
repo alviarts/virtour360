@@ -6,6 +6,8 @@ import type { Scene } from "../../types/tour"
 import { profile as defaultProfile } from "../../data/profile"
 import {
   buildPublicFolders,
+  hashPassword,
+  normalizeSlug,
   publicShareUrl,
   publishPublicPayload,
   type PublicProfile,
@@ -16,15 +18,19 @@ interface PublishModalProps {
   scenes: Scene[]
   userName?: string
   userInitials?: string
+  /** UID project yang sudah dipublish — dipakai untuk publish ulang (bukan project baru). */
+  existingUid?: string | null
   onPublished?: (uid: string) => void
 }
 
 type Access = "draft" | "public" | "password"
 
-export function PublishModal({ onClose, scenes, userName, userInitials, onPublished }: PublishModalProps) {
+export function PublishModal({ onClose, scenes, userName, userInitials, existingUid, onPublished }: PublishModalProps) {
   const [access, setAccess] = useState<Access>("public")
   const [password, setPassword] = useState("")
-  const [uid, setUid] = useState<string | null>(null)
+  const [uid, setUid] = useState<string | null>(existingUid ?? null)
+  const [slug, setSlug] = useState(existingUid ?? "")
+  const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState<"link" | "code" | null>(null)
   const [qr, setQr] = useState<string | null>(null)
@@ -45,27 +51,40 @@ export function PublishModal({ onClose, scenes, userName, userInitials, onPublis
 
   const publish = async () => {
     setBusy(true)
+    setError(null)
+    if (access === "password" && password.trim().length < 4) {
+      setBusy(false)
+      setError("Password minimal 4 karakter.")
+      return
+    }
     const userProfile: PublicProfile = {
       name: userName ?? defaultProfile.name,
       initials: userInitials ?? defaultProfile.initials,
-      location: defaultProfile.location,
+      location: studioConfig.setting.location || defaultProfile.location,
       email: defaultProfile.email,
       website: defaultProfile.website,
       bio: defaultProfile.bio,
     }
+    const cleanSlug = normalizeSlug(slug)
     const result = await publishPublicPayload({
       profile: userProfile,
       scenes,
       folders: buildPublicFolders(scenes),
       creators: [],
       studioConfig,
+      access,
+      ...(access === "password" ? { passwordHash: hashPassword(password.trim()) } : {}),
+      ...(cleanSlug ? { slug: cleanSlug } : {}),
       updatedAt: new Date().toISOString(),
-    })
+    }, cleanSlug || uid || undefined)
     setBusy(false)
     if (result.ok) {
       setUid(result.uid)
+      setSlug(result.uid)
       onPublished?.(result.uid)
       try { await navigator.clipboard.writeText(publicShareUrl(result.uid)) } catch { /* abaikan */ }
+    } else {
+      setError(result.error || "Publish gagal. Periksa koneksi/config server.")
     }
   }
 
@@ -123,8 +142,23 @@ export function PublishModal({ onClose, scenes, userName, userInitials, onPublis
           />
         )}
         <p className="mt-1.5 text-[10px] text-zinc-600">
-          {access === "public" ? "Siapa pun dengan link bisa melihat." : access === "draft" ? "Hanya Anda yang bisa melihat." : "Pengunjung perlu memasukkan password."}
+          {access === "public" ? "Siapa pun dengan link bisa melihat." : access === "draft" ? "Draft: tour tidak bisa dibuka publik." : "Pengunjung perlu memasukkan password."}
         </p>
+
+        <label className="mt-3 block">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Slug / alamat tour</span>
+          <input
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            placeholder="contoh: the-gallery"
+            className="mt-1.5 h-9 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 font-mono text-[11px] text-zinc-100 outline-none"
+          />
+          <span className="mt-1 block text-[10px] text-zinc-600">Kosongkan untuk UID acak. Publish ulang memakai slug/UID yang sama.</span>
+        </label>
+
+        {error && (
+          <p className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11px] text-red-300">{error}</p>
+        )}
 
         <button
           onClick={publish}
