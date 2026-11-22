@@ -213,7 +213,7 @@ export default function App() {
             <div className="absolute right-2 top-14 z-40 w-56 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl">
               <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Saran untuk scene ini</p>
               {[
-                { label: "Tambah hotspot info", run: () => { tour.addHotspot(); notify("Hotspot ditambahkan di tengah pandangan.") } },
+                { label: "Tambah hotspot info", run: () => { tour.startPlacement("info"); notify("Klik gambar untuk menaruh hotspot.") } },
                 { label: "Reset tampilan", run: tour.resetView },
                 { label: "Buka scene berikutnya", run: () => goRelative(1) },
               ].map((item) => (
@@ -303,7 +303,7 @@ export default function App() {
         onSeek={tour.rotateTo}
         isAutorotate={tour.isAutorotate}
         onToggleAutorotate={tour.toggleAutorotate}
-        onAddHotspot={tour.addHotspot}
+        onAddHotspot={() => { tour.startPlacement("info"); notify("Klik gambar untuk menaruh hotspot.") }}
         onReset={tour.resetView}
         onZoomIn={() => tour.zoomBy(6)}
         onZoomOut={() => tour.zoomBy(-6)}
@@ -351,7 +351,7 @@ export default function App() {
             onGoToScene={tour.goToScene}
             onUpdateHotspot={(id, patch) => updateHotspot(tour.currentScene.id, id, patch)}
             onRemoveHotspot={(id) => { removeHotspot(tour.currentScene.id, id); notify("Hotspot dihapus.") }}
-            onAddHotspot={tour.addHotspot}
+            onAddHotspot={() => { tour.startPlacement("info"); notify("Klik gambar untuk menaruh hotspot.") }}
             onCaptureThumbnail={() => {
               captureThumbnail(tour.currentScene.id, tour.currentThumbnailUrl())
               notify("Thumbnail diset ke panorama aktif.")

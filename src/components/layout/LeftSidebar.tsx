@@ -184,15 +184,21 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               >
                 <Pencil size={11} />
               </button>
-              {allGroups.length > 1 && (
-                <button
-                  onClick={() => { deleteGroup(label); notify("Grup dihapus — scene dipindah ke Uncategory.") }}
-                  title="Hapus grup"
-                  className="grid size-6 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-red-400"
-                >
-                  <Trash2 size={11} />
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  if (allGroups.length > 1) {
+                    deleteGroup(label)
+                    notify(`Grup "${label}" dihapus — scene dipindah ke Uncategory.`)
+                  } else {
+                    notify("Ini grup default — tidak bisa dihapus.")
+                  }
+                }}
+                title="Hapus grup"
+                aria-label="Hapus grup"
+                className="grid size-6 shrink-0 place-items-center rounded text-zinc-500 hover:bg-red-500/10 hover:text-red-400"
+              >
+                <Trash2 size={12} />
+              </button>
             </div>
 
             {!collapsed && (

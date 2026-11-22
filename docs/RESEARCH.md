@@ -77,6 +77,33 @@ polygon_config
 - Polygon hotspots (`polygon_config` + mode gambar area) baru sebatas tombol "Gambar area".
 - Lottie/callout/zoomRange penuh.
 
+## Alur kerja editor Panoee (deep dive)
+State Redux `tourEditor`: `editorMode:"tour"`, `tourViewerMode` (`classic`/`graph3d`,
+tersimpan di localStorage `panoee:tour-viewer-mode`), `sceneSelected`,
+`hotspotSelected`, `listHotspot`, `isDrawingHotspot`, `pendingHotspotUpdates`,
+`idHotspotDeleted`.
+
+Alur:
+1. Pilih scene (`sceneSelected`) → `editors/GetListScene`.
+2. Group scene: `editors/GetListGroup`, `createGroup`, `sortGroup`, `updateGroup`, `deleteGroup`.
+3. Tambah hotspot: aktifkan mode gambar (`isDrawingHotspot`) → klik panorama →
+   `eventToSpherical(clientX, clientY, rect)` mengubah klik menjadi `ath/atv`
+   (yaw/pitch) → hotspot sementara ber-id `fake-…` masuk `pendingHotspotUpdates`
+   → `hotspot/UpdateHotspot` → `replaceHotspotId(temp, real)`.
+4. Edit hotspot: `hotspot/UpdateHotspot` (optimistic lewat `pendingHotspotUpdates`).
+5. Hapus: `hotspot/DeleteHotspot` + `idHotspotDeleted`.
+6. Scene: `scene/CreateScene(s)`, `UpdateScene`, `DeleteScene`, `SortScenes`.
+7. Publish: `project/export`, `duplicate-project`, domain & `seo/reindex-url`.
+
+Koordinat klik: `pointFromClient` → `{x,y,ath,atv}` dengan normalisasi
+`(clientX-left)/width` dan `(clientY-top)/height` lalu `ath = x*360-180`,
+`atv = y*180-90`.
+
+### Diimplementasikan
+- Tombol **+ Hotspot** sekarang masuk mode penempatan: klik di gambar untuk memilih
+  posisi hotspot (bukan lagi ditaruh di tengah otomatis).
+- Tombol hapus grup selalu terlihat; grup default hanya memberi info.
+
 ## Tidak diimplementasikan (alasan)
 - krpano → tetap pakai Photo Sphere Viewer 5 (MIT, hasil setara).
 - Pusher/PostHog/pembayaran/domain kustom/SEO — butuh infrastruktur berbayar &
