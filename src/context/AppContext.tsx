@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react"
 import type { Hotspot, Scene } from "../types/tour"
+import { normalizeStudioConfig, type StudioConfig } from "../types/studio"
 import { scenes as staticScenes } from "../data/scenes"
 import {
   deleteAsset,
@@ -100,6 +101,11 @@ export interface AppContextValue {
   moveScene: (sceneId: string, direction: -1 | 1) => void
   imageQuality: "standard" | "high" | "original"
   setImageQuality: (value: "standard" | "high" | "original") => void
+
+  /** Konfigurasi Studio ala Panoee (Design / CMS / Marketing / Setting). */
+  studioConfig: StudioConfig
+  updateStudioConfig: (patch: Partial<StudioConfig>) => void
+  resetStudioConfig: () => void
 
   authOpen: boolean
   setAuthOpen: (open: boolean) => void

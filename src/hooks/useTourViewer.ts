@@ -8,7 +8,7 @@ import { GyroscopePlugin } from "@photo-sphere-viewer/gyroscope-plugin"
 import { SettingsPlugin } from "@photo-sphere-viewer/settings-plugin"
 import { defaultSceneId } from "../data/scenes"
 import { tourConfig } from "../config/tour.config"
-import { contentHotspots, findScene, sceneLinks } from "../lib/sceneGraph"
+import { contentHotspots, findScene, navigationTarget, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
 import { defaultHotspotStyle, type Hotspot, type HotspotIcon, type HotspotType, type Scene } from "../types/tour"
 import { effectsToCss, type SceneEffects } from "../lib/effects"
@@ -118,6 +118,33 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   const live = useRef({ scenes, currentSceneId, options })
   live.current = { scenes, currentSceneId, options }
 
+  /*
+   * Satu jalur aktivasi untuk semua klik hotspot (event PSV `select-marker`
+   * ATAU fallback pointer pada marker yang sedang di-drag). Dedupe menjaga
+   * tautan tidak terbuka dua kali bila kedua jalur sempat terpicu.
+   */
+  const lastActivationRef = useRef<{ id: string; at: number } | null>(null)
+  const activateHotspot = useCallback((spot: Hotspot) => {
+    const now = Date.now()
+    const last = lastActivationRef.current
+    if (last && last.id === spot.id && now - last.at < 400) return
+    lastActivationRef.current = { id: spot.id, at: now }
+
+    const { scenes: allScenes, options: opts } = live.current
+    const target = navigationTarget(spot)
+    if (target && allScenes.some((s) => s.id === target)) {
+      tourRef.current
+        ?.setCurrentNode(target)
+        .catch(() => opts.onNotify?.("Scene tujuan tidak ditemukan."))
+      return
+    }
+    if (spot.type === "link" && spot.href) {
+      window.open(spot.href, "_blank", "noopener,noreferrer")
+      return
+    }
+    setSelectedHotspot(spot)
+  }, [])
+
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -179,18 +206,8 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     }
     const onSelectMarker = (e: any) => {
       const id = e.marker.data?.hotspotId ?? e.marker.id
-      const { scenes: allScenes, currentSceneId: sceneId, options: opts } = live.current
-      const scene = findScene(allScenes, sceneId)
-      const spot = scene.hotspots.find((h) => h.id === id) ?? null
-      if (spot?.targetSceneId) {
-        tour.setCurrentNode(spot.targetSceneId).catch(() => opts.onNotify?.("Scene tujuan tidak ditemukan."))
-        return
-      }
-      if (spot?.type === "link" && spot.href) {
-        window.open(spot.href, "_blank", "noopener,noreferrer")
-        return
-      }
-      setSelectedHotspot(spot)
+      const spot = findScene(live.current.scenes, live.current.currentSceneId).hotspots.find((h) => h.id === id)
+      if (spot) activateHotspot(spot)
     }
     const onPosition = (e: any) => {
       setView({
@@ -318,6 +335,9 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     const viewer = viewerRef.current
     if (!container || !viewer || !isReady) return
 
+    const DRAG_THRESHOLD = 5 // px: di bawah ini dianggap klik, bukan geser
+    let pendingId: string | null = null
+    let start: { x: number; y: number } | null = null
     let draggingId: string | null = null
     let latest: { yaw: number; pitch: number } | null = null
     let ghost: HTMLDivElement | null = null
@@ -340,24 +360,48 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       return { yaw: round(radToDeg(coords.yaw), 0), pitch: round(radToDeg(coords.pitch), 0) }
     }
 
+    const reset = () => {
+      pendingId = null
+      start = null
+      draggingId = null
+      latest = null
+      pointer = null
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+      ghost?.remove()
+      ghost = null
+    }
+
     const onDown = (event: PointerEvent) => {
       const target = event.target as HTMLElement | null
       const dot = target?.closest<HTMLElement>("[data-hs-id]")
       if (!dot) return
-      draggingId = dot.dataset.hsId ?? null
-      if (!draggingId) return
-      ghost = document.createElement("div")
-      ghost.className = "hs-drag-ghost"
-      container.appendChild(ghost)
-      pointer = { x: event.clientX, y: event.clientY }
-      raf = requestAnimationFrame(drawGhost)
+      pendingId = dot.dataset.hsId ?? null
+      if (!pendingId) return
+      start = { x: event.clientX, y: event.clientY }
+      latest = null
+      /*
+       * Cegah PSV memutar panorama saat marker ditekan. Efek sampingnya:
+       * browser tidak mengirim `mousedown` kompatibel, sehingga PSV tidak
+       * pernah menyintesiskan ClickEvent / `select-marker`. Karena itu klik
+       * marker ditangani eksplisit di `onUp` (lihat activateHotspot).
+       */
       event.stopPropagation()
       event.preventDefault()
     }
 
     // Gerakkan marker LANGSUNG di viewer (tanpa menunggu React), baru simpan saat lepas.
     const onMove = (event: PointerEvent) => {
-      if (!draggingId) return
+      if (!pendingId || !start) return
+      if (!draggingId) {
+        if (Math.hypot(event.clientX - start.x, event.clientY - start.y) < DRAG_THRESHOLD) return
+        draggingId = pendingId
+        ghost = document.createElement("div")
+        ghost.className = "hs-drag-ghost"
+        container.appendChild(ghost)
+        pointer = { ...start }
+        raf = requestAnimationFrame(drawGhost)
+      }
       pointer = { x: event.clientX, y: event.clientY }
       if (!raf) raf = requestAnimationFrame(drawGhost)
       try {
@@ -381,30 +425,31 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
           latest.yaw,
           latest.pitch,
         )
+      } else if (pendingId && !placementRef.current) {
+        // Klik biasa pada marker: pindah scene / buka tautan / tampilkan detail.
+        const scene = findScene(live.current.scenes, live.current.currentSceneId)
+        const spot = scene.hotspots.find((h) => h.id === pendingId)
+        if (spot) activateHotspot(spot)
       }
-      draggingId = null
-      latest = null
-      pointer = null
-      if (raf) cancelAnimationFrame(raf)
-      raf = 0
-      ghost?.remove()
-      ghost = null
+      reset()
     }
+
+    // pointercancel bukan klik: bersihkan tanpa mengaktifkan hotspot.
+    const onCancel = () => reset()
 
     container.addEventListener("pointerdown", onDown, { capture: true })
     window.addEventListener("pointermove", onMove)
     window.addEventListener("pointerup", onUp)
-    window.addEventListener("pointercancel", onUp)
+    window.addEventListener("pointercancel", onCancel)
 
     return () => {
       container.removeEventListener("pointerdown", onDown, { capture: true })
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
-      window.removeEventListener("pointercancel", onUp)
-      if (raf) cancelAnimationFrame(raf)
-      ghost?.remove()
+      window.removeEventListener("pointercancel", onCancel)
+      reset()
     }
-  }, [isReady])
+  }, [isReady, activateHotspot])
 
   /*Sinkronkan ulang node saat scene berubah (upload, hotspot edit, ganti media).*/
   useEffect(() => {

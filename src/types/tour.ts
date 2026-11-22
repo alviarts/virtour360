@@ -46,6 +46,7 @@ export interface Hotspot {
   title: string
   description?: string
   href?: string
+  /** Boleh dipakai tipe hotspot apa pun; jika terisi, klik hotspot pindah ke scene ini. */
   targetSceneId?: string
   style?: HotspotStyle
 }

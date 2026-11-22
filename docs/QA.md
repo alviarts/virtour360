@@ -82,3 +82,46 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - PasswordDB & secret key tidak disimpan di source; hanya env var Vercel / environment variable lokal.
 - Mode server aktif di production; mode lokal (tanpa env) tetap berfungsi penuh.
 - Domain produksi: **https://virtour360real.vercel.app**
+
+## 3d. Audit navigasi hotspot/pintu antar-scene (2026-11-23)
+
+### Root cause
+1. **Studio** — handler drag memanggil `event.preventDefault()` + `stopPropagation()` pada
+   `pointerdown` setiap kali marker ditekan. Browser karena itu tidak mengirim
+   `mousedown` kompatibel; PSV tidak pernah membentuk `ClickEvent`, sehingga event
+   `select-marker` (satu-satunya jalur navigasi marker) tidak pernah terpicu.
+2. **Contoh tur** — `buildExampleScenes()` menaruh **dua hotspot di yaw/pitch identik**:
+   `door-*` (marker `type:"info"` + `targetSceneId`) dan `door-link-*` (panah `type:"scene"`).
+   Marker menimpa panah; MarkersPlugin memanggil `stopImmediatePropagation()` pada
+   `ClickEvent`, jadi handler panah VirtualTour juga terblokir → klik "Pintu → …" tidak ada efek.
+3. **Viewer publik** — navigasi hanya Mengandalkan `data.targetSceneId` pada marker yang
+   bisa basi, dan tidak ada dedupe antara `select-marker` dan fallback DOM `click`.
+
+### Perbaikan
+- `src/hooks/useTourViewer.ts`: `activateHotspot()` baru (navigasi → tautan → detail, dengan
+  dedupe 400 ms) dipakai bersama oleh `select-marker` **dan** fallback `pointerup` pada marker.
+- Drag sekarang punya threshold 5 px: klik biasa tidak menggeser marker, tetap mengaktifkan
+  hotspot; `pointercancel` tidak mengaktifkan apa pun; mode penempatan tidak terpengaruh.
+- `src/lib/sceneGraph.ts`: `navigationTarget()` + `isNodeLink()` jadi satu aturan bersama.
+  Panah hanya untuk `type === "scene"`, marker untuk tipe lainnya.
+- `src/components/viewer/PublicViewerModal.tsx`: pakai `sceneLinks()`/`contentHotspots()`/
+  `navigationTarget()`, `positionMode: "manual"` eksplisit, resolusi hotspot dari scene aktif,
+  dedupe aktivasi, teks bantuan diperbarui.
+- `src/data/examples.ts`: hotspot `door-link-*` dihapus — penanda pintu biru bermuatan
+  `targetSceneId` kini menjadi satu-satunya affordance di posisi pintu.
+- `src/components/layout/RightPanel.tsx`: field "Scene tujuan", tombol "Set ke layer
+  berikutnya", tombol "Kunjungi scene", dan tombol navigate di daftar hotspot kini tersedia
+  untuk **semua** tipe hotspot yang punya `targetSceneId` (baris daftar tetap bisa dipilih untuk diedit).
+
+### Verifikasi
+- `npm run build` → **PASS** (tsc -b + vite build, 2254 modul, 0 error).
+- Browser tool: **TIDAK terhubung** (`[browser.disconnected]`) — tidak ada uji klik E2E
+  dari sesi ini; tidak di-retry sesuai instruksi.
+
+### Checklist manual untuk reviewer (belum dijalankan di sesi ini)
+1. Studio → contoh "Atrium" → klik penanda biru "Pintu → Studio" → judul/counter scene berubah ke 2/3.
+2. Studio → klik hotspot info biasa → panel detail terbuka (tidak berpindah scene).
+3. Studio → drag penanda pintu → posisi yaw/pitch tersimpan; klik setelah drag tetap pindah scene.
+4. Studio → picker "Chevron" (`type:"scene"`) → panah PSV diklik → scene berubah.
+5. Public view → klik penanda pintu → counter `1 / 3` → `2 / 3`; tombol prev/next tetap jalan.
+6. Mode penempatan (+ Hotspot) → klik di panorama → hotspot baru tetap dibuat.

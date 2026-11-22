@@ -114,6 +114,9 @@ export function buildExampleScenes(): Scene[] {
       initialView: { yaw: item.yaw, pitch: item.pitch, zoom: 70 },
       hotspots: [
         {
+          // Satu penanda pintu saja: marker ini membawa targetSceneId sehingga
+          // kliknya langsung berpindah scene. Tidak dibuat hotspot "scene"
+          // tambahan di titik yang sama (panah PSV + marker akan bertabrakan).
           id: `door-${item.id}`,
           type: "info",
           yaw: DOOR_YAW[index] ?? 0,
@@ -128,14 +131,6 @@ export function buildExampleScenes(): Scene[] {
             size: 4,
             showLabel: true,
           },
-        },
-        {
-          id: `door-link-${item.id}`,
-          type: "scene",
-          yaw: DOOR_YAW[index] ?? 0,
-          pitch: 0,
-          title: `Masuk ke ${next.title}`,
-          targetSceneId: next.id,
         },
         {
           id: `info-${item.id}`,

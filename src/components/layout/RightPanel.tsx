@@ -504,7 +504,7 @@ export function RightPanel({
                   </label>
                 </div>
 
-                {selectedHotspot.type === "scene" && scenes.length > 1 && (
+                {scenes.length > 1 && (
                   <button
                     onClick={() => {
                       const index = scenes.findIndex((s) => s.id === scene.id)
@@ -545,20 +545,20 @@ export function RightPanel({
                     />
                   </label>
                 )}
-                {selectedHotspot.type === "scene" && (
-                  <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
-                    Scene tujuan
-                    <select
-                      value={selectedHotspot.targetSceneId ?? ""}
-                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, { targetSceneId: e.target.value })}
-                      className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
-                    >
-                      {scenes.map((s) => (
-                        <option key={s.id} value={s.id}>{s.name}</option>
-                      ))}
-                    </select>
-                  </label>
-                )}
+                {/* targetSceneId boleh dipakai tipe hotspot apa pun, bukan hanya "scene". */}
+                <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                  Scene tujuan (opsional — klik hotspot akan pindah ke scene ini)
+                  <select
+                    value={selectedHotspot.targetSceneId ?? ""}
+                    onChange={(e) => onUpdateHotspot(selectedHotspot.id, { targetSceneId: e.target.value || undefined })}
+                    className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none focus:border-zinc-500"
+                  >
+                    <option value="">— tidak ada —</option>
+                    {scenes.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </label>
 
                 <div className="flex gap-2 font-mono text-[10px] text-zinc-500">
                   <span>yaw {selectedHotspot.yaw}</span>
@@ -569,7 +569,7 @@ export function RightPanel({
                   Simpan perubahan
                 </button>
 
-                {selectedHotspot.type === "scene" && selectedHotspot.targetSceneId && (
+                {selectedHotspot.targetSceneId && scenes.some((s) => s.id === selectedHotspot.targetSceneId) && (
                   <button
                     onClick={() => onGoToScene(selectedHotspot.targetSceneId!)}
                     className="flex h-8 items-center justify-center gap-2 rounded-lg border border-zinc-700 text-[11px] text-zinc-200 hover:bg-white/5"
@@ -602,21 +602,23 @@ export function RightPanel({
               {scene.hotspots.map((spot) => (
                 <div key={spot.id} className="flex items-center gap-1 rounded-lg border border-zinc-800 px-2.5 py-2 transition-colors hover:border-zinc-600">
                   <button
-                    onClick={() => {
-                      if (spot.type === "scene" && spot.targetSceneId) {
-                        onGoToScene(spot.targetSceneId)
-                      } else {
-                        onSelectHotspot(spot.id)
-                      }
-                    }}
-                    title={spot.type === "scene" && spot.targetSceneId ? `Pindah ke ${scene.name === spot.targetSceneId ? spot.title : (scenes.find((s) => s.id === spot.targetSceneId)?.name ?? spot.title)}` : `Pilih ${spot.title}`}
+                    onClick={() => onSelectHotspot(spot.id)}
+                    title={`Pilih ${spot.title}`}
                     className="flex min-w-0 flex-1 items-center gap-2 text-left"
                   >
-                    <span className={`size-1.5 shrink-0 rounded-full ${spot.type === "scene" ? "bg-sky-400" : "bg-amber-400"}`} />
+                    <span className={`size-1.5 shrink-0 rounded-full ${spot.targetSceneId ? "bg-sky-400" : "bg-amber-400"}`} />
                     <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">{spot.title}</span>
-                    {spot.type === "scene" && <ArrowUpRight size={11} className="shrink-0 text-sky-400" />}
                     <span className="font-mono text-[10px] text-zinc-600">{spot.yaw}</span>
                   </button>
+                  {spot.targetSceneId && scenes.some((s) => s.id === spot.targetSceneId) && (
+                    <button
+                      onClick={() => onGoToScene(spot.targetSceneId!)}
+                      title={`Kunjungi ${scenes.find((s) => s.id === spot.targetSceneId)?.name ?? spot.title}`}
+                      className="grid size-6 shrink-0 place-items-center rounded text-sky-400 hover:bg-sky-500/10"
+                    >
+                      <ArrowUpRight size={12} />
+                    </button>
+                  )}
                   <button
                     onClick={() => { onRemoveHotspot(spot.id); if (selectedHotspot?.id === spot.id) onClearHotspot() }}
                     title={`Hapus ${spot.title}`}

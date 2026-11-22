@@ -4,7 +4,8 @@ import { VirtualTourPlugin } from "@photo-sphere-viewer/virtual-tour-plugin"
 import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { tourConfig } from "../../config/tour.config"
-import type { Scene } from "../../types/tour"
+import { contentHotspots, navigationTarget, sceneLinks } from "../../lib/sceneGraph"
+import type { Hotspot, Scene } from "../../types/tour"
 
 interface PublicViewerModalProps {
   title: string
@@ -20,6 +21,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
   const tourRef = useRef<VirtualTourPlugin | null>(null)
   const [currentTitle, setCurrentTitle] = useState(title)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const lastActivationRef = useRef<{ id: string; at: number } | null>(null)
 
   const hasTour = !!scenes?.length
 
@@ -46,17 +48,17 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
       container: containerRef.current,
       plugins: [MarkersPlugin, VirtualTourPlugin.withConfig({
         dataMode: "client",
+        positionMode: "manual",
         renderMode: "2d",
         nodes: list.map((scene) => ({
           id: scene.id,
           panorama: scene.panorama,
           name: scene.name,
           thumbnail: scene.thumbnail,
-          links: scene.hotspots
-            .filter((h) => h.type === "scene" && !!h.targetSceneId)
-            .map((h) => ({ nodeId: h.targetSceneId!, position: { yaw: h.yaw, pitch: h.pitch } })),
-          markers: scene.hotspots
-            .filter((h) => h.type !== "scene")
+          // Sumber aturan yang sama dengan Studio: hanya tipe "scene" jadi panah,
+          // hotspot lain (termasuk yang punya targetSceneId) tetap jadi marker.
+          links: sceneLinks(scene),
+          markers: contentHotspots(scene)
             .map((h) => ({
               id: h.id,
               position: { yaw: h.yaw, pitch: h.pitch },
@@ -66,7 +68,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
                 ${h.style?.showLabel ? `<span class="hs-label${h.style?.labelOnHover ? " hs-label-on-hover" : ""}">${String(h.title).replace(/[&<>"']/g, "")}</span>` : ""}
               </div>`,
               tooltip: { content: h.title, position: "top" as const },
-              data: { hotspotId: h.id, targetSceneId: h.targetSceneId ?? null },
+              data: { hotspotId: h.id, targetSceneId: navigationTarget(h) ?? null },
             })),
         })),
         startNodeId: sceneId && list.some((s) => s.id === sceneId) ? sceneId : list[0].id,
@@ -89,25 +91,35 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
     }
     tourPlugin?.addEventListener("node-changed", onNodeChanged)
 
+    /* Satu jalur aktivasi marker: selalu cari data hotspot terbaru dari scene
+       aktif, bukan hanya mempercayai `data.targetSceneId` yang bisa basi. */
+    const activateSpot = (spot: Hotspot | undefined) => {
+      if (!spot) return
+      const target = navigationTarget(spot)
+      if (!target || !list.some((s) => s.id === target)) return
+      const now = Date.now()
+      const last = lastActivationRef.current
+      if (last && last.id === spot.id && now - last.at < 400) return
+      lastActivationRef.current = { id: spot.id, at: now }
+      tourPlugin?.setCurrentNode(target).catch(() => undefined)
+    }
+    const spotById = (id: string | undefined): Hotspot | undefined => {
+      if (!id) return undefined
+      const nodeId = tourPlugin?.getCurrentNode?.()?.id
+      return list.find((s) => s.id === nodeId)?.hotspots.find((h) => h.id === id)
+    }
+
     const markersPlugin: any = viewer.getPlugin("markers")
     const onSelectMarker = (event: any) => {
-      const target = event?.marker?.data?.targetSceneId
-      if (target && list.some((scene) => scene.id === target)) {
-        tourPlugin?.setCurrentNode(target).catch(() => undefined)
-      }
+      activateSpot(spotById(event?.marker?.data?.hotspotId ?? event?.marker?.id))
     }
     markersPlugin?.addEventListener?.("select-marker", onSelectMarker)
 
-    // Klik langsung pada marker (fallback bila event PSV tidak terpicu).
+    // Klik langsung pada marker (fallback bila event PSV tidak terpicu, mis. di perangkat lama).
     const onClickMarker = (event: MouseEvent) => {
       const dot = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-hs-id]")
       if (!dot) return
-      const nodeId = tourPlugin?.getCurrentNode?.()?.id
-      const scene = list.find((s) => s.id === nodeId)
-      const spot = scene?.hotspots.find((h) => h.id === dot.dataset.hsId)
-      if (spot?.targetSceneId && list.some((s) => s.id === spot.targetSceneId)) {
-        tourPlugin?.setCurrentNode(spot.targetSceneId).catch(() => undefined)
-      }
+      activateSpot(spotById(dot.dataset.hsId))
     }
     containerRef.current?.addEventListener("click", onClickMarker)
 
@@ -172,7 +184,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
       )}
 
       <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-4 py-2 text-center text-[11px] text-white/80 backdrop-blur">
-        Geser untuk melihat 360° · scroll zoom · klik panah kuning pindah scene · Esc keluar
+        Geser untuk melihat 360° · scroll zoom · klik penanda pintu atau panah untuk pindah scene · Esc keluar
       </div>
     </div>
   )

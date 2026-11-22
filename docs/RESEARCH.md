@@ -150,3 +150,34 @@ Koordinat klik: `pointFromClient` → `{x,y,ath,atv}` dengan normalisasi
 ## Referensi internet
 - krpano vtour docs & forum (scene groups, VR thumbnails, quality levels)
 - Photo Sphere Viewer plugin docs
+
+---
+
+# Riset PSV 5 — navigasi hotspot & panah antar-scene (2026-11-23)
+
+Catatan: URL dokumentasi lama `photo-sphere-viewer.github.io/photo-sphere-viewer-docs/...`
+sudah 404; dokumentasi resmi v5 pindah ke **https://photo-sphere-viewer.js.org/**.
+
+## Sumber
+- https://photo-sphere-viewer.js.org/plugins/virtual-tour.html — node/link/`setNodes`/`setCurrentNode`/`gotoLink`/event `node-changed`, `enter-arrow`.
+- https://photo-sphere-viewer.js.org/plugins/markers.html — `markers` per-node, `data`, event `select-marker`, opsi `clickEventOnMarker`.
+- https://photo-sphere-viewer.js.org/api/classes/VirtualTourPlugin.VirtualTourPlugin.html — API reference.
+- https://github.com/mistic100/Photo-Sphere-Viewer/issues/1329 — "marker click on mobile doesn't change picture"; maintainer: viewer "swallows" touch events sehingga native click hilang.
+- https://github.com/mistic100/Photo-Sphere-Viewer/commit/625244effa7788d07c86d698a140be85f370b265 — fix #1329: ArrowsRenderer kini mendengarkan **PSV `ClickEvent`**, bukan native DOM `click`.
+- https://github.com/mistic100/Photo-Sphere-Viewer/issues/734 — konflik marker MarkersPlugin vs node marker VirtualTour (solusi resmi: definisikan `markers` di tiap node).
+- Sumber lokal: `node_modules/@photo-sphere-viewer/{core,markers-plugin,virtual-tour-plugin}/index.module.js`.
+
+## Temuan penting
+1. **Link PSV dibuat dari `node.links`** dengan `{ nodeId, position: { yaw, pitch } }` (manual mode default). Klik panah diproses oleh VirtualTourPlugin lewat `ClickEvent` PSV:
+   - 3D (`renderMode: "3d"`): baca `e.data.objects` → `userData[LINK_DATA]` (`index.module.js:934-946`).
+   - 2D (`renderMode: "2d"`): baca `e.data.target` terdekat dengan `.psv-virtual-tour-link` (`:454-462`, `:599-602`).
+   - `setCurrentNode(id)` adalah no-op bila `id === currentNode.id` (`:979-982`); `gotoLink(id)` hanya **memutar view** ke arah panah, bukan berpindah scene.
+2. **Marker klik = event `select-marker`**, dipicu MarkersPlugin dari `ClickEvent` PSV (`markers-plugin/index.module.js:1800,1840,2311-2342`). Default `clickEventOnMarker: false` → MarkersPlugin memanggil **`e.stopImmediatePropagation()`** pada `ClickEvent` saat marker terklik (`:2326-2330`). Jadi marker yang menimpa panah akan **memblokir handler panah VirtualTourPlugin**.
+3. PSV core hanya menyintesiskan `ClickEvent` jika `mousedown`/`touchstart` sampai ke container: `__onMouseDown()` menambah `Step.CLICK` (`core/index.module.js:4894-4909`), lalu `__stopMove()` → `__doClick()` → `dispatchEvent(ClickEvent)` (`:5077-5116`).
+   → **`event.preventDefault()` pada `pointerdown` menekan compatibility `mousedown`, sehingga `select-marker` tidak pernah terpicu.**
+4. Praktik terbaik: satu affordance per tujuan. Jangan membuat marker konten dan panah link di titik yaw/pitch yang sama; kalau hotspot punya `targetSceneId`, tangani navigasi di handler `select-marker`-nya.
+
+## Kesimpulan untuk project ini
+- `targetSceneId` boleh ada di hotspot tipe apa pun → navigasi harus dibaca dari field itu, bukan dari `type`.
+- Panah PSV cukup untuk hotspot `type === "scene"`; hotspot tipe lain dengan `targetSceneId` dirender sebagai marker dan bernavigasi lewat klik marker. Ini menghilangkan tabrakan panah/marker.
+- Drag marker harus memakai ambang gerak (threshold) + fallback aktivasi pada `pointerup`, karena `preventDefault()` pada `pointerdown` memang diperlukan agar PSV tidak memutar panorama saat menggeser.
