@@ -62,6 +62,7 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - Picker 9 jenis Panoee menghasilkan hotspot dengan ikon sesuai jenis.
 - Marker hotspot bisa **di-geser (drag)** dengan mouse: `data-hs-id` pada marker,
   konversi `viewerCoordsToSphericalCoords` → yaw/pitch baru, disimpan via `onMoveHotspot`.
+  Uji produksi: `hs-process` yaw −40°/pitch −6° → yaw 126°/pitch 48° setelah di-drag.
 
 ## 4. Catatan
 - PasswordDB & secret key tidak disimpan di source; hanya env var Vercel / environment variable lokal.
