@@ -9,6 +9,7 @@ import { BottomToolbar } from "./BottomToolbar"
 interface TourViewerProps {
   containerRef: RefObject<HTMLDivElement | null>
   scene: Scene
+  scenes: Scene[]
   view: ViewState
   hotspotCount: number
   onSeek: (yaw: number) => void
@@ -33,6 +34,10 @@ interface TourViewerProps {
   onCancelPlacement?: () => void
   onDraw?: () => void
   onUploadAudio?: () => void
+  showMiniMap?: boolean
+  showSideMenu?: boolean
+  showGraph?: boolean
+  onSelectScene?: (id: string) => void
   prevScene?: Scene
   nextScene?: Scene
   onPrevScene?: () => void
@@ -42,6 +47,7 @@ interface TourViewerProps {
 export function TourViewer({
   containerRef,
   scene,
+  scenes,
   view,
   hotspotCount,
   onSeek,
@@ -66,6 +72,10 @@ export function TourViewer({
   onCancelPlacement,
   onDraw,
   onUploadAudio,
+  showMiniMap = true,
+  showSideMenu = false,
+  showGraph = false,
+  onSelectScene,
   prevScene,
   nextScene,
   onPrevScene,
@@ -97,7 +107,45 @@ export function TourViewer({
       {/* Kanvas Photo Sphere Viewer */}
       <div ref={containerRef} className="absolute inset-0" />
 
-      {!preview && <MiniMap scene={scene} view={view} hotspotCount={hotspotCount} onSeek={onSeek} />}
+      {!preview && showMiniMap && <MiniMap scene={scene} view={view} hotspotCount={hotspotCount} onSeek={onSeek} />}
+
+      {/* Side menu — daftar scene cepat di sisi kanan viewer */}
+      {!preview && showSideMenu && (
+        <div className="absolute right-3 top-1/2 z-20 flex max-h-[70%] w-44 -translate-y-1/2 flex-col gap-2 overflow-y-auto rounded-xl border border-white/15 bg-black/70 p-2 backdrop-blur-md">
+          <p className="px-1 text-[10px] font-semibold uppercase tracking-wide text-white/50">Side menu · {scenes.length} scene</p>
+          {scenes.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onSelectScene?.(item.id)}
+              className={`flex items-center gap-2 rounded-lg p-1.5 text-left transition-colors ${item.id === scene.id ? "bg-white/15" : "hover:bg-white/10"}`}
+            >
+              <img src={item.thumbnail} alt="" className="size-8 shrink-0 rounded object-cover" />
+              <span className="min-w-0 flex-1 truncate text-[10px] text-white">{item.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Tour graph — peta hubungan antar scene */}
+      {!preview && showGraph && (
+        <div className="absolute bottom-16 left-1/2 z-20 w-[min(560px,90%)] -translate-x-1/2 rounded-xl border border-white/15 bg-black/75 p-3 backdrop-blur-md">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/50">Tour graph</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {scenes.map((item, index) => (
+              <div key={item.id} className="flex items-center gap-2">
+                <button
+                  onClick={() => onSelectScene?.(item.id)}
+                  className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-[10px] ${item.id === scene.id ? "border-amber-400 bg-amber-400/10 text-amber-300" : "border-white/15 text-white/80 hover:bg-white/10"}`}
+                >
+                  <img src={item.thumbnail} alt="" className="size-5 rounded object-cover" />
+                  <span className="max-w-24 truncate">{item.name}</span>
+                </button>
+                {index < scenes.length - 1 && <span className="text-white/40">→</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {placementType && (
         <div className="pointer-events-auto absolute left-1/2 top-16 z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-amber-400/40 bg-zinc-900/90 px-4 py-2 text-[11px] text-amber-200 shadow-xl backdrop-blur">

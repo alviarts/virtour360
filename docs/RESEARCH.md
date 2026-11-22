@@ -77,6 +77,40 @@ polygon_config
 - Polygon hotspots (`polygon_config` + mode gambar area) baru sebatas tombol "Gambar area".
 - Lottie/callout/zoomRange penuh.
 
+## Alur lengkap dari UI (login, 2026-11-22)
+Route: `/dashboard/projects`, `/dashboard/media`, `/editor/:project_id`, `/profile`.
+
+**Dashboard**
+- Projects: tab Live / Studio, filter, kartu project + badge Published.
+- Media: Add Album, tab Pano/Asset, folder Root, Sort Media, "Drop 360 images here"
+  atau **Upload 360**, tiap gambar punya **Edit with AI**. Peringatan rasio 2:1
+  ("These images are not 2:1 panoramas" → Skip / Upload as flat photos).
+- Tools menu — IN STUDIO: Static Hosting, Floorplan Generator, AI Edit 360.
+  ON THE WEB: 360 Panorama Viewer, Optimizer, Nadir Fixer, Level 360 Panorama,
+  Dual Fisheye → Equirectangular, 360 Photo Color Correction, 360 EXIF Fixer,
+  360 Agency Directory, 360 Camera Comparison.
+- Promotion, Enterprise; trial banner, Changelog, New Project.
+
+**Onboarding editor (6 langkah, teks asli)**
+1. **Add scenes** — klik Create untuk menambah 360 photos, flat images, atau Object 360 scenes.
+2. **Add hotspots** — *hover + Hotspot, lalu drag hotspot ke panorama* untuk menghubungkan scene atau menampilkan info.
+3. **Set the default view** — putar panorama ke sudut yang diinginkan, klik **Default view** untuk menyimpan sebagai tampilan awal & thumbnail.
+4. **View options** — aktifkan **tour graph, minimap, atau side menu** untuk melihat koneksi antar scene.
+5. **Preview** — lihat tur seperti yang dilihat pengunjung.
+6. **Publish and share** — publish untuk mendapat **share link, QR code, dan embed code**.
+
+**Hotspot picker** (klik + Hotspot): `Point, Chevron, Image, Article, Video, Sound, Link, Compact, Product`.
+
+**View options** (`data-ai-id=tour.view.settings`): `Mini-map`, `Side menu`, `Tour graph`.
+
+**Publish modal** — "Set who can view the tour, then copy the link or embed code":
+- Who has access: **Draft / Public / Password access** (Anyone with the link)
+- Tour Domain: **Copy Link, Open Link, QR Code, Change Slug**, Custom Domain / Connect Domain
+- Cache: "The public tour is outdated / Updated … / Cached / Refresh Cache"
+- Embed: **Allow Fullscreen, Allow VR, Loading lazy, Copy Code**
+- Integrate: download base .zip → tempel ke `static/static/data.js` → upload ke hosting
+- Export: berbayar, unlimited re-export
+
 ## Alur kerja editor Panoee (deep dive)
 State Redux `tourEditor`: `editorMode:"tour"`, `tourViewerMode` (`classic`/`graph3d`,
 tersimpan di localStorage `panoee:tour-viewer-mode`), `sceneSelected`,

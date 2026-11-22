@@ -7,6 +7,7 @@ import { TourViewer } from "./components/viewer/TourViewer"
 import { MediaPickerModal } from "./components/viewer/MediaPickerModal"
 import { ProfileModal } from "./components/auth/ProfileModal"
 import { EmbedModal } from "./components/auth/EmbedModal"
+import { PublishModal } from "./components/auth/PublishModal"
 import { Lightbox } from "./components/ui/Lightbox"
 import { useTourViewer, type Quality } from "./hooks/useTourViewer"
 import { useFullscreen } from "./hooks/useFullscreen"
@@ -14,7 +15,7 @@ import { useHotkeys } from "./hooks/useHotkeys"
 import { useApp } from "./context/useApp"
 import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
-import { buildPublicFolders, publishPublicPayload, publicShareUrl } from "./lib/publicStore"
+import { publicShareUrl } from "./lib/publicStore"
 import { defaultEffects } from "./lib/effects"
 import { defaultSceneId } from "./data/scenes"
 
@@ -26,6 +27,12 @@ interface SettingsPopoverProps {
   setCompass: (v: boolean) => void
   gyroscope: boolean
   setGyroscope: (v: boolean) => void
+  showMiniMap: boolean
+  setShowMiniMap: (v: boolean) => void
+  showSideMenu: boolean
+  setShowSideMenu: (v: boolean) => void
+  showGraph: boolean
+  setShowGraph: (v: boolean) => void
 }
 
 function SettingsPopover({
@@ -36,6 +43,12 @@ function SettingsPopover({
   setCompass,
   gyroscope,
   setGyroscope,
+  showMiniMap,
+  setShowMiniMap,
+  showSideMenu,
+  setShowSideMenu,
+  showGraph,
+  setShowGraph,
 }: SettingsPopoverProps) {
   return (
     <div className="flex flex-col gap-3 text-xs text-zinc-400">
@@ -64,6 +77,19 @@ function SettingsPopover({
         <span>Gyroskop</span>
         <input type="checkbox" checked={gyroscope} onChange={(e) => setGyroscope(e.target.checked)} className="size-3.5 accent-amber-400" />
       </label>
+      <div className="border-t border-zinc-800 pt-2">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">View options</p>
+        {([
+          ["Mini-map", showMiniMap, setShowMiniMap],
+          ["Side menu", showSideMenu, setShowSideMenu],
+          ["Tour graph", showGraph, setShowGraph],
+        ] as const).map(([label, value, setter]) => (
+          <label key={label} className="flex cursor-pointer items-center justify-between py-0.5">
+            <span>{label}</span>
+            <input type="checkbox" checked={value} onChange={(e) => setter(e.target.checked)} className="size-3.5 accent-sky-500" />
+          </label>
+        ))}
+      </div>
       <div className="border-t border-zinc-800 pt-2 text-[10px] leading-relaxed text-zinc-600">
         Gyroskop hanya bekerja pada perangkat sensor &amp; localhost/HTTPS.
         <br />
@@ -83,6 +109,10 @@ export default function App() {
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [embedOpen, setEmbedOpen] = useState(false)
+  const [publishOpen, setPublishOpen] = useState(false)
+  const [showMiniMap, setShowMiniMap] = useState(true)
+  const [showSideMenu, setShowSideMenu] = useState(false)
+  const [showGraph, setShowGraph] = useState(false)
   const [publishedUid, setPublishedUid] = useState<string | null>(
     () => localStorage.getItem("virtour360.publishedUid"),
   )
@@ -183,30 +213,7 @@ export default function App() {
             canUndo={canUndo}
             preview={false}
             onTogglePreview={() => setPreview(true)}
-            onPublish={async () => {
-              const published = await publishPublicPayload({
-                profile: {
-                  name: user?.name ?? profile.name,
-                  initials: user?.initials ?? profile.initials,
-                  location: profile.location,
-                  email: profile.email,
-                  website: profile.website,
-                  bio: profile.bio,
-                },
-                scenes,
-                folders: buildPublicFolders(scenes),
-                updatedAt: new Date().toISOString(),
-              })
-              if (published.ok) {
-                setPublishedUid(published.uid)
-                localStorage.setItem("virtour360.publishedUid", published.uid)
-                try { await navigator.clipboard.writeText(publicShareUrl(published.uid)) } catch { /* abaikan */ }
-                notify(`Link publish disalin: ${publicShareUrl(published.uid)}`)
-              } else {
-                notify("Mode lokal — portofolio tersimpan di browser ini.")
-              }
-              navigate("portfolio")
-            }}
+            onPublish={() => setPublishOpen(true)}
           />
 
           {suggestionsOpen && (
@@ -298,6 +305,7 @@ export default function App() {
       <TourViewer
         containerRef={tour.containerRef}
         scene={tour.currentScene}
+        scenes={scenes}
         view={tour.view}
         hotspotCount={tour.currentScene.hotspots.length}
         onSeek={tour.rotateTo}
@@ -319,9 +327,19 @@ export default function App() {
             setCompass={tour.setCompassVisible}
             gyroscope={tour.gyroscope}
             setGyroscope={tour.setGyroscopeEnabled}
+            showMiniMap={showMiniMap}
+            setShowMiniMap={setShowMiniMap}
+            showSideMenu={showSideMenu}
+            setShowSideMenu={setShowSideMenu}
+            showGraph={showGraph}
+            setShowGraph={setShowGraph}
           />
         }
         onNotify={notify}
+        showMiniMap={showMiniMap}
+        showSideMenu={showSideMenu}
+        showGraph={showGraph}
+        onSelectScene={tour.goToScene}
         showNadir={currentEffects.nadir}
         inset={preview ? { left: 0, right: 0 } : undefined}
         preview={preview}
@@ -395,6 +413,19 @@ export default function App() {
 
       {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
       {embedOpen && <EmbedModal onClose={() => setEmbedOpen(false)} />}
+      {publishOpen && (
+        <PublishModal
+          onClose={() => setPublishOpen(false)}
+          scenes={scenes}
+          userName={user?.name}
+          userInitials={user?.initials}
+          onPublished={(uid) => {
+            setPublishedUid(uid)
+            localStorage.setItem("virtour360.publishedUid", uid)
+            notify("Link, QR, dan embed siap dibagikan.")
+          }}
+        />
+      )}
       {mediaPickerOpen && <MediaPickerModal activeSceneId={tour.currentScene.id} onClose={() => setMediaPickerOpen(false)} />}
       {lightboxOpen && <Lightbox src={tour.currentScene.thumbnail} title={tour.currentScene.name} onClose={() => setLightboxOpen(false)} />}
     </AppShell>
