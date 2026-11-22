@@ -1,5 +1,26 @@
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react"
-import { ChevronLeft, ChevronRight, Music2, Pencil, X } from "lucide-react"
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from "react"
+import {
+  Box,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Hand,
+  Image as ImageIcon,
+  Link2,
+  MapPin,
+  Maximize2,
+  MousePointer2,
+  Music2,
+  Palette,
+  Pencil,
+  RotateCcw,
+  Shapes,
+  Video,
+  Volume2,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react"
 import { theme } from "../../config/theme"
 import type { HotspotType, Scene } from "../../types/tour"
 import type { ViewState } from "../../hooks/useTourViewer"
@@ -54,6 +75,7 @@ interface TourViewerProps {
   nextScene?: Scene
   onPrevScene?: () => void
   onNextScene?: () => void
+  onOpenDesign?: () => void
 }
 
 export function TourViewer({
@@ -93,6 +115,7 @@ export function TourViewer({
   nextScene,
   onPrevScene,
   onNextScene,
+  onOpenDesign,
 }: TourViewerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
@@ -101,6 +124,44 @@ export function TourViewer({
   const [floorOpen, setFloorOpen] = useState(floorplan.showOnStart)
 
   useEffect(() => setFloorOpen(floorplan.showOnStart), [floorplan.showOnStart])
+
+  /* ------------------------------------------------------------------ */
+  /* HUD klik-kanan: muncul di kursor, hilang saat fitur dipilih.         */
+  /* ------------------------------------------------------------------ */
+  const [hud, setHud] = useState<{ x: number; y: number; maxX: number; maxY: number } | null>(null)
+
+  useEffect(() => {
+    if (!hud) return
+    const close = (event: Event) => {
+      if (event.type === "keydown" && (event as KeyboardEvent).key !== "Escape") return
+      setHud(null)
+    }
+    window.addEventListener("pointerdown", close)
+    window.addEventListener("wheel", close, { passive: true })
+    window.addEventListener("keydown", close)
+    return () => {
+      window.removeEventListener("pointerdown", close)
+      window.removeEventListener("wheel", close)
+      window.removeEventListener("keydown", close)
+    }
+  }, [hud])
+
+  const openHud = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (preview) return
+    event.preventDefault()
+    const rect = event.currentTarget.getBoundingClientRect()
+    setHud({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      maxX: rect.width,
+      maxY: rect.height,
+    })
+  }
+
+  const runHud = (action: () => void) => {
+    action()
+    setHud(null)
+  }
 
   useEffect(() => {
     setPlaying(false)
@@ -123,7 +184,7 @@ export function TourViewer({
       style={{ left: inset?.left ?? theme.size.sidebar, right: inset?.right ?? theme.size.inspector }}
     >
       {/* Kanvas Photo Sphere Viewer */}
-      <div ref={containerRef} className={`absolute inset-0 ${placementType ? "cursor-crosshair" : ""}`} />
+      <div ref={containerRef} onContextMenu={openHud} className={`absolute inset-0 ${placementType ? "cursor-crosshair" : ""}`} />
 
       {!preview && showMiniMap && <MiniMap scene={scene} view={view} hotspotCount={hotspotCount} onSeek={onSeek} />}
 
@@ -161,6 +222,107 @@ export function TourViewer({
         >
           Floorplan
         </button>
+      )}
+
+      {/* HUD klik-kanan */}
+      {hud && (
+        <div
+          className="animate-fade-up absolute z-[80] w-64 overflow-hidden rounded-2xl border border-amber-400/30 bg-zinc-950/95 shadow-2xl backdrop-blur-xl"
+          style={{
+            left: Math.max(8, Math.min(hud.x + 12, hud.maxX - 272)),
+            top: Math.max(8, Math.min(hud.y + 8, hud.maxY - 380)),
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-white/10 bg-amber-400/10 px-3 py-2">
+            <div>
+              <p className="text-[11px] font-semibold text-amber-200">Quick tools</p>
+              <p className="text-[9px] text-zinc-500">Klik kanan · pilih untuk menutup</p>
+            </div>
+            <button onClick={() => setHud(null)} className="text-zinc-500 hover:text-zinc-200" aria-label="Tutup HUD"><X size={13} /></button>
+          </div>
+
+          <div className="max-h-[60vh] overflow-y-auto p-2">
+            <p className="px-1 pb-1 pt-1 text-[9px] font-semibold uppercase tracking-wide text-zinc-600">Hotspot</p>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { label: "Point", icon: MapPin },
+                { label: "Image", icon: ImageIcon },
+                { label: "Article", icon: FileText },
+                { label: "Video", icon: Video },
+                { label: "Sound", icon: Volume2 },
+                { label: "Link", icon: Link2 },
+                { label: "Product", icon: Box },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => runHud(() => (onPickHotspot ? onPickHotspot(item.label) : onAddHotspot()))}
+                    className="flex flex-col items-center gap-1 rounded-lg border border-white/5 bg-white/5 px-1 py-2 text-[9px] text-zinc-300 hover:border-amber-400/40 hover:bg-amber-400/10 hover:text-amber-200"
+                  >
+                    <Icon size={14} /> {item.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <p className="px-1 pb-1 pt-3 text-[9px] font-semibold uppercase tracking-wide text-zinc-600">Konten & area</p>
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { label: "Tambah hotspot", icon: MousePointer2, run: onAddHotspot },
+                { label: "Gambar area", icon: Shapes, run: onDraw },
+                ...(onPickHotspot ? [
+                  { label: "Media", icon: ImageIcon, run: () => onPickHotspot("Image") },
+                  { label: "Tourguide", icon: Hand, run: () => onPickHotspot("Article") },
+                ] : []),
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => runHud(() => item.run?.())}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/5 px-2 py-2 text-left text-[10px] text-zinc-300 hover:border-sky-400/40 hover:bg-sky-400/10 hover:text-sky-200"
+                  >
+                    <Icon size={13} className="shrink-0" /> {item.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <p className="px-1 pb-1 pt-3 text-[9px] font-semibold uppercase tracking-wide text-zinc-600">Tampilan</p>
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { label: "Reset view", icon: RotateCcw, run: onReset },
+                { label: "Layar penuh", icon: Maximize2, run: onFullscreen },
+                { label: "Zoom in", icon: ZoomIn, run: onZoomIn },
+                { label: "Zoom out", icon: ZoomOut, run: onZoomOut },
+                ...(onOpenDesign ? [{ label: "Design", icon: Palette, run: onOpenDesign }] : []),
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => runHud(() => item.run?.())}
+                    className="flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/5 px-2 py-2 text-left text-[10px] text-zinc-300 hover:border-white/20 hover:bg-white/10 hover:text-white"
+                  >
+                    <Icon size={13} className="shrink-0" /> {item.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {placementType && (
+              <button
+                onClick={() => runHud(() => onCancelPlacement?.())}
+                className="mt-2 w-full rounded-lg border border-red-400/30 bg-red-500/10 py-2 text-[10px] font-semibold text-red-300 hover:bg-red-500/20"
+              >
+                Batalkan penempatan hotspot
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Side menu — daftar scene cepat di sisi kanan viewer */}

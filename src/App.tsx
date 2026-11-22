@@ -401,6 +401,7 @@ export default function App() {
         placementType={tour.placementType}
         onCancelPlacement={tour.stopPlacement}
         onDraw={() => tour.startPlacement("project")}
+        onOpenDesign={() => setDesignOpen(true)}
         onUploadAudio={() => audioInputRef.current?.click()}
       />
 

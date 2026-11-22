@@ -566,9 +566,19 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     const plugin = autorotateRef.current
     if (!plugin) return
     if (plugin.isEnabled()) {
+      // Hentikan semua animasi/inersia dulu supaya panorama tidak "memutar kembali"
+      // ke posisi awal setelah auto-rotate dimatikan. Posisi yaw/pitch saat ini
+      // harus tetap dipertahankan.
+      const viewer = viewerRef.current
+      const position = viewer?.getPosition()
+      viewer?.stopAnimation()
       plugin.stop()
+      // Kunci yaw/pitch persis di posisi saat tombol ditekan — tanpa ini
+      // dinamika roll plugin masih melambat beberapa derajat setelah stop().
+      if (viewer && position) viewer.rotate({ yaw: position.yaw, pitch: position.pitch })
       setIsAutorotate(false)
     } else {
+      // start() melanjutkan dari posisi saat ini (bukan mengulang dari awal).
       plugin.start()
       setIsAutorotate(true)
     }

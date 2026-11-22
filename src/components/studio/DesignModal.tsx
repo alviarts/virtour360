@@ -427,7 +427,7 @@ export function DesignModal({ onClose }: { onClose: () => void }) {
           <div className="my-2 overflow-hidden rounded-lg border border-zinc-700">
             <div className="h-28 bg-gradient-to-br from-zinc-700 to-zinc-900" />
             <div className="bg-zinc-100 p-2 text-zinc-900">
-              <p className="text-[10px] text-zinc-500">tour.panoee.net</p>
+              <p className="text-[10px] text-zinc-500">{typeof window === "undefined" ? "virtour360.app" : window.location.host}</p>
               <p className="text-xs font-semibold">{title}</p>
               <p className="mt-0.5 line-clamp-2 text-[10px] text-zinc-600">{c.marketing.seoDescription || "Start free to build high-quality & smart 360° Virtual Tour in minutes."}</p>
             </div>
@@ -473,7 +473,7 @@ export function DesignModal({ onClose }: { onClose: () => void }) {
         <Text label="Link" value={c.setting.copyrightLink} onChange={(v) => patch({ setting: { ...c.setting, copyrightLink: v } })} />
         <Text label="Author name" value={c.setting.copyrightAuthor} onChange={(v) => patch({ setting: { ...c.setting, copyrightAuthor: v } })} />
         <Text label="Description" value={c.setting.copyrightDescription} onChange={(v) => patch({ setting: { ...c.setting, copyrightDescription: v } })} />
-        <p className="py-2 text-[10px] leading-snug text-zinc-600">Want your own copyright branding? This is an Enterprise feature on Panoee — di sini bebas diubah.</p>
+        <p className="py-2 text-[10px] leading-snug text-zinc-600">Ingin copyright sesuai brand Anda? Semua field di sini bebas diubah tanpa biaya tambahan.</p>
       </Card>
       <Card title="Branding & kolaborasi">
         <Text label="Logo URL" value={c.setting.logo} placeholder="/media/brand/logo.png" onChange={(v) => patch({ setting: { ...c.setting, logo: v } })} />

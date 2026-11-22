@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Camera, Eye, Maximize2, Minus, Plus, Sparkles } from "lucide-react"
+import { Camera, Maximize2, Minus, Pause, Play, Plus, Sparkles } from "lucide-react"
 import { formatAngle } from "../../lib/format"
 import type { ViewState } from "../../hooks/useTourViewer"
 
@@ -41,12 +41,12 @@ export function BottomToolbar({
         <button
           type="button"
           onClick={onToggleAutorotate}
-          title="Putar otomatis"
+          title={isAutorotate ? "Matikan putar otomatis — tetap di posisi ini" : "Putar otomatis dari posisi saat ini"}
           className={`flex h-8 items-center gap-2 rounded-full px-3 font-mono text-xs transition-colors ${
             isAutorotate ? "bg-amber-400 text-black" : "text-zinc-300 hover:bg-white/10"
           }`}
         >
-          <Eye size={14} />
+          {isAutorotate ? <Pause size={14} /> : <Play size={14} />}
           {formatAngle(view.yaw)} {formatAngle(view.pitch)} {formatAngle(view.zoom)}
         </button>
 

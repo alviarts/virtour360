@@ -139,7 +139,7 @@ export function RightPanel({
   onRemoveAudio,
   audioName,
 }: RightPanelProps) {
-  const { effectsByScene, setSceneEffects, resetSceneEffects, notify, imageQuality, setImageQuality } = useApp()
+  const { effectsByScene, setSceneEffects, resetSceneEffects, notify, imageQuality, setImageQuality, user, studioConfig, updateStudioConfig } = useApp()
   const effects = effectsByScene[scene.id] ?? defaultEffects
   const patchEffects = (patch: Partial<SceneEffects>) => setSceneEffects(scene.id, patch)
 
@@ -634,20 +634,49 @@ export function RightPanel({
 
         {tab === "location" && (
           <div className="animate-fade-up flex flex-col gap-3">
+            {/* Identitas diambil dari akun yang login (tabel virtour_users / database). */}
+            <div className="flex items-center gap-2.5 rounded-xl border border-zinc-800 bg-black/40 p-3">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-sky-500/20 text-xs font-semibold text-sky-300">
+                {user?.initials ?? profile.initials}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-semibold text-zinc-100">{user?.name ?? profile.name}</span>
+                <span className="block truncate text-[10px] text-zinc-500">
+                  {user ? "Akun database · " : "Mode tamu · "}{user?.email ?? "data lokal browser"}
+                </span>
+              </span>
+            </div>
+
             <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black/40">
-              <div className="relative h-36 bg-[radial-gradient(circle_at_50%_40%,rgba(14,165,233,0.18),transparent_60%),linear-gradient(#18181b,#09090b)]">
+              <div className="relative h-28 bg-[radial-gradient(circle_at_50%_40%,rgba(14,165,233,0.18),transparent_60%),linear-gradient(#18181b,#09090b)]">
                 <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(#3f3f46_1px,transparent_1px),linear-gradient(90deg,#3f3f46_1px,transparent_1px)] [background-size:24px_24px]" />
                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                   <MapPin size={22} className="text-sky-400 drop-shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
                 </span>
               </div>
-              <div className="p-3 text-xs text-zinc-300">{profile.location}</div>
+              <div className="p-3">
+                <label className="block text-[10px] font-semibold uppercase tracking-wide text-zinc-600">Lokasi</label>
+                <input
+                  value={studioConfig.setting.location || profile.location}
+                  onChange={(e) => updateStudioConfig({ setting: { ...studioConfig.setting, location: e.target.value } })}
+                  placeholder="Kota, Negara"
+                  className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-200 outline-none placeholder:text-zinc-600"
+                />
+              </div>
             </div>
+
             <div className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-black/40 p-3 text-[11px] text-zinc-400">
-              <a href={`mailto:${profile.email}`} className="flex items-center gap-2 hover:text-zinc-100"><Mail size={13} /> {profile.email}</a>
-              <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-zinc-100"><ExternalLink size={13} /> {profile.website}</a>
+              <a href={`mailto:${user?.email ?? profile.email}`} className="flex items-center gap-2 hover:text-zinc-100">
+                <Mail size={13} /> {user?.email ?? profile.email}
+              </a>
+              <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-zinc-100">
+                <ExternalLink size={13} /> {profile.website}
+              </a>
             </div>
-            <p className="text-[10px] leading-relaxed text-zinc-600">Lokasi bersifat informasi profil; tidak ada geotagging nyata pada panorama.</p>
+            <p className="text-[10px] leading-relaxed text-zinc-600">
+              Nama &amp; email mengikuti akun database. Lokasi bisa diubah di sini (atau panel Setting) dan ikut saat publish.
+              Tidak ada geotagging nyata pada panorama.
+            </p>
           </div>
         )}
       </div>
