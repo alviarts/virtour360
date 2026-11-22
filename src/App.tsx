@@ -144,6 +144,7 @@ export default function App() {
     notify,
     effectsByScene,
     studioConfig,
+    activeProject,
   } = useApp()
 
   const currentEffects = effectsByScene[activeSceneId] ?? defaultEffects
@@ -260,6 +261,8 @@ export default function App() {
             preview={false}
             onTogglePreview={() => setPreview(true)}
             onPublish={() => setPublishOpen(true)}
+            projectName={activeProject?.name}
+            projectCategory={activeProject?.category}
           />
 
           {suggestionsOpen && (

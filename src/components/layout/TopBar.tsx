@@ -34,6 +34,8 @@ interface TopBarProps {
   preview: boolean
   onTogglePreview: () => void
   onPublish: () => void
+  projectName?: string
+  projectCategory?: string
 }
 
 export function TopBar({
@@ -48,6 +50,8 @@ export function TopBar({
   preview,
   onTogglePreview,
   onPublish,
+  projectName,
+  projectCategory,
 }: TopBarProps) {
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex h-14">
@@ -61,10 +65,14 @@ export function TopBar({
           title="Akun"
           className="flex h-9 w-full items-center gap-2 rounded-lg px-2 text-left transition-colors hover:bg-white/5"
         >
-          <span className="grid size-7 place-items-center rounded-full bg-zinc-700 text-[11px] font-semibold text-zinc-100">
+          <span className="grid size-7 shrink-0 place-items-center rounded-full bg-zinc-700 text-[11px] font-semibold text-zinc-100">
             {initials}
           </span>
-          <ChevronDown size={13} className="text-zinc-500" />
+          <span className="min-w-0 flex-1 text-left">
+            <span className="block truncate text-[9px] uppercase tracking-wide text-zinc-500">{projectCategory ?? "Project"}</span>
+            <span className="block truncate text-[11px] font-medium text-zinc-100">{projectName ?? "Tanpa project"}</span>
+          </span>
+          <ChevronDown size={13} className="shrink-0 text-zinc-500" />
         </button>
       </div>
 

@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react"
 import { useApp } from "../context/useApp"
+import { NewProjectModal } from "../components/auth/NewProjectModal"
 import { Logo360 } from "../components/ui/Logo360"
 import { navigate } from "../lib/navigation"
 import type { Scene } from "../types/tour"
@@ -117,9 +118,10 @@ export function DashboardView() {
   const [source, setSource] = useState<"all" | "uploaded" | "static">("all")
   const [category, setCategory] = useState<"all" | "360" | "tour">("all")
   const [accountOpen, setAccountOpen] = useState(false)
-  const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites } = useApp()
+  const [newProjectOpen, setNewProjectOpen] = useState(false)
+  const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites, projects, activeProject, createProject, setActiveProject, removeProject } = useApp()
 
-  const projects = useMemo(() => {
+  const filteredScenes = useMemo(() => {
     const q = query.trim().toLowerCase()
     return scenes.filter((s) => {
       if (source === "uploaded" && !s.id.startsWith("pano-")) return false
@@ -132,7 +134,7 @@ export function DashboardView() {
     })
   }, [scenes, query, source, category])
 
-  const visible = tab === "live" ? scenes.filter((s) => s.id.startsWith("pano-")) : projects
+  const visible = tab === "live" ? scenes.filter((s) => s.id.startsWith("pano-")) : filteredScenes
 
   const openProject = (scene: Scene) => {
     setActiveSceneId(scene.id)
@@ -141,6 +143,18 @@ export function DashboardView() {
 
   const deleteProject = (scene: Scene) => {
     void removePanorama(scene.id).then(() => notify(`Proyek "${scene.name}" dihapus.`))
+  }
+
+  const handleCreateProject = (name: string, projectCategory: string) => {
+    const project = createProject(name, projectCategory)
+    setNewProjectOpen(false)
+    notify(`Project "${project.name}" (${project.category}) dibuat. Selamat datang di Studio!`)
+    navigate("studio")
+  }
+
+  const openProjectById = (id: string) => {
+    setActiveProject(id)
+    navigate("studio")
   }
 
   return (
@@ -176,7 +190,7 @@ export function DashboardView() {
               <Sparkles size={13} /> Changelog
             </button>
             <button
-              onClick={() => setUploadOpen(true)}
+              onClick={() => setNewProjectOpen(true)}
               className="flex h-8 items-center gap-1.5 rounded-full bg-[#d1005c] px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-[#b80051]"
             >
               <Plus size={14} strokeWidth={2.6} /> New Project
@@ -209,10 +223,64 @@ export function DashboardView() {
       </header>
 
       <main className="mx-auto max-w-[1400px] px-4 py-3 min-[112.5rem]:max-w-[1640px] sm:px-6 lg:px-8">
+        {/* Project — dibuat di Dashboard, dibuka di Studio */}
+        <section className="pt-6" id="dashboard-projects">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-100">Project kamu</h2>
+              <p className="mt-0.5 text-[11px] text-zinc-500">Buat project baru lalu lanjut mengedit di Studio.</p>
+            </div>
+            <button
+              onClick={() => setNewProjectOpen(true)}
+              className="flex h-8 items-center gap-1.5 rounded-full border border-[#d1005c]/40 bg-[#d1005c]/10 px-3 text-[11px] font-semibold text-pink-200 hover:bg-[#d1005c]/20"
+            >
+              <Plus size={13} /> Buat Project
+            </button>
+          </div>
+
+          {projects.length ? (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-4">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className={`group rounded-xl border p-4 transition-colors ${
+                    activeProject?.id === project.id ? "border-[#d1005c] bg-[#d1005c]/5" : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-600"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-zinc-800 text-[11px] font-semibold text-zinc-200">
+                      {project.name.slice(0, 2).toUpperCase()}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-zinc-100">{project.name}</p>
+                      <span className="mt-1 inline-block rounded-full bg-cyan-500/15 px-2 py-0.5 text-[9px] font-semibold text-cyan-300">{project.category}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <button onClick={() => openProjectById(project.id)} className="h-8 flex-1 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
+                      Buka Studio
+                    </button>
+                    <button onClick={() => { removeProject(project.id); notify(`Project "${project.name}" dihapus.`) }} title="Hapus project" className="grid size-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-red-500/40 hover:text-red-400">
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-zinc-700 py-10 text-center">
+              <p className="text-xs text-zinc-500">Belum ada project. Buat project pertama untuk masuk ke Studio.</p>
+              <button onClick={() => setNewProjectOpen(true)} className="mt-3 h-9 rounded-full bg-[#d1005c] px-4 text-[11px] font-semibold text-white hover:bg-[#b80051]">
+                Buat Project pertama
+              </button>
+            </div>
+          )}
+        </section>
+
         {/* KPI strip — ringkasan portofolio pribadi */}
         <div className="grid grid-cols-2 gap-4 pt-6 sm:grid-cols-3">
           {[
-            { label: "Proyek", value: String(scenes.length), hint: "scene dalam portofolio" },
+            { label: "Proyek", value: String(projects.length), hint: "project dibuat dari Dashboard" },
             { label: "Dipublikasikan", value: String(scenes.filter((s) => s.id.startsWith("pano-")).length), hint: "karya dari upload" },
             { label: "Favorit", value: String(favorites.length), hint: "disimpan pengunjung" },
           ].map((kpi) => (
@@ -330,6 +398,10 @@ export function DashboardView() {
       <button onClick={() => notify("Terima kasih sudah mampir!")} className="fixed bottom-6 left-6 z-30 grid size-10 place-items-center rounded-full bg-amber-500 text-black shadow-lg" title="Ucapan untuk teman">
         <Gift size={17} />
       </button>
+
+      {newProjectOpen && (
+        <NewProjectModal onClose={() => setNewProjectOpen(false)} onCreate={handleCreateProject} />
+      )}
     </div>
   )
 }

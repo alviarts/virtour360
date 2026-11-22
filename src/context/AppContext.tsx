@@ -39,6 +39,14 @@ export interface User {
   initials: string
 }
 
+/** Project dibuat dari Dashboard sebelum masuk Studio. */
+export interface Project {
+  id: string
+  name: string
+  category: string
+  createdAt: number
+}
+
 interface StoredUser extends User {
   password: string
 }
@@ -107,6 +115,13 @@ export interface AppContextValue {
   updateStudioConfig: (patch: Partial<StudioConfig>) => void
   resetStudioConfig: () => void
 
+  /** Project & kategori — Dashboard adalah gerbang sebelum Studio. */
+  projects: Project[]
+  activeProject: Project | null
+  createProject: (name: string, category: string) => Project
+  setActiveProject: (id: string) => void
+  removeProject: (id: string) => void
+
   authOpen: boolean
   setAuthOpen: (open: boolean) => void
   uploadOpen: boolean
@@ -133,6 +148,8 @@ const ORDER_KEY = "virtour360.sceneOrder"
 const SCENE_GROUP_KEY = "virtour360.sceneGroups"
 const QUALITY_KEY = "virtour360.imageQuality"
 const STUDIO_CONFIG_KEY = "virtour360.studioConfig"
+const PROJECTS_KEY = "virtour360.projects"
+const ACTIVE_PROJECT_KEY = "virtour360.activeProject"
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -185,7 +202,7 @@ async function resetWorkspaceIfOwnerChanged(email: string): Promise<boolean> {
   const previous = localStorage.getItem(OWNER_KEY)
   localStorage.setItem(OWNER_KEY, email)
   if (!previous || previous === email) return false
-  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY, GROUPS_KEY, ORDER_KEY, SCENE_GROUP_KEY, QUALITY_KEY, STUDIO_CONFIG_KEY].forEach((key) => localStorage.removeItem(key))
+  ;[HOTSPOTS_KEY, MEDIA_KEY, FAVORITES_KEY, EFFECTS_KEY, GROUPS_KEY, ORDER_KEY, SCENE_GROUP_KEY, QUALITY_KEY, STUDIO_CONFIG_KEY, PROJECTS_KEY, ACTIVE_PROJECT_KEY].forEach((key) => localStorage.removeItem(key))
   try {
     await clearAllLocalData()
   } catch {
@@ -271,6 +288,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setStudioConfig(next)
     persist(STUDIO_CONFIG_KEY, next)
   }, [])
+
+  /* ------------------------------- Project -------------------------------- */
+  const [projects, setProjects] = useState<Project[]>(() => readJSON<Project[]>(PROJECTS_KEY, []))
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(() => localStorage.getItem(ACTIVE_PROJECT_KEY))
+  const activeProject = projects.find((p) => p.id === activeProjectId) ?? null
+
+  const createProject = useCallback((name: string, category: string): Project => {
+    const project: Project = {
+      id: `prj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      name: name.trim() || "Project baru",
+      category: category.trim() || "360°",
+      createdAt: Date.now(),
+    }
+    setProjects((prev) => {
+      const next = [project, ...prev]
+      persist(PROJECTS_KEY, next)
+      return next
+    })
+    setActiveProjectId(project.id)
+    localStorage.setItem(ACTIVE_PROJECT_KEY, project.id)
+    return project
+  }, [])
+
+  const setActiveProject = useCallback((id: string) => {
+    setActiveProjectId(id)
+    localStorage.setItem(ACTIVE_PROJECT_KEY, id)
+  }, [])
+
+  const removeProject = useCallback((id: string) => {
+    setProjects((prev) => {
+      const next = prev.filter((p) => p.id !== id)
+      persist(PROJECTS_KEY, next)
+      return next
+    })
+    if (activeProjectId === id) {
+      setActiveProjectId(null)
+      localStorage.removeItem(ACTIVE_PROJECT_KEY)
+    }
+  }, [activeProjectId])
   const [activeSceneId, setActiveSceneId] = useState<string>("atrium")
   const [audioByScene, setAudioByScene] = useState<Record<string, SceneAudio>>({})
   const [assetMedia, setAssetMedia] = useState<Record<string, SceneMedia>>({})
@@ -468,6 +524,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSceneGroupOverrides({})
       setImageQualityState("standard")
       setStudioConfig(normalizeStudioConfig(null))
+      setProjects([])
+      setActiveProjectId(null)
+      localStorage.removeItem(ACTIVE_PROJECT_KEY)
     }
     return null
   }, [])
@@ -508,6 +567,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSceneGroupOverrides({})
       setImageQualityState("standard")
       setStudioConfig(normalizeStudioConfig(null))
+      setProjects([])
+      setActiveProjectId(null)
+      localStorage.removeItem(ACTIVE_PROJECT_KEY)
     }
     return null
   }, [])
@@ -973,6 +1035,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         studioConfig,
         updateStudioConfig,
         resetStudioConfig,
+        projects,
+        activeProject,
+        createProject,
+        setActiveProject,
+        removeProject,
         effectsByScene,
         setSceneEffects,
         resetSceneEffects,

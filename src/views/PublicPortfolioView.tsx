@@ -105,7 +105,7 @@ function Header({
           <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600">
             <Upload size={13} /> Create
           </button>
-          <button onClick={() => (userName ? navigate("studio") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
+          <button onClick={() => (userName ? navigate("dashboard") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
             <Compass size={13} /> Studio
           </button>
           {userName && (

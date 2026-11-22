@@ -120,14 +120,14 @@ export function PublicHomeView() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => (user ? navigate("studio") : setAuthOpen(true))}
+            onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))}
             title={user ? "Buka Studio untuk membuat" : "Masuk untuk membuat 360°"}
             className="flex h-9 items-center gap-1.5 rounded-full bg-cyan-500 px-3.5 text-xs font-semibold text-white hover:bg-cyan-600"
           >
             <Camera size={13} /> Create
           </button>
           <button
-            onClick={() => (user ? navigate("studio") : setAuthOpen(true))}
+            onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))}
             title={user ? "Buka Studio" : "Masuk untuk membuka Studio"}
             className="flex h-9 items-center gap-1.5 rounded-full bg-[#d1005c] px-4 text-xs font-semibold text-white hover:bg-[#b80051]"
           >

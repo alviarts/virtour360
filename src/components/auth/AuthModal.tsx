@@ -41,10 +41,10 @@ export function AuthModal() {
     setConfirm("")
     notify(
       mode === "login"
-        ? "Selamat datang kembali! Studio siap digunakan."
-        : "Akun berhasil dibuat. Selamat datang di Studio!",
+        ? "Selamat datang kembali! Buat atau buka project dari Dashboard."
+        : "Akun berhasil dibuat. Mulai dari Dashboard!",
     )
-    navigate("studio")
+    navigate("dashboard")
   }
 
   return (
