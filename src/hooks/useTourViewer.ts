@@ -240,6 +240,16 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
 
     let draggingId: string | null = null
     let latest: { yaw: number; pitch: number } | null = null
+    let ghost: HTMLDivElement | null = null
+    let raf = 0
+    let pointer: { x: number; y: number } | null = null
+
+    const drawGhost = () => {
+      if (!ghost || !pointer) return
+      const rect = container.getBoundingClientRect()
+      ghost.style.transform = `translate3d(${pointer.x - rect.left}px, ${pointer.y - rect.top}px, 0)`
+      raf = 0
+    }
 
     const coordsFromEvent = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect()
@@ -256,6 +266,11 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       if (!dot) return
       draggingId = dot.dataset.hsId ?? null
       if (!draggingId) return
+      ghost = document.createElement("div")
+      ghost.className = "hs-drag-ghost"
+      container.appendChild(ghost)
+      pointer = { x: event.clientX, y: event.clientY }
+      raf = requestAnimationFrame(drawGhost)
       event.stopPropagation()
       event.preventDefault()
     }
@@ -263,6 +278,8 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     // Gerakkan marker LANGSUNG di viewer (tanpa menunggu React), baru simpan saat lepas.
     const onMove = (event: PointerEvent) => {
       if (!draggingId) return
+      pointer = { x: event.clientX, y: event.clientY }
+      if (!raf) raf = requestAnimationFrame(drawGhost)
       try {
         const next = coordsFromEvent(event)
         latest = next
@@ -287,6 +304,11 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       }
       draggingId = null
       latest = null
+      pointer = null
+      if (raf) cancelAnimationFrame(raf)
+      raf = 0
+      ghost?.remove()
+      ghost = null
     }
 
     container.addEventListener("pointerdown", onDown, { capture: true })
@@ -299,6 +321,8 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       window.removeEventListener("pointermove", onMove)
       window.removeEventListener("pointerup", onUp)
       window.removeEventListener("pointercancel", onUp)
+      if (raf) cancelAnimationFrame(raf)
+      ghost?.remove()
     }
   }, [isReady])
 
