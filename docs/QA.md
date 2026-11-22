@@ -72,6 +72,9 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - Penempatan titik penuh 360°: klik di luar bola tetap menaruh hotspot lewat fallback
   offset kamera; uji produksi hotspot bertambah setelah klik.
 - Animasi kartu hanya berjalan saat hover/fokus (tidak muter sendiri).
+- Contoh tur 360° punya **penanda pintu** (label "Pintu → …", ikon tautan, warna biru)
+  di posisi pintu tiap panorama + panah navigasi native PSV; klik pintu memindah ke
+  scene berikutnya dengan tampilan pintu/ruang tujuan.
 - Baris hotspot bertipe **scene** di tabel panel kanan sekarang langsung memindahkan
   ke `targetSceneId` (ditandai ikon panah biru), bukan hanya memilih marker.
 
