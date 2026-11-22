@@ -376,7 +376,7 @@ export function RightPanel({
                       <input
                         type="range"
                         min={1}
-                        max={5}
+                        max={15}
                         value={selectedHotspot.style?.size ?? 3}
                         onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
                           style: { ...defaultHotspotStyle, ...selectedHotspot.style, size: Number(e.target.value) },
@@ -388,7 +388,7 @@ export function RightPanel({
                       Opacity ({selectedHotspot.style?.opacity ?? 100}%)
                       <input
                         type="range"
-                        min={20}
+                        min={10}
                         max={100}
                         value={selectedHotspot.style?.opacity ?? 100}
                         onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
@@ -416,6 +416,59 @@ export function RightPanel({
                       <option value="none">None</option>
                     </select>
                   </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                      Rotasi ({selectedHotspot.style?.rotate ?? 0}°)
+                      <input
+                        type="range"
+                        min={-360}
+                        max={360}
+                        value={selectedHotspot.style?.rotate ?? 0}
+                        onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                          style: { ...defaultHotspotStyle, ...selectedHotspot.style, rotate: Number(e.target.value) },
+                        })}
+                        className="h-1.5 w-full accent-amber-400"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                      Bentuk
+                      <select
+                        value={selectedHotspot.style?.shape ?? "circle"}
+                        onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                          style: { ...defaultHotspotStyle, ...selectedHotspot.style, shape: e.target.value as HotspotStyle["shape"] },
+                        })}
+                        className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none"
+                      >
+                        <option value="circle">Lingkaran</option>
+                        <option value="square">Kotak</option>
+                        <option value="diamond">Belah ketupat</option>
+                        <option value="star">Bintang</option>
+                        <option value="hexagon">Segi enam</option>
+                        <option value="triangle">Segitiga</option>
+                        <option value="heart">Hati</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label className="flex flex-col gap-1 text-[10px] text-zinc-500">
+                    Ikon
+                    <select
+                      value={selectedHotspot.style?.icon ?? "point"}
+                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                        style: { ...defaultHotspotStyle, ...selectedHotspot.style, icon: e.target.value as HotspotStyle["icon"] },
+                      })}
+                      className="h-8 rounded-lg border border-zinc-700 bg-zinc-950 px-2 text-[11px] text-zinc-100 outline-none"
+                    >
+                      <option value="point">Point</option>
+                      <option value="info">Info</option>
+                      <option value="image">Gambar</option>
+                      <option value="video">Video</option>
+                      <option value="sound">Audio</option>
+                      <option value="link">Tautan</option>
+                      <option value="product">Produk</option>
+                      <option value="star">Bintang</option>
+                      <option value="heart">Hati</option>
+                    </select>
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -437,6 +490,17 @@ export function RightPanel({
                       className="accent-amber-400"
                     />
                     Tampilkan label
+                  </label>
+                  <label className="flex items-center gap-2 text-[10px] text-zinc-400">
+                    <input
+                      type="checkbox"
+                      checked={selectedHotspot.style?.labelOnHover ?? false}
+                      onChange={(e) => onUpdateHotspot(selectedHotspot.id, {
+                        style: { ...defaultHotspotStyle, ...selectedHotspot.style, labelOnHover: e.target.checked },
+                      })}
+                      className="accent-amber-400"
+                    />
+                    Label saat disorot saja
                   </label>
                 </div>
 

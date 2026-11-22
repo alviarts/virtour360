@@ -23,24 +23,38 @@ const QUALITY: Record<Quality, { minFov: number; zoom: number; label: string }> 
 
 const radToDeg = (rad: number) => (rad * 180) / Math.PI
 
+const svgIcon = (path: string) =>
+  `<svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`
+
 const ICONS: Record<string, string> = {
-  info: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
-  project: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
-  link: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+  point: svgIcon('<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>'),
+  info: svgIcon('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'),
+  project: svgIcon('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+  link: svgIcon('<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>'),
+  image: svgIcon('<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m3 17 5-5 4 4 3-3 6 6"/>'),
+  video: svgIcon('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z"/>'),
+  sound: svgIcon('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'),
+  product: svgIcon('<path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z"/><path d="m3 7 9 5 9-5M12 12v10"/>'),
+  star: svgIcon('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2Z"/>'),
+  heart: svgIcon('<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.7-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8Z"/>'),
 }
 
 function markerConfig(spot: Hotspot) {
   const style = { ...defaultHotspotStyle, ...(spot.style ?? {}) }
-  const px = 20 + style.size * 6
+  const px = 14 + style.size * 2.4
   const effectClass = style.effect === "normal" ? "" : ` hs-${style.effect}`
-  const label = style.showLabel ? `<span class="hs-label">${escapeHtml(spot.title)}</span>` : ""
+  const shapeClass = style.shape === "circle" ? "" : ` hs-shape-${style.shape}`
+  const icon = ICONS[style.icon] ?? ICONS[spot.type] ?? ICONS.info
+  const label = style.showLabel
+    ? `<span class="hs-label${style.labelOnHover ? " hs-label-on-hover" : ""}">${escapeHtml(spot.title)}</span>`
+    : ""
   return {
     id: spot.id,
     position: { yaw: spot.yaw, pitch: spot.pitch },
     size: { width: px * 2, height: px * 2 },
     anchor: "center center" as const,
     html: `<div class="hs-marker" style="--hs-color:${escapeHtml(style.color)};opacity:${style.opacity / 100}">
-      <span class="hs-dot${effectClass}" style="width:${px}px;height:${px}px">${ICONS[spot.type] ?? ICONS.info}</span>
+      <span class="hs-dot${effectClass}${shapeClass}" style="width:${px}px;height:${px}px;transform:rotate(${style.rotate}deg)">${icon}</span>
       ${label}
     </div>`,
     tooltip: { content: spot.title, position: "top" as const },

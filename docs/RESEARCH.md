@@ -50,11 +50,28 @@ polygon_config
 - Style default: `size: 3`, `opacity: 100`, `effect: normal`, warna dari `bgColor`.
 - `defaultPointStyle` bisa dipakai untuk semua point baru.
 
+### Pendalaman ikon, ukuran & transisi
+- Field style: `size` slider **1–15**, `opacity` **10–100**, `rotate` **−360…360**,
+  `effect` select (`normal/pulse/blink/spin/bounce/rotate/none`).
+- Bentuk marker: `square`, `diamond`, `star`, `hexagon`, `triangle`, `heart`
+  (+ circle/default). Dibuat dengan `clip-path` CSS.
+- Tipe point: `point`, `image`, `article`, `video`, `link`, `product` (beberapa premium),
+  ikon default via HugeIcons: `Location01Icon`, `Navigation03Icon`, `Video01Icon`,
+  `Camera01Icon`, `Link01Icon`, `MusicNote01Icon`, `Image01Icon`, `CubeIcon`, …
+- `icon_type`: `hugeicon` | `svg` | `fontawesome`; warna dari `bg_color`.
+- Label: `fontSize 14`, `fontWeight 600`, `paddingX 12`, `paddingY 4`,
+  `borderRadius 4`, bg `rgba(0,0,0,.35)`, `onlyShowOnHover`, `hideTitle`, text shadow.
+- `callout: { type:"image", degrees:45 }`, `zoomRange: { min:1, max:179 }`.
+- Mode viewer: `classic` | `graph3d` (disimpan di localStorage `panoee:tour-viewer-mode`).
+
 ### Diimplementasikan
 - `Hotspot.style` (size 1–5, effect, color, opacity, showLabel) di `src/types/tour.ts`.
 - Marker viewer Studio & publik dirender dengan kelas efek + warna + label.
-- Panel **Point setup** di editor hotspot: ukuran, opacity, efek, warna, label.
-- CSS animasi `hs-pulse`, `hs-blink`, `hs-spin`, `hs-bounce`, `hs-rotate` (mati dengan reduced-motion).
+- Panel **Point setup** di editor hotspot: ukuran (1–15), opacity (10–100),
+  rotasi (−360…360), efek, bentuk, ikon, warna, label & label-on-hover.
+- CSS animasi `hs-pulse`, `hs-blink`, `hs-spin`, `hs-bounce`, `hs-rotate`
+  (mati dengan reduced-motion) + bentuk via `clip-path` (diamond/star/hexagon/triangle/heart).
+- Ikon SVG custom untuk point/info/image/video/sound/link/product/star/heart.
 
 ### Belum (butuh engine/pipeline)
 - Polygon hotspots (`polygon_config` + mode gambar area) baru sebatas tombol "Gambar area".

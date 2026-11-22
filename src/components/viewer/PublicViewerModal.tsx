@@ -62,8 +62,8 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
               position: { yaw: h.yaw, pitch: h.pitch },
               size: { width: 44, height: 44 },
               html: `<div class="hs-marker" style="--hs-color:${h.style?.color ?? "#facc15"};opacity:${(h.style?.opacity ?? 100) / 100}">
-                <span class="hs-dot${h.style?.effect && h.style.effect !== "normal" ? ` hs-${h.style.effect}` : ""}" style="width:${20 + (h.style?.size ?? 3) * 4}px;height:${20 + (h.style?.size ?? 3) * 4}px"></span>
-                ${h.style?.showLabel ? `<span class="hs-label">${String(h.title).replace(/[&<>"']/g, "")}</span>` : ""}
+                <span class="hs-dot${h.style?.effect && h.style.effect !== "normal" ? ` hs-${h.style.effect}` : ""}${h.style?.shape && h.style.shape !== "circle" ? ` hs-shape-${h.style.shape}` : ""}" style="width:${14 + (h.style?.size ?? 3) * 2.4}px;height:${14 + (h.style?.size ?? 3) * 2.4}px;transform:rotate(${h.style?.rotate ?? 0}deg)"></span>
+                ${h.style?.showLabel ? `<span class="hs-label${h.style?.labelOnHover ? " hs-label-on-hover" : ""}">${String(h.title).replace(/[&<>"']/g, "")}</span>` : ""}
               </div>`,
               tooltip: { content: h.title, position: "top" as const },
             })),

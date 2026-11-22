@@ -108,6 +108,17 @@ button { cursor: pointer; }
   border: 2px solid rgba(255, 255, 255, .85);
   box-shadow: 0 2px 10px rgba(0, 0, 0, .35);
 }
+/* Bentuk point — Panoee: square, diamond, star, hexagon, triangle, heart */
+.hs-shape-square { border-radius: 4px !important; }
+.hs-shape-diamond { border-radius: 6px !important; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.hs-shape-star { border-radius: 0 !important; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.hs-shape-hexagon { border-radius: 0 !important; clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+.hs-shape-triangle { border-radius: 0 !important; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.hs-shape-heart { border-radius: 0 !important; clip-path: path("M12 21s-8-4.9-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16.1 12 21 12 21z"); }
+
+.hs-marker:hover .hs-label-on-hover { opacity: 1; visibility: visible; }
+.hs-label-on-hover { opacity: 0; visibility: hidden; transition: opacity 150ms ease; }
+
 .hs-label {
   max-width: 130px;
   padding: 2px 7px;

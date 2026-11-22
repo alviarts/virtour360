@@ -1,8 +1,12 @@
 export type HotspotType = "info" | "project" | "link" | "scene"
 
 /** Gaya point/hotspot — diadaptasi dari model `config.style` Panoee. */
+export type HotspotShape = "circle" | "square" | "diamond" | "star" | "hexagon" | "triangle" | "heart"
+export type HotspotIcon = "point" | "info" | "link" | "image" | "video" | "sound" | "product" | "star" | "heart"
+
+/** Gaya point/hotspot — diadaptasi dari `config.style` Panoee. */
 export interface HotspotStyle {
-  /** Ukuran marker 1..5 */
+  /** Ukuran marker 1..15 (sama seperti Panoee) */
   size: number
   /** Efek animasi marker */
   effect: "normal" | "pulse" | "blink" | "spin" | "bounce" | "rotate" | "none"
@@ -10,8 +14,16 @@ export interface HotspotStyle {
   color: string
   /** Tampilkan label di bawah marker */
   showLabel: boolean
-  /** Opacity 0..100 */
+  /** Label hanya muncul saat disorot */
+  labelOnHover: boolean
+  /** Opacity 10..100 */
   opacity: number
+  /** Rotasi marker -360..360 derajat */
+  rotate: number
+  /** Bentuk marker */
+  shape: HotspotShape
+  /** Ikon marker */
+  icon: HotspotIcon
 }
 
 export const defaultHotspotStyle: HotspotStyle = {
@@ -19,7 +31,11 @@ export const defaultHotspotStyle: HotspotStyle = {
   effect: "normal",
   color: "#facc15",
   showLabel: false,
+  labelOnHover: false,
   opacity: 100,
+  rotate: 0,
+  shape: "circle",
+  icon: "point",
 }
 
 export interface Hotspot {
