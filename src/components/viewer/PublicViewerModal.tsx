@@ -66,6 +66,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
                 ${h.style?.showLabel ? `<span class="hs-label${h.style?.labelOnHover ? " hs-label-on-hover" : ""}">${String(h.title).replace(/[&<>"']/g, "")}</span>` : ""}
               </div>`,
               tooltip: { content: h.title, position: "top" as const },
+              data: { hotspotId: h.id, targetSceneId: h.targetSceneId ?? null },
             })),
         })),
         startNodeId: sceneId && list.some((s) => s.id === sceneId) ? sceneId : list[0].id,
@@ -88,8 +89,18 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
     }
     tourPlugin?.addEventListener("node-changed", onNodeChanged)
 
+    const markersPlugin: any = viewer.getPlugin("markers")
+    const onSelectMarker = (event: any) => {
+      const target = event?.marker?.data?.targetSceneId
+      if (target && list.some((scene) => scene.id === target)) {
+        tourPlugin?.setCurrentNode(target).catch(() => undefined)
+      }
+    }
+    markersPlugin?.addEventListener?.("select-marker", onSelectMarker)
+
     return () => {
       tourPlugin?.removeEventListener("node-changed", onNodeChanged)
+      markersPlugin?.removeEventListener?.("select-marker", onSelectMarker)
       viewer.destroy()
       tourRef.current = null
     }

@@ -182,7 +182,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       const { scenes: allScenes, currentSceneId: sceneId, options: opts } = live.current
       const scene = findScene(allScenes, sceneId)
       const spot = scene.hotspots.find((h) => h.id === id) ?? null
-      if (spot?.type === "scene" && spot.targetSceneId) {
+      if (spot?.targetSceneId) {
         tour.setCurrentNode(spot.targetSceneId).catch(() => opts.onNotify?.("Scene tujuan tidak ditemukan."))
         return
       }

@@ -1,4 +1,4 @@
-import type { Scene } from "../types/tour"
+import { defaultHotspotStyle, type Scene } from "../types/tour"
 
 /**
  * 3 contoh panorama interior 360° gratis (Poly Haven, CC0).
@@ -98,6 +98,9 @@ export const CREATOR_PANORAMAS = [
 ]
 
 /** Susun 3 contoh menjadi tur dengan alur yang pas. */
+/** Posisi pintu pada tiap panorama contoh (derajat yaw). */
+const DOOR_YAW = [0, -70, 130]
+
 export function buildExampleScenes(): Scene[] {
   return EXAMPLES_360.map((item, index) => {
     const next = EXAMPLES_360[(index + 1) % EXAMPLES_360.length]
@@ -111,13 +114,20 @@ export function buildExampleScenes(): Scene[] {
       initialView: { yaw: item.yaw, pitch: item.pitch, zoom: 70 },
       hotspots: [
         {
-          id: `next-${item.id}`,
-          type: "scene",
-          yaw: 90,
+          id: `door-${item.id}`,
+          type: "info",
+          yaw: DOOR_YAW[index] ?? 0,
           pitch: 0,
-          title: `Lanjut ke ${next.title}`,
-          description: next.description,
+          title: `Pintu → ${next.title}`,
+          description: "Klik pintu untuk masuk ke ruang berikutnya.",
           targetSceneId: next.id,
+          style: {
+            ...defaultHotspotStyle,
+            icon: "link",
+            color: "#0ea5e9",
+            size: 4,
+            showLabel: true,
+          },
         },
         {
           id: `info-${item.id}`,
