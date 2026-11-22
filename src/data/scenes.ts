@@ -6,11 +6,11 @@ const T = "/media/thumbnails"
 export const scenes: Scene[] = [
   {
     id: "atrium",
-    name: "Atrium — The Gallery",
+    name: "Atrium â€” The Gallery",
     description: "Ruang pamer utama dengan pencahayaan alami dan artefak pilihan.",
     group: "Uncategory",
-    panorama: `${P}/key-biscayne-1.jpg`,
-    thumbnail: `${T}/key-biscayne-1.jpg`,
+    panorama: `${P}/entrance_hall.jpg`,
+    thumbnail: `${T}/entrance_hall.jpg`,
     initialView: { yaw: 0, pitch: 0, zoom: 70 },
     hotspots: [
       {
@@ -19,7 +19,7 @@ export const scenes: Scene[] = [
         yaw: 18,
         pitch: -4,
         title: "Tentang karya ini",
-        description: "Panorama 360° pertama dalam seri galeri. Setiap sudut dipotret dan dijahit menjadi satu ruang yang bisa dijelajahi.",
+        description: "Panorama 360Â° pertama dalam seri galeri. Setiap sudut dipotret dan dijahit menjadi satu ruang yang bisa dijelajahi.",
       },
       {
         id: "hs-next",
@@ -33,19 +33,19 @@ export const scenes: Scene[] = [
     ],
     project: {
       title: "The Gallery",
-      role: "360° Capture & Interactive Design",
+      role: "360Â° Capture & Interactive Design",
       client: "Diraja Art Space",
       year: "2025",
-      tags: ["360°", "Photography", "WebGL"],
+      tags: ["360Â°", "Photography", "WebGL"],
     },
   },
   {
     id: "studio",
-    name: "Studio — Creative Room",
+    name: "Studio â€” Creative Room",
     description: "Ruang kerja kreatif tempat ide, sketsa, dan prototipe dibentuk.",
     group: "Uncategory",
-    panorama: `${P}/key-biscayne-2.jpg`,
-    thumbnail: `${T}/key-biscayne-2.jpg`,
+    panorama: `${P}/art_studio.jpg`,
+    thumbnail: `${T}/art_studio.jpg`,
     initialView: { yaw: 30, pitch: 0, zoom: 70 },
     hotspots: [
       {
@@ -83,11 +83,11 @@ export const scenes: Scene[] = [
   },
   {
     id: "terrace",
-    name: "Terrace — Sunset View",
+    name: "Terrace â€” Sunset View",
     description: "Area terbuka dengan panorama langit dan cakrawala yang luas.",
     group: "Uncategory",
-    panorama: `${P}/key-biscayne-3.jpg`,
-    thumbnail: `${T}/key-biscayne-3.jpg`,
+    panorama: `${P}/hotel_room.jpg`,
+    thumbnail: `${T}/hotel_room.jpg`,
     initialView: { yaw: -20, pitch: 4, zoom: 65 },
     hotspots: [
       {
@@ -113,7 +113,7 @@ export const scenes: Scene[] = [
       role: "Panoramic Content & Color Grading",
       client: "Sunset Harbor",
       year: "2024",
-      tags: ["360°", "Grading", "Hospitality"],
+      tags: ["360Â°", "Grading", "Hospitality"],
     },
   },
 ]
