@@ -54,7 +54,7 @@ function markerConfig(spot: Hotspot) {
     size: { width: px * 2, height: px * 2 },
     anchor: "center center" as const,
     html: `<div class="hs-marker" style="--hs-color:${escapeHtml(style.color)};opacity:${style.opacity / 100}">
-      <span class="hs-dot${effectClass}${shapeClass}" style="width:${px}px;height:${px}px;transform:rotate(${style.rotate}deg)">${icon}</span>
+      <span class="hs-dot${effectClass}${shapeClass}" data-hs-id="${escapeHtml(spot.id)}" title="Geser untuk memindahkan" style="width:${px}px;height:${px}px;transform:rotate(${style.rotate}deg)">${icon}</span>
       ${label}
     </div>`,
     tooltip: { content: spot.title, position: "top" as const },
@@ -86,6 +86,7 @@ interface ViewerOptions {
   activeSceneId: string
   onSceneChange: (id: string) => void
   onAddHotspot: (sceneId: string, spot: Hotspot) => void
+  onMoveHotspot?: (sceneId: string, id: string, yaw: number, pitch: number) => void
   onNotify?: (message: string) => void
   effects: SceneEffects
 }
@@ -230,6 +231,62 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /* Geser marker hotspot ke posisi baru dengan mouse (drag). */
+  useEffect(() => {
+    const container = containerRef.current
+    const viewer = viewerRef.current
+    if (!container || !viewer || !isReady) return
+
+    let draggingId: string | null = null
+    let lastMove = 0
+
+    const onDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null
+      const dot = target?.closest<HTMLElement>("[data-hs-id]")
+      if (!dot) return
+      draggingId = dot.dataset.hsId ?? null
+      if (!draggingId) return
+      event.stopPropagation()
+      event.preventDefault()
+    }
+
+    const onMove = (event: PointerEvent) => {
+      if (!draggingId) return
+      const now = Date.now()
+      if (now - lastMove < 40) return // batasi updates
+      lastMove = now
+      const rect = container.getBoundingClientRect()
+      try {
+        const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        })
+        live.current.options.onMoveHotspot?.(
+          live.current.currentSceneId,
+          draggingId,
+          round(radToDeg(coords.yaw), 0),
+          round(radToDeg(coords.pitch), 0),
+        )
+      } catch {
+        /* abaikan koordinat di luar sphere */
+      }
+    }
+
+    const onUp = () => { draggingId = null }
+
+    container.addEventListener("pointerdown", onDown, { capture: true })
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", onUp)
+    window.addEventListener("pointercancel", onUp)
+
+    return () => {
+      container.removeEventListener("pointerdown", onDown, { capture: true })
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", onUp)
+      window.removeEventListener("pointercancel", onUp)
+    }
+  }, [isReady])
 
   /*Sinkronkan ulang node saat scene berubah (upload, hotspot edit, ganti media).*/
   useEffect(() => {

@@ -59,6 +59,9 @@ Detail stack & teknik ada di `docs/RESEARCH.md`.
 - Hotspot baru tercatat `yaw 50°, pitch +24°` (sebelumnya fallback tengah `pitch -8°`).
 - Kursor berubah menjadi crosshair saat mode penempatan aktif.
 - Kesimpulan: hotspot mengikuti posisi klik, bukan acak di bawah.
+- Picker 9 jenis Panoee menghasilkan hotspot dengan ikon sesuai jenis.
+- Marker hotspot bisa **di-geser (drag)** dengan mouse: `data-hs-id` pada marker,
+  konversi `viewerCoordsToSphericalCoords` → yaw/pitch baru, disimpan via `onMoveHotspot`.
 
 ## 4. Catatan
 - PasswordDB & secret key tidak disimpan di source; hanya env var Vercel / environment variable lokal.

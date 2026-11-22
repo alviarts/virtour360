@@ -149,6 +149,7 @@ export default function App() {
     activeSceneId,
     onSceneChange: setActiveSceneId,
     onAddHotspot: addHotspot,
+    onMoveHotspot: (sceneId, id, yaw, pitch) => updateHotspot(sceneId, id, { yaw, pitch }),
     onNotify: notify,
     effects: currentEffects,
   })
