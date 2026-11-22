@@ -1,5 +1,5 @@
 import { Images, RotateCcw, X } from "lucide-react"
-import { useApp } from "../../context/AppContext"
+import { useApp } from "../../context/useApp"
 
 interface MediaPickerModalProps {
   activeSceneId: string

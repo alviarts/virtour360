@@ -1,7 +1,7 @@
 import { Compass, Lock, User } from "lucide-react"
 import { Logo360 } from "../ui/Logo360"
 import { navigate } from "../../lib/navigation"
-import { useApp } from "../../context/AppContext"
+import { useApp } from "../../context/useApp"
 
 /** Halaman pengunci untuk route privat (Studio / Dashboard). */
 export function LoginRequired({ area }: { area: "Studio" | "Dashboard" }) {

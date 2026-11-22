@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Viewer } from "@photo-sphere-viewer/core"
 import { VirtualTourPlugin } from "@photo-sphere-viewer/virtual-tour-plugin"
+import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin"
 import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { tourConfig } from "../../config/tour.config"
 import type { Scene } from "../../types/tour"
@@ -43,7 +44,7 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId }:
 
     const viewer = new Viewer({
       container: containerRef.current,
-      plugins: [VirtualTourPlugin.withConfig({
+      plugins: [MarkersPlugin, VirtualTourPlugin.withConfig({
         dataMode: "client",
         renderMode: "2d",
         nodes: list.map((scene) => ({

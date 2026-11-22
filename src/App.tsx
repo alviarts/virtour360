@@ -11,7 +11,7 @@ import { Lightbox } from "./components/ui/Lightbox"
 import { useTourViewer, type Quality } from "./hooks/useTourViewer"
 import { useFullscreen } from "./hooks/useFullscreen"
 import { useHotkeys } from "./hooks/useHotkeys"
-import { useApp } from "./context/AppContext"
+import { useApp } from "./context/useApp"
 import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
 import { buildPublicFolders, publishPublicPayload } from "./lib/publicStore"
@@ -46,7 +46,7 @@ function SettingsPopover({
             <button
               key={q}
               onClick={() => setQuality(q)}
-              title={`Kualitas ${q} — mengubah zoom & batas detail`}
+              title={`Kualitas ${q} â€” mengubah zoom & batas detail`}
               className={`px-1.5 py-0.5 text-[10px] capitalize ${quality === q ? "bg-white text-black" : "text-zinc-400 hover:bg-white/10"}`}
             >
               {q}
@@ -67,7 +67,7 @@ function SettingsPopover({
       <div className="border-t border-zinc-800 pt-2 text-[10px] leading-relaxed text-zinc-600">
         Gyroskop hanya bekerja pada perangkat sensor &amp; localhost/HTTPS.
         <br />
-        Arrow Left/Right: pindah scene · R: reset · F: layar penuh · + / -: zoom
+        Arrow Left/Right: pindah scene Â· R: reset Â· F: layar penuh Â· + / -: zoom
       </div>
     </div>
   )
@@ -197,7 +197,7 @@ export default function App() {
               notify(
                 published
                   ? "Portofolio berhasil dipublikasikan."
-                  : "Mode lokal — portofolio tersimpan di browser ini.",
+                  : "Mode lokal â€” portofolio tersimpan di browser ini.",
               )
               navigate("portfolio")
             }}
@@ -234,7 +234,7 @@ export default function App() {
                 Pengaturan akun
               </button>
               <button onClick={() => { setAccountOpen(false); openUpload() }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
-                Unggah panorama 360°
+                Unggah panorama 360Â°
               </button>
               <button onClick={() => { setAccountOpen(false); navigate("dashboard") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Buka Dashboard
@@ -350,13 +350,13 @@ export default function App() {
             <div className="absolute bottom-0 left-60 right-[260px] top-0 z-40 grid place-items-center bg-zinc-950/70 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
                 <span className="size-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" />
-                <span className="text-xs text-zinc-400">Menyiapkan panorama…</span>
+                <span className="text-xs text-zinc-400">Menyiapkan panoramaâ€¦</span>
               </div>
             </div>
           )}
 
           <div className="pointer-events-none absolute bottom-3 right-[272px] z-10 hidden text-[10px] text-zinc-600 lg:block">
-            {user?.name ?? profile.name} · {tour.currentScene.project.title} · {tour.currentScene.project.year}
+            {user?.name ?? profile.name} Â· {tour.currentScene.project.title} Â· {tour.currentScene.project.year}
           </div>
         </>
       )}

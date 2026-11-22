@@ -1,7 +1,6 @@
 import {
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -53,7 +52,7 @@ interface SceneAudio {
   name: string
 }
 
-interface AppContextValue {
+export interface AppContextValue {
   user: User | null
   /** Identitas tamu stabil (tanpa login) */
   guestId: string
@@ -113,7 +112,7 @@ interface AppContextValue {
   notify: (message: string) => void
 }
 
-const AppContext = createContext<AppContextValue | null>(null)
+export const AppContext = createContext<AppContextValue | null>(null)
 
 const USERS_KEY = "virtour360.users"
 const SESSION_KEY = "virtour360.session"
@@ -959,8 +958,3 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useApp() {
-  const ctx = useContext(AppContext)
-  if (!ctx) throw new Error("useApp harus dipakai di dalam AppProvider")
-  return ctx
-}

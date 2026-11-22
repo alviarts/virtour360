@@ -3,7 +3,8 @@ import App from "./App"
 import { AuthModal } from "./components/auth/AuthModal"
 import { LoginRequired } from "./components/auth/LoginRequired"
 import { UploadModal } from "./components/auth/UploadModal"
-import { AppProvider, useApp } from "./context/AppContext"
+import { AppProvider } from "./context/AppContext"
+import { useApp } from "./context/useApp"
 import { currentView, type View } from "./lib/navigation"
 
 const DashboardView = lazy(() =>
@@ -19,7 +20,7 @@ const PublicHomeView = lazy(() =>
 function Loader() {
   return (
     <div className="grid h-full w-full place-items-center bg-zinc-950 text-xs text-zinc-500">
-      Memuat…
+      Memuatâ€¦
     </div>
   )
 }

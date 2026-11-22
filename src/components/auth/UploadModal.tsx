@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { Trash2, Upload, X } from "lucide-react"
-import { useApp } from "../../context/AppContext"
+import { useApp } from "../../context/useApp"
 
 export function UploadModal() {
   const {
@@ -47,11 +47,11 @@ export function UploadModal() {
     if (!user) {
       close()
       setAuthOpen(true)
-      notify("Masuk dulu untuk mengunggah panorama 360°.")
+      notify("Masuk dulu untuk mengunggah panorama 360Â°.")
       return
     }
     if (!file) {
-      notify("Pilih file gambar 360° dulu.")
+      notify("Pilih file gambar 360Â° dulu.")
       return
     }
     setBusy(true)
@@ -80,12 +80,12 @@ export function UploadModal() {
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-base font-semibold text-white">
-              {replaceSceneId ? "Ganti panorama scene" : "Unggah panorama 360°"}
+              {replaceSceneId ? "Ganti panorama scene" : "Unggah panorama 360Â°"}
             </h2>
             <p className="mt-1 text-[11px] text-zinc-500">
               {replaceSceneId
                 ? `Gambar baru akan dipakai scene "${replaceTarget?.name ?? ""}". Tersimpan di browser ini.`
-                : "Gambar equirectangular rasio 2:1 (mis. 4096×2048). Tersimpan di browser ini."}
+                : "Gambar equirectangular rasio 2:1 (mis. 4096Ã—2048). Tersimpan di browser ini."}
             </p>
           </div>
           <button onClick={close} className="text-zinc-500 hover:text-zinc-200" aria-label="Tutup">
@@ -123,7 +123,7 @@ export function UploadModal() {
             ) : (
               <>
                 <Upload size={20} className="text-zinc-500" />
-                <span className="text-[11px] text-zinc-400">Klik untuk pilih gambar 360°</span>
+                <span className="text-[11px] text-zinc-400">Klik untuk pilih gambar 360Â°</span>
                 <span className="text-[10px] text-zinc-600">JPG / PNG / WebP</span>
               </>
             )}
@@ -140,7 +140,7 @@ export function UploadModal() {
             disabled={busy}
             className="h-10 rounded-lg bg-white text-xs font-semibold text-black hover:bg-zinc-200 disabled:opacity-50"
           >
-            {busy ? "Menyimpan…" : replaceSceneId ? "Ganti panorama scene" : "Unggah & tambahkan scene"}
+            {busy ? "Menyimpanâ€¦" : replaceSceneId ? "Ganti panorama scene" : "Unggah & tambahkan scene"}
           </button>
         </form>
 
