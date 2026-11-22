@@ -130,6 +130,14 @@ export function buildExampleScenes(): Scene[] {
           },
         },
         {
+          id: `door-link-${item.id}`,
+          type: "scene",
+          yaw: DOOR_YAW[index] ?? 0,
+          pitch: 0,
+          title: `Masuk ke ${next.title}`,
+          targetSceneId: next.id,
+        },
+        {
           id: `info-${item.id}`,
           type: "info",
           yaw: -70,
