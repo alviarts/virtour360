@@ -53,6 +53,7 @@ export function PublicHomeView() {
   const [publicData, setPublicData] = useState<PublicPayload | null>(null)
   const [typed, setTyped] = useState("")
   const [heroView, setHeroView] = useState({ yaw: 0, pitch: 0 })
+  const [parallax, setParallax] = useState({ x: 0, y: 0 })
   const exampleScenes = useMemo(() => buildExampleScenes(), [])
   const publishedUid = typeof window !== "undefined" ? localStorage.getItem("virtour360.publishedUid") : null
 
@@ -176,12 +177,43 @@ export function PublicHomeView() {
         </div>
       </header>
 
-      <section className="border-b border-[#202A3A] px-5 pb-14 pt-14 sm:px-8 lg:pb-20 lg:pt-20">
-        <div className="mx-auto max-w-[1200px]">
+      <section
+        className="relative overflow-hidden border-b border-[#202A3A] px-5 pb-24 pt-14 sm:px-8 lg:pb-32 lg:pt-20"
+        onPointerMove={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect()
+          const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1
+          const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1
+          setParallax({ x: nx, y: ny })
+          setHeroView({
+            yaw: Math.round(nx * 180),
+            pitch: Math.round(-ny * 90),
+          })
+        }}
+        onPointerLeave={() => { setParallax({ x: 0, y: 0 }); setHeroView({ yaw: 0, pitch: 0 }) }}
+      >
+        {/* Layer 0 — grid perspektif yang masuk ke dalam halaman */}
+        <div
+          className="pointer-events-none absolute inset-x-[-20%] bottom-[-30%] top-[30%] opacity-[0.18]"
+          style={{
+            backgroundImage: "linear-gradient(#7AA2FF33 1px,transparent 1px),linear-gradient(90deg,#7AA2FF33 1px,transparent 1px)",
+            backgroundSize: "48px 48px",
+            transform: `perspective(520px) rotateX(62deg) translate(${parallax.x * -14}px, ${parallax.y * -8}px) scale(1.25)`,
+            maskImage: "linear-gradient(to bottom, transparent, black 35%, transparent 90%)",
+          }}
+        />
+        {/* Layer 1 — cahaya redup di belakang judul */}
+        <div
+          className="pointer-events-none absolute -left-24 top-10 size-[420px] rounded-full bg-[#7AA2FF]/[0.07] blur-[110px]"
+          style={{ transform: `translate(${parallax.x * -22}px, ${parallax.y * -14}px)` }}
+        />
+        <div className="relative z-10 mx-auto max-w-[1200px]">
           <div className="flex items-center gap-2 text-[11px] text-[#7AA2FF]">
             <RingTicks count={allItems.length} /> Virtour360 · arsip panorama
           </div>
-          <h1 className="mt-6 max-w-[820px] text-[40px] font-medium leading-[1.05] tracking-[-0.04em] text-[#F5F7FA] sm:text-[58px]">
+          <h1
+            className="mt-6 max-w-[820px] text-[40px] font-medium leading-[1.05] tracking-[-0.04em] text-[#F5F7FA] sm:text-[58px]"
+            style={{ transform: `translate(${parallax.x * 6}px, ${parallax.y * 3}px)` }}
+          >
             Jelajahi dunia dalam satu panorama
             <span className="text-[#8C97A8]">. Pilih sudutnya, lalu bagikan milikmu.</span>
           </h1>
@@ -212,35 +244,46 @@ export function PublicHomeView() {
             </div>
           </div>
 
-          <div
-            className="relative mt-10 overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521]"
-            onPointerMove={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect()
-              setHeroView({
-                yaw: Math.round(((event.clientX - rect.left) / rect.width) * 360 - 180),
-                pitch: Math.round(90 - ((event.clientY - rect.top) / rect.height) * 180),
-              })
-            }}
-          >
-            <div
-              className="hero-360 absolute inset-0"
-              style={{
-                backgroundImage: "url(/media/panoramas/entrance_hall.jpg)",
-                backgroundSize: "220% 100%",
-                backgroundPosition: "0% 50%",
-              }}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A0E17] via-transparent to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#7AA2FF]/20" />
-            <div className="absolute right-3 top-3 rounded border border-[#202A3A] bg-[#0A0E17]/85 px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#7AA2FF]">
-              {heroView.yaw >= 0 ? "+" : ""}{heroView.yaw}° / {heroView.pitch >= 0 ? "+" : ""}{heroView.pitch}°
-            </div>
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 border-t border-[#202A3A]/70 bg-[#0A0E17]/75 px-4 py-3 backdrop-blur">
-              <div>
-                <p className="text-[13px] font-medium text-[#F5F7FA]">Atrium — The Gallery</p>
-                <p className="mt-0.5 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">8 panorama · 24 sudut</p>
+          {/* Layer 2 — panorama + layer 3 yang melayang di atasnya */}
+          <div className="relative mt-12">
+            <div className="relative h-[300px] overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521] shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] sm:h-[380px]">
+              <div
+                className="hero-360 absolute inset-[-8%]"
+                style={{
+                  backgroundImage: "url(/media/panoramas/entrance_hall.jpg)",
+                  backgroundSize: "220% 100%",
+                  backgroundPosition: "0% 50%",
+                  transform: `translate(${parallax.x * -18}px, ${parallax.y * -10}px) scale(1.04)`,
+                }}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A0E17] via-[#0A0E17]/10 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#7AA2FF]/25" />
+              <div className="pointer-events-none absolute inset-y-0 left-1/3 w-px bg-[#F5F7FA]/10" />
+              <div className="pointer-events-none absolute inset-y-0 left-2/3 w-px bg-[#F5F7FA]/10" />
+              <div className="absolute left-4 top-4 flex items-center gap-2 rounded border border-[#202A3A]/80 bg-[#0A0E17]/80 px-2 py-1.5 backdrop-blur">
+                <img src="/media/thumbnails/entrance_hall.jpg" alt="" className="size-6 rounded-sm object-cover" />
+                <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#C7D0DD]">scene 01 / 08</span>
               </div>
-              <button onClick={() => openItem(ITEMS[0])} className="h-8 shrink-0 rounded-md bg-[#F5F7FA] px-3 text-xs font-medium text-[#0A0E17] hover:bg-white">Buka</button>
+            </div>
+
+            {/* Foreground: kartu HUD menimpa tepi panorama dan turun ke seksi berikutnya */}
+            <div
+              className="relative z-20 mx-4 -mt-16 flex items-center justify-between gap-4 rounded-lg border border-[#202A3A] bg-[#0F1521]/95 px-4 py-3 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:mx-8"
+              style={{ transform: `translate(${parallax.x * 12}px, ${parallax.y * 6}px)` }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid size-8 place-items-center rounded border border-[#202A3A] text-[#7AA2FF]"><RingTicks count={8} /></span>
+                <div>
+                  <p className="text-[13px] font-medium text-[#F5F7FA]">Atrium — The Gallery</p>
+                  <p className="mt-0.5 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">8 panorama · 24 sudut</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="hidden rounded border border-[#202A3A] px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#7AA2FF] sm:inline">
+                  {heroView.yaw >= 0 ? "+" : ""}{heroView.yaw}° / {heroView.pitch >= 0 ? "+" : ""}{heroView.pitch}°
+                </span>
+                <button onClick={() => openItem(ITEMS[0])} className="h-8 shrink-0 rounded-md bg-[#F5F7FA] px-3 text-xs font-medium text-[#0A0E17] hover:bg-white">Buka</button>
+              </div>
             </div>
           </div>
         </div>
@@ -261,7 +304,10 @@ export function PublicHomeView() {
               const favorite = favorites.includes(item.id)
               const feature = index === 0 && category === "Semua" && !query
               return (
-                <article key={item.id} className={feature ? "sm:col-span-2" : ""}>
+                <article
+                  key={item.id}
+                  className={`${feature ? "relative z-10 -mt-6 sm:col-span-2" : index % 2 === 0 ? "sm:translate-y-6" : ""}`}
+                >
                   <div className={`relative overflow-hidden rounded-md ${feature ? "aspect-[16/8]" : "aspect-[4/3]"}`}>
                     <button onClick={() => openItem(item)} className="block h-full w-full">
                       <img src={item.image} alt={item.title} className="h-full w-full object-cover opacity-95 transition-opacity hover:opacity-100" />
@@ -269,12 +315,17 @@ export function PublicHomeView() {
                     <button
                       onClick={() => toggleFavorite(item.id)}
                       title={favorite ? "Hapus dari favorit" : "Simpan ke favorit"}
-                      className={`absolute right-2 top-2 grid size-7 place-items-center rounded border border-[#202A3A] bg-[#0A0E17]/80 text-[#8C97A8] backdrop-blur ${favorite ? "text-[#7AA2FF]" : ""}`}
+                      className={`absolute right-2 top-2 z-10 grid size-7 place-items-center rounded border border-[#202A3A] bg-[#0A0E17]/80 text-[#8C97A8] backdrop-blur ${favorite ? "text-[#7AA2FF]" : ""}`}
                     >
                       <Heart size={13} fill={favorite ? "currentColor" : "none"} />
                     </button>
+                    {feature && (
+                      <span className="absolute bottom-3 right-3 rounded border border-[#202A3A]/80 bg-[#0A0E17]/80 px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#C7D0DD] backdrop-blur">
+                        360° · pilihan
+                      </span>
+                    )}
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 border-b border-[#202A3A] pb-3">
+                  <div className={`${feature ? "relative z-20 -mt-8 ml-6 mr-6 flex items-center justify-between gap-3 rounded-md border border-[#202A3A] bg-[#0F1521]/95 px-4 py-3 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.9)] backdrop-blur" : "mt-3 flex items-center justify-between gap-3 border-b border-[#202A3A] pb-3"}`}>
                     <button onClick={() => openItem(item)} className="min-w-0 truncate text-left text-[13px] text-[#F5F7FA] hover:text-[#7AA2FF]">{item.title}</button>
                     <span className="flex shrink-0 items-center gap-2 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">
                       <RingTicks count={4} /> {item.category} · {item.views}

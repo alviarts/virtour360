@@ -33,6 +33,16 @@ Tangga greyscale 4 tingkat membawa hierarki. Warna tidak dipakai untuk menghias.
 - Dihapus: badge 360° di setiap kartu, gradient blur, kartu putsih dengan shadow, tombol pill, floating nav, animasi drift di kartu.
 - Dipertahankan: satu gerakan hero (drift panorama) dan pembacaan koordinat saat mouse bergerak — keduanya melayani subjek, bukan dekorasi.
 
+## Foreground / background layering
+Supaya tidak terasa kaku dan datar, hero disusun sebagai tumpukan lima lapisan:
+0. grid perspektif yang masuk ke halaman (`rotateX` + mask);
+1. cahaya redup di belakang judul;
+2. tipografi besar yang ikut bergeser sedikit saat pointer bergerak;
+3. panorama asli sebagai latar tengah;
+4. kartu HUD foreground dengan `backdrop-blur`, bayangan dalam, dan margin negatif yang menimpa tepi panorama serta masuk ke seksi berikutnya.
+
+Grid explore memakai offset vertikal berselang dan kartu unggulan yang menimpa batas seksi. Parallax terikat pada gerakan pointer (user-controlled), bukan autoplay. `prefers-reduced-motion` tetap mematikan drift.
+
 ## Referensi lain yang dipertimbangkan
 - Vercel / Geist — editorial monokrom, dua tombol hero.
 - Awwwards immersive (aengel.io, bruno-simon.com) — scene penuh viewport, scroll-driven.
