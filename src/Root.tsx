@@ -20,6 +20,9 @@ const PublicTourView = lazy(() =>
 const PublicHomeView = lazy(() =>
   import("./views/PublicHomeView").then((m) => ({ default: m.PublicHomeView })),
 )
+const LabView = lazy(() =>
+  import("./views/LabView").then((m) => ({ default: m.LabView })),
+)
 
 function Loader() {
   return (
@@ -53,6 +56,8 @@ function Shell() {
             <DashboardView />
           ) : isPublishedTour ? (
             <PublicTourView />
+          ) : view === "lab" ? (
+            <LabView />
           ) : view === "portfolio" ? (
             <PublicPortfolioView />
           ) : (

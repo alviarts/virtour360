@@ -46,6 +46,9 @@ Grid explore memakai offset vertikal berselang dan kartu unggulan yang menimpa b
 ## Aset produk
 Empat tangkapan layar asli aplikasi disimpan di `public/media/screens/` (`studio-editor`, `studio-design`, `studio-hotspot`, `portfolio`). Home menampilkannya dalam susunan bertumpuk dengan perspektif ringan dan caption monospace — mengikuti prinsip Linear/Vercel bahwa antarmuka produk sendiri adalah ilustrasi utama, bukan gambar stok.
 
+## Lab UI (`#/lab`)
+Ruang eksperimen UI/UX yang meniru **aplikasi** Linear (bukan landing page): sidebar workspace, daftar issue per status, panel detail, dan command palette ⌘K. Token lengkap hasil unduhan ada di `docs/LINEAR-REFERENCE.md`. Beda dari Linear: aksen biru `#7AA2FF` menggantikan acid lime sesuai preferensi.
+
 ## Referensi lain yang dipertimbangkan
 - Vercel / Geist — editorial monokrom, dua tombol hero.
 - Awwwards immersive (aengel.io, bruno-simon.com) — scene penuh viewport, scroll-driven.

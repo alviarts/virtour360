@@ -160,6 +160,7 @@ export function PublicHomeView() {
               <button onClick={() => scrollTo("home-explore")} className="hover:text-[#F5F7FA]">Jelajahi</button>
               <button onClick={() => scrollTo("home-categories")} className="hover:text-[#F5F7FA]">Kategori</button>
               <button onClick={() => navigate("portfolio")} className="hover:text-[#F5F7FA]">Portofolio</button>
+              <button onClick={() => navigate("lab")} className="text-[#7AA2FF] hover:text-[#A8C5FF]">Lab UI</button>
             </nav>
           </div>
           <div className="flex items-center gap-2">
@@ -169,6 +170,7 @@ export function PublicHomeView() {
             <button onClick={goCreate} className="flex h-8 items-center gap-1.5 rounded-md border border-[#202A3A] px-3 text-xs text-[#C7D0DD] hover:bg-[#151D2B]">
               <Compass size={13} /> Studio
             </button>
+            <button onClick={() => navigate("lab")} className="hidden h-8 items-center rounded-md border border-[#7AA2FF]/40 px-3 text-xs text-[#7AA2FF] hover:bg-[#7AA2FF]/10 sm:flex">Lab</button>
             <button onClick={goCreate} className="ml-2 flex h-8 items-center gap-2 rounded-md px-2 text-xs text-[#8C97A8] hover:text-[#F5F7FA]">
               <span className="grid size-5 place-items-center rounded bg-[#151D2B] text-[9px] font-medium text-[#7AA2FF]">{user?.initials ?? "?"}</span>
               {user ? user.name : "Masuk"}
