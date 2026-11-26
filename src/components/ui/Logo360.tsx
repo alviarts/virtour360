@@ -10,8 +10,8 @@ interface Logo360Props {
  * tone "pink" untuk header gelap, "dark" untuk header terang, "white" untuk overlay.
  */
 export function Logo360({ tone = "pink", showText = true, size = 30, className = "" }: Logo360Props) {
-  const color = tone === "pink" ? "#d1005c" : tone === "dark" ? "#0f172a" : "#fafafa"
-  const textClass = tone === "dark" ? "text-slate-900" : "text-white"
+  const color = tone === "dark" ? "#0f172a" : "#4cc9f0"
+  const textClass = tone === "dark" ? "text-slate-900" : "text-[#DCE9F7]"
 
   return (
     <span className={`inline-flex shrink-0 items-center gap-2 ${className}`}>
@@ -34,7 +34,7 @@ export function Logo360({ tone = "pink", showText = true, size = 30, className =
           textAnchor="middle"
           fontSize="11.5"
           fontWeight="800"
-          fontFamily="Inter, system-ui, sans-serif"
+          fontFamily="Sora, system-ui, sans-serif"
           fill={color}
           letterSpacing="-0.4"
         >

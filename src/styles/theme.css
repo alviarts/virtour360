@@ -1,15 +1,41 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 
 @theme {
-  --color-ink-950: #09090b;
-  --color-ink-900: #18181b;
-  --color-ink-850: #1f1f23;
-  --color-ink-800: #27272a;
-  --color-ink-700: #3f3f46;
-  --color-accent: #facc15;
-  --color-primary: #0ea5e9;
-  --color-brand: #ec4899;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Palet utama: biru tua bertingkat, satu aksen cyan. */
+  --color-abyss: #061224;
+  --color-panel: #0b1f3a;
+  --color-panel-2: #0f294b;
+  --color-raised: #123153;
+  --color-line: #1e4a78;
+  --color-inktext: #dce9f7;
+  --color-muted: #7f9fbf;
+  --color-signal: #4cc9f0;
+
+  /* Override token bawaan supaya komponen zinc-existing ikut biru tua. */
+  --color-zinc-950: #061224;
+  --color-zinc-900: #0b1f3a;
+  --color-zinc-850: #0f294b;
+  --color-zinc-800: #123153;
+  --color-zinc-700: #1e4a78;
+  --color-zinc-600: #5a7fa8;
+  --color-zinc-500: #7f9fbf;
+  --color-zinc-400: #9bb8d4;
+  --color-zinc-300: #c3d6e8;
+  --color-zinc-200: #2c5480;
+  --color-zinc-100: #dce9f7;
+  --color-zinc-50: #eff6fd;
+
+  --color-ink-950: #061224;
+  --color-ink-900: #0b1f3a;
+  --color-ink-850: #0f294b;
+  --color-ink-800: #123153;
+  --color-ink-700: #1e4a78;
+  --color-accent: #4cc9f0;
+  --color-primary: #4cc9f0;
+  --color-brand: #4cc9f0;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "IBM Plex Sans", sans-serif;
 }
 
 :root {
@@ -53,8 +79,10 @@ button { cursor: pointer; }
   to { background-position: 200% 50%; }
 }
 
+/* Satu gerakan terorkestrasi: panorama hero bergeser sangat pelan bolak-balik. */
 .hero-360 {
-  animation: slow-pan 90s linear infinite;
+  animation: slow-pan 48s ease-in-out infinite alternate;
+  will-change: background-position;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -218,25 +246,9 @@ button { cursor: pointer; }
   font-style: var(--studio-hs-label-style, normal) !important;
 }
 
-/* Kartu panorama: latar bergerak pelan seolah Sphere 360 diputar */
-@keyframes pano-drift {
-  0% { object-position: 20% 50%; }
-  50% { object-position: 80% 50%; }
-  100% { object-position: 20% 50%; }
-}
-
-/* Hanya berputar saat pengguna benar-benar mengaktifkan (hover/fokus). */
-.pano-drift {
-  animation: pano-drift 22s ease-in-out infinite;
-  animation-play-state: paused;
-}
-
-.group:hover .pano-drift,
-.pano-drift:hover { animation-play-state: running; }
-
-@media (prefers-reduced-motion: reduce) {
-  .pano-drift { animation: none; }
-}
+/* Kartu panorama diam. Satu-satunya gerakan bukan-interaktif ada di hero,
+   supaya halaman tidak terasa seperti template animasi generik. */
+.pano-drift { animation: none; }
 
 /* Efek mengetik pada placeholder pencarian */
 @keyframes caret-blink {

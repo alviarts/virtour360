@@ -135,10 +135,21 @@ export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
 export async function loadPublicPayload(uid?: string | null): Promise<PublicPayload | null> {
   if (!isServerMode) {
     try {
-      const raw = localStorage.getItem(localKey(uid))
+      // Tanpa uid, baca project publish terakhir (local mode).
+      const currentUid = uid ?? localStorage.getItem("virtour360.publishedUid")
+      const raw = localStorage.getItem(localKey(currentUid))
       if (!raw) return null
       const payload = JSON.parse(raw) as PublicPayload
-      return { ...payload, folders: payload.folders ?? buildPublicFolders(payload.scenes ?? []) }
+      // blob: tidak valid setelah reload — jangan tampilkan panorama rusak.
+      const scenes = (payload.scenes ?? []).filter(
+        (scene) => !scene.panorama.startsWith("blob:") && !scene.thumbnail.startsWith("blob:"),
+      )
+      const validIds = new Set(scenes.map((scene) => scene.id))
+      const folders = (payload.folders ?? buildPublicFolders(scenes)).map((folder) => ({
+        ...folder,
+        sceneIds: folder.sceneIds.filter((id) => validIds.has(id)),
+      })).filter((folder) => folder.sceneIds.length > 0)
+      return { ...payload, scenes, folders }
     } catch {
       return null
     }
