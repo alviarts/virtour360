@@ -342,12 +342,14 @@ export function PublicPortfolioView() {
     publicData?.scenes?.[0]?.project?.title ??
     null
 
+  // Di halaman akun, identitas mengikuti user yang sedang login.
+  // Di link publish, yang tampil adalah project yang dipilih.
   const displayName = sharedUid
-    ? projectName ?? "Project Virtour360"
-    : selected?.name ?? publicData?.profile.name ?? user?.name ?? "Kreator Virtour360"
+    ? projectName ?? publicData?.profile.name ?? "Project Virtour360"
+    : user?.name ?? selected?.name ?? publicData?.profile.name ?? "Kreator Virtour360"
   const displayInitials = sharedUid
-    ? (projectName ?? "Project").slice(0, 2).toUpperCase()
-    : selected?.initials ?? publicData?.profile.initials ?? user?.initials ?? "V3"
+    ? (displayName ?? "Project").slice(0, 2).toUpperCase()
+    : user?.initials ?? selected?.initials ?? publicData?.profile.initials ?? "V3"
 
   // Saat membuka kreator tertentu, karya yang tampil adalah milik kreator itu.
   const creatorPosts: CardItem[] = selected
@@ -482,7 +484,7 @@ export function PublicPortfolioView() {
         postCount={posts.length}
         tourCount={tours.length}
         likes={favorites.length}
-        badge={sharedUid ? `by Project · /p/${sharedUid}` : undefined}
+        badge={selected ? `@${selected.name}` : "@virtour360"}
         showBadge={!design.theme.hideProjectTitle}
       />
 
