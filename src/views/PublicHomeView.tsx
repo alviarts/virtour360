@@ -32,6 +32,23 @@ const ITEMS: GalleryItem[] = [
 
 const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
 
+/** Satu cincin per panorama, satu tick per sudut pandang. */
+function TourRing({ count, label }: { count: number; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2.5 text-[12px] text-[#9BB8D4]">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <circle cx="10" cy="10" r="7" stroke="#4CC9F0" strokeWidth="1.2" opacity="0.7" />
+        {Array.from({ length: Math.min(Math.max(count, 3), 9) }, (_, i) => {
+          const angle = (i / Math.min(Math.max(count, 3), 9)) * 360
+          return <line key={i} x1="10" y1="1.5" x2="10" y2="4" stroke="#4CC9F0" strokeWidth="1.2" transform={`rotate(${angle} 10 10)`} />
+        })}
+        <circle cx="10" cy="10" r="1.4" fill="#4CC9F0" />
+      </svg>
+      {label}
+    </span>
+  )
+}
+
 export function PublicHomeView() {
   const { user, setAuthOpen, favorites, toggleFavorite, notify } = useApp()
   const [query, setQuery] = useState("")
@@ -40,6 +57,7 @@ export function PublicHomeView() {
   const [exploringScenes, setExploringScenes] = useState<Scene[] | null>(null)
   const [publicData, setPublicData] = useState<PublicPayload | null>(null)
   const [typed, setTyped] = useState("")
+  const [heroView, setHeroView] = useState({ yaw: 0, pitch: 0 })
   const exampleScenes = useMemo(() => buildExampleScenes(), [])
   const publishedUid = typeof window !== "undefined" ? localStorage.getItem("virtour360.publishedUid") : null
 
@@ -201,9 +219,10 @@ export function PublicHomeView() {
       {/* Hero: teks di kiri, satu jendela panorama di kanan. */}
       <section className="border-b border-[#1E4A78] px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
         <div className="mx-auto grid max-w-[1180px] items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="max-w-xl">
-            <p className="text-[13px] font-medium text-[#4CC9F0]">Virtual tour 360°</p>
-            <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl font-semibold leading-[1.08] tracking-tight text-[#EFF6FD] sm:text-5xl">
+          <div className="relative max-w-xl">
+            <div className="pointer-events-none absolute -left-16 -top-20 size-72 rounded-full bg-[#4CC9F0]/10 blur-[90px]" />
+            <TourRing count={8} label="Delapan sudut pandang" />
+            <h1 className="relative mt-5 font-[family-name:var(--font-display)] text-[42px] font-semibold leading-[1.06] tracking-tight text-[#EFF6FD] sm:text-[56px]">
               Jelajahi dunia dalam satu panorama
             </h1>
             <p className="mt-5 max-w-md text-[15px] leading-relaxed text-[#7F9FBF]">
@@ -233,7 +252,16 @@ export function PublicHomeView() {
             </div>
           </div>
 
-          <div className="relative h-[300px] overflow-hidden rounded-[22px] border border-[#1E4A78] bg-[#0B1F3A] sm:h-[380px]">
+          <div
+            className="relative h-[300px] overflow-hidden rounded-[22px] border border-[#1E4A78] bg-[#0B1F3A] sm:h-[380px]"
+            onPointerMove={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect()
+              setHeroView({
+                yaw: Math.round(((event.clientX - rect.left) / rect.width) * 360 - 180),
+                pitch: Math.round(90 - ((event.clientY - rect.top) / rect.height) * 180),
+              })
+            }}
+          >
             <div
               className="hero-360 absolute inset-0"
               style={{
@@ -243,6 +271,13 @@ export function PublicHomeView() {
               }}
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#061224] via-[#061224]/10 to-transparent" />
+            {/* Garis orientasi: horizon + pembagi, bukan dekorasi generic */}
+            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#4CC9F0]/25" />
+            <div className="pointer-events-none absolute inset-y-0 left-1/3 w-px bg-[#DCE9F7]/10" />
+            <div className="pointer-events-none absolute inset-y-0 left-2/3 w-px bg-[#DCE9F7]/10" />
+            <div className="pointer-events-none absolute right-4 top-4 rounded-md bg-[#061224]/80 px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#4CC9F0] backdrop-blur">
+              {heroView.yaw >= 0 ? "+" : ""}{heroView.yaw}° / {heroView.pitch >= 0 ? "+" : ""}{heroView.pitch}°
+            </div>
             <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
               <div>
                 <span className="rounded-full bg-[#4CC9F0] px-2.5 py-1 text-[10px] font-semibold text-[#061224]">360°</span>
@@ -295,7 +330,7 @@ export function PublicHomeView() {
                   </div>
                   <div className="flex items-center justify-between gap-3 p-4">
                     <button onClick={() => openItem(item)} className="min-w-0 truncate text-left text-[13px] font-semibold text-[#DCE9F7] hover:text-[#4CC9F0]">{item.title}</button>
-                    <span className="shrink-0 text-[11px] text-[#5A7FA8]">{item.category}</span>
+                    {feature ? <TourRing count={4} label={item.category} /> : <span className="shrink-0 text-[11px] text-[#5A7FA8]">{item.category}</span>}
                   </div>
                 </article>
               )

@@ -136,6 +136,10 @@ export interface AppContextValue {
   logActivity: (text: string) => void
   clearActivity: () => void
 
+  /** Grup yang dipilih saat menekan Add Scene — dipakai scene baru. */
+  pendingGroup: string | null
+  setPendingGroup: (group: string | null) => void
+
   authOpen: boolean
   setAuthOpen: (open: boolean) => void
   uploadOpen: boolean
@@ -165,6 +169,7 @@ const STUDIO_CONFIG_KEY = "virtour360.studioConfig"
 const PROJECTS_KEY = "virtour360.projects"
 const ACTIVE_PROJECT_KEY = "virtour360.activeProject"
 const ACTIVITY_KEY = "virtour360.activity"
+const PANORAMA_GROUP_KEY = "virtour360.panoramaGroups"
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -307,6 +312,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* ------------------------------- Project -------------------------------- */
   const [projects, setProjects] = useState<Project[]>(() => readJSON<Project[]>(PROJECTS_KEY, []))
   const [activeProjectId, setActiveProjectId] = useState<string | null>(() => localStorage.getItem(ACTIVE_PROJECT_KEY))
+  const [pendingGroup, setPendingGroup] = useState<string | null>(null)
+  const [panoramaGroups, setPanoramaGroups] = useState<Record<string, string>>(() =>
+    readJSON<Record<string, string>>(PANORAMA_GROUP_KEY, {}),
+  )
   const activeProject = projects.find((p) => p.id === activeProjectId) ?? null
 
   const [activity, setActivity] = useState<ActivityEntry[]>(() => readJSON<ActivityEntry[]>(ACTIVITY_KEY, []))
@@ -692,10 +701,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           notify("Upload cloud gagal — panorama tetap tersimpan di browser ini.")
         }
       }
+      const group = pendingGroup?.trim() || "Uncategory"
+      setPanoramaGroups((prev) => {
+        const next = { ...prev, [item.id]: group }
+        persist(PANORAMA_GROUP_KEY, next)
+        return next
+      })
+      setPendingGroup(null)
+      logActivity(`Scene "${item.name}" ditambahkan ke grup ${group}`)
       await savePanorama(item)
       setPanoramas((prev) => [item, ...prev])
     },
-    [notify],
+    [notify, pendingGroup, logActivity],
   )
 
   const removePanorama = useCallback(
@@ -1007,7 +1024,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: p.id,
       name: p.name,
       description: "Panorama 360° yang Anda unggah.",
-      group: "Uncategory",
+      group: panoramaGroups[p.id] ?? "Uncategory",
       panorama: objectUrl(p),
       thumbnail: objectUrl(p),
       initialView: { yaw: 0, pitch: 0, zoom: 70 },
@@ -1032,7 +1049,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...(audioByScene[scene.id] ? { audio: audioByScene[scene.id].url } : {}),
       }))
       .sort((a, b) => (sceneOrder[a.id] ?? 0) - (sceneOrder[b.id] ?? 0))
-  }, [panoramas, user, hotspotOverrides, effectiveMedia, audioByScene, sceneGroupOverrides, sceneOrder])
+  }, [panoramas, user, hotspotOverrides, effectiveMedia, audioByScene, sceneGroupOverrides, sceneOrder, panoramaGroups])
 
   return (
     <AppContext.Provider
@@ -1084,6 +1101,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activity,
         logActivity,
         clearActivity,
+        pendingGroup,
+        setPendingGroup,
         effectsByScene,
         setSceneEffects,
         resetSceneEffects,

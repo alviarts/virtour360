@@ -134,16 +134,36 @@ export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
 /** Data publik diambil tanpa login. Bisa memakai UID project tertentu. */
 export async function loadPublicPayload(uid?: string | null): Promise<PublicPayload | null> {
   if (!isServerMode) {
+    // Tour yang dipublish di produksi bisa dibuka dari localhost lewat proxy /api.
+    const fromApi = async (): Promise<PublicPayload | null> => {
+      if (!uid) return null
+      try {
+        const response = await fetch(`/api/public?id=${encodeURIComponent(uid)}`, { cache: "no-store" })
+        if (!response.ok) return null
+        const json = (await response.json()) as { payload?: PublicPayload }
+        if (!json.payload?.scenes?.length) return null
+        return {
+          ...json.payload,
+          folders: json.payload.folders ?? buildPublicFolders(json.payload.scenes),
+        }
+      } catch {
+        return null
+      }
+    }
     try {
       // Tanpa uid, baca project publish terakhir (local mode).
       const currentUid = uid ?? localStorage.getItem("virtour360.publishedUid")
       const raw = localStorage.getItem(localKey(currentUid))
-      if (!raw) return null
+      if (!raw) return fromApi()
       const payload = JSON.parse(raw) as PublicPayload
       // blob: tidak valid setelah reload — jangan tampilkan panorama rusak.
       const scenes = (payload.scenes ?? []).filter(
         (scene) => !scene.panorama.startsWith("blob:") && !scene.thumbnail.startsWith("blob:"),
       )
+      if (!scenes.length) {
+        const remote = await fromApi()
+        if (remote) return remote
+      }
       const validIds = new Set(scenes.map((scene) => scene.id))
       const folders = (payload.folders ?? buildPublicFolders(scenes)).map((folder) => ({
         ...folder,

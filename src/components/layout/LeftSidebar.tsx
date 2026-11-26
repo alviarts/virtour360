@@ -32,7 +32,7 @@ interface LeftSidebarProps {
 type GroupMode = "none" | "source" | "category"
 
 export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCreate, onRemoveScene }: LeftSidebarProps) {
-  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene, logActivity, activity, clearActivity } = useApp()
+  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene, logActivity, activity, clearActivity, setPendingGroup } = useApp()
   const [view, setView] = useState<"grid" | "list">("grid")
   const [newGroup, setNewGroup] = useState(false)
   const [groupName, setGroupName] = useState("")
@@ -250,7 +250,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               <div className="mb-2 flex flex-col gap-2 rounded-2xl border border-zinc-800 bg-black p-2">
                 <button
                   type="button"
-                  onClick={onAddScene}
+                  onClick={() => { setPendingGroup(label); onAddScene() }}
                   className="flex h-9 items-center gap-2 rounded-lg px-2 text-xs font-semibold text-amber-400 transition-colors hover:bg-amber-400/10"
                 >
                   <Plus size={14} strokeWidth={2.4} />
