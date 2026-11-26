@@ -84,41 +84,41 @@ function Header({
 }) {
   const { notify } = useApp()
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#1E4A78] bg-[#0B1F3A]/95 px-5 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#202A3A] bg-[#0F1521]/95 px-5 backdrop-blur">
       <div className="flex items-center gap-4">
         <button onClick={() => navigate("home")} title="Kembali ke Home" aria-label="Kembali ke Home" className="flex items-center">
           <Logo360 tone="dark" size={28} />
         </button>
-        <div className="flex h-9 w-64 items-center gap-2 rounded-full bg-[#123153] px-3.5">
-          <Search size={15} className="text-[#5A7FA8]" />
+        <div className="flex h-9 w-64 items-center gap-2 rounded-full bg-[#151D2B] px-3.5">
+          <Search size={15} className="text-[#5F6B7C]" />
           <input
             value={query}
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Cari karya⬦"
-            className="min-w-0 flex-1 bg-transparent text-xs text-[#C3D6E8] outline-none placeholder:text-[#5A7FA8]"
+            className="min-w-0 flex-1 bg-transparent text-xs text-[#E2E8F0] outline-none placeholder:text-[#5F6B7C]"
           />
-          {query && <button onClick={() => onQuery("")} title="Hapus" className="text-[#5A7FA8] hover:text-[#9BB8D4]"><X size={13} /></button>}
+          {query && <button onClick={() => onQuery("")} title="Hapus" className="text-[#5F6B7C] hover:text-[#C7D0DD]"><X size={13} /></button>}
         </div>
       </div>
       {!hideActions && (
         <div className="flex items-center gap-2">
-          <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-[#4CC9F0] px-3.5 text-xs font-semibold text-[#061224] hover:bg-[#7ADDF5]">
+          <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-[#7AA2FF] px-3.5 text-xs font-semibold text-[#0A0E17] hover:bg-[#A8C5FF]">
             <Upload size={13} /> Create
           </button>
           <button onClick={() => (userName ? navigate("dashboard") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
             <Compass size={13} /> Studio
           </button>
           {userName && (
-            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-[#1E4A78] text-[#7F9FBF]">
+            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-[#202A3A] text-[#8C97A8]">
               <Bell size={15} />
             </button>
           )}
-          <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-[#1E4A78] px-4 text-xs font-medium text-[#9BB8D4]">
+          <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-[#202A3A] px-4 text-xs font-medium text-[#C7D0DD]">
             {userName ?? "Masuk"}
           </button>
         </div>
       )}
-      {hideActions && <span className="rounded-full bg-[#123153] px-2.5 py-1 text-[10px] font-semibold text-[#7F9FBF]">Tour privat</span>}
+      {hideActions && <span className="rounded-full bg-[#151D2B] px-2.5 py-1 text-[10px] font-semibold text-[#8C97A8]">Tour privat</span>}
     </header>
   )
 }
@@ -131,14 +131,14 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, sho
     { value: String(likes), label: "Likes" },
   ]
   return (
-    <div className="flex flex-col items-center bg-[#0B1F3A] px-4 py-10" id="portfolio-author">
+    <div className="flex flex-col items-center bg-[#0F1521] px-4 py-10" id="portfolio-author">
       <div className="grid size-24 place-items-center rounded-full border-4 border-white bg-emerald-200 text-3xl shadow-md">
         {initials.toUpperCase()}
       </div>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#DCE9F7]">{name}</h1>
-      <p className="mt-0.5 text-sm text-[#5A7FA8]">
+      <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#F5F7FA]">{name}</h1>
+      <p className="mt-0.5 text-sm text-[#5F6B7C]">
         {badge && showBadge ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#4CC9F0]/10 px-2.5 py-1 text-[11px] font-semibold text-[#4CC9F0]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#7AA2FF]/10 px-2.5 py-1 text-[11px] font-semibold text-[#7AA2FF]">
             <Folder size={11} /> {badge}
           </span>
         ) : (
@@ -148,8 +148,8 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, sho
       <div className="mt-6 flex items-start gap-8 sm:gap-10">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col items-center">
-            <span className="text-xl font-bold text-[#DCE9F7]">{stat.value}</span>
-            <span className="mt-0.5 text-xs text-[#5A7FA8]">{stat.label}</span>
+            <span className="text-xl font-bold text-[#F5F7FA]">{stat.value}</span>
+            <span className="mt-0.5 text-xs text-[#5F6B7C]">{stat.label}</span>
           </div>
         ))}
       </div>
@@ -159,8 +159,8 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, sho
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[#DCE9F7]">
-      <Folder size={18} className="text-[#DCE9F7]" /> {children}
+    <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[#F5F7FA]">
+      <Folder size={18} className="text-[#F5F7FA]" /> {children}
     </h2>
   )
 }
@@ -178,7 +178,7 @@ function Card({
 }) {
   return (
     <div className="group text-left">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#123153]">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#151D2B]">
         <button onClick={onOpen} className="block h-full w-full">
           <img src={item.image} alt={item.title} className="pano-drift h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
         </button>
@@ -189,7 +189,7 @@ function Card({
         >
           <Heart size={13} fill={favorite ? "currentColor" : "none"} />
         </button>
-        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-[#4CC9F0] px-1.5 text-[10px] font-bold text-white">360°</span>
+        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-[#7AA2FF] px-1.5 text-[10px] font-bold text-white">360°</span>
         {item.count !== undefined && (
           <span className="pointer-events-none absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">{item.count} ▣</span>
         )}
@@ -199,7 +199,7 @@ function Card({
           </span>
         )}
       </div>
-      <button onClick={onOpen} className="mt-2 block w-full truncate text-left text-xs font-medium text-[#C3D6E8] hover:text-slate-950">{item.title}</button>
+      <button onClick={onOpen} className="mt-2 block w-full truncate text-left text-xs font-medium text-[#E2E8F0] hover:text-slate-950">{item.title}</button>
     </div>
   )
 }
@@ -209,21 +209,21 @@ function DetailModal({ item, onClose, onExplore }: { item: CardItem; onClose: ()
   const favorite = favorites.includes(item.id)
   return (
     <div className="fixed inset-0 z-[110] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md animate-fade-up overflow-hidden rounded-2xl bg-[#0B1F3A] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md animate-fade-up overflow-hidden rounded-2xl bg-[#0F1521] shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="relative h-52">
           <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
           <button onClick={onClose} className="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80"><X size={15} /></button>
         </div>
         <div className="p-5">
-          <h3 className="truncate text-base font-bold text-[#DCE9F7]">{item.title}</h3>
-          <p className="mt-1 text-xs text-[#7F9FBF]">Panorama 360° · {item.count ?? 1} scene</p>
+          <h3 className="truncate text-base font-bold text-[#F5F7FA]">{item.title}</h3>
+          <p className="mt-1 text-xs text-[#8C97A8]">Panorama 360° · {item.count ?? 1} scene</p>
           <div className="mt-4 flex gap-2">
-            <button onClick={onExplore} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#4CC9F0] text-xs font-semibold text-[#061224] hover:bg-[#7ADDF5]">
+            <button onClick={onExplore} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#7AA2FF] text-xs font-semibold text-[#0A0E17] hover:bg-[#A8C5FF]">
               Jelajahi 360°   →
             </button>
             <button
               onClick={() => toggleFavorite(item.id)}
-              className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-medium ${favorite ? "border-rose-300 bg-rose-50 text-rose-600" : "border-[#1E4A78] text-[#9BB8D4]"}`}
+              className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-medium ${favorite ? "border-rose-300 bg-rose-50 text-rose-600" : "border-[#202A3A] text-[#C7D0DD]"}`}
             >
               <Heart size={13} fill={favorite ? "currentColor" : "none"} /> {favorite ? "Favorit" : "Simpan"}
             </button>
@@ -246,14 +246,14 @@ function FloatingNav() {
     { label: "Explore", icon: Compass, run: () => scrollTo("portfolio-explore") },
   ]
   return (
-    <div className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/70 bg-[#0B1F3A]/90 px-2 py-1.5 shadow-xl backdrop-blur-md">
+    <div className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/70 bg-[#0F1521]/90 px-2 py-1.5 shadow-xl backdrop-blur-md">
       {items.map((item) => {
         const Icon = item.icon
         return (
           <button
             key={item.label}
             onClick={item.run}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#7F9FBF] hover:bg-[#123153] hover:text-[#DCE9F7]"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#8C97A8] hover:bg-[#151D2B] hover:text-[#F5F7FA]"
           >
             <Icon size={14} /> {item.label}
           </button>
@@ -434,15 +434,15 @@ export function PublicPortfolioView() {
 
   if (isLocked) {
     return (
-      <div className="grid h-full w-full place-items-center bg-[#061224] px-4 text-[#DCE9F7]">
-        <div className="w-full max-w-sm rounded-2xl border border-[#1E4A78] bg-[#0B1F3A] p-6 text-center shadow-xl">
-          <div className="mx-auto grid size-12 place-items-center rounded-full bg-[#123153] text-[#7F9FBF]">
+      <div className="grid h-full w-full place-items-center bg-[#0A0E17] px-4 text-[#F5F7FA]">
+        <div className="w-full max-w-sm rounded-2xl border border-[#202A3A] bg-[#0F1521] p-6 text-center shadow-xl">
+          <div className="mx-auto grid size-12 place-items-center rounded-full bg-[#151D2B] text-[#8C97A8]">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
           </div>
           <h1 className="mt-4 text-lg font-bold">
             {access === "draft" ? "Tour masih dalam draft" : "Tour dilindungi password"}
           </h1>
-          <p className="mt-2 text-xs text-[#7F9FBF]">
+          <p className="mt-2 text-xs text-[#8C97A8]">
             {access === "draft"
               ? "Pemilik belum mempublikasikan tour ini."
               : "Masukkan password untuk melihat virtual tour ini."}
@@ -455,13 +455,13 @@ export function PublicPortfolioView() {
                 onChange={(e) => setGatePassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") unlock() }}
                 placeholder="Password tour"
-                className="h-10 rounded-lg border border-[#1E4A78] px-3 text-sm outline-none focus:border-sky-500"
+                className="h-10 rounded-lg border border-[#202A3A] px-3 text-sm outline-none focus:border-sky-500"
               />
               {gateError && <p className="text-[11px] text-red-500">{gateError}</p>}
               <button onClick={unlock} className="h-10 rounded-lg bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600">Buka tour</button>
             </div>
           )}
-          <button onClick={() => navigate("home")} className="mt-4 text-[11px] text-[#5A7FA8] hover:underline">Kembali ke Home</button>
+          <button onClick={() => navigate("home")} className="mt-4 text-[11px] text-[#5F6B7C] hover:underline">Kembali ke Home</button>
         </div>
       </div>
     )
@@ -474,7 +474,7 @@ export function PublicPortfolioView() {
   } as CSSProperties
 
   return (
-    <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#061224] text-[#DCE9F7]">
+    <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#0A0E17] text-[#F5F7FA]">
       <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} primaryColor={design.theme.primaryColor} hideActions={access !== "public"} />
       <ProfileHeader
         name={displayName}
@@ -489,9 +489,9 @@ export function PublicPortfolioView() {
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
         {/* Struktur folder hasil publish: Project   → Scenes */}
         {!selected && !!publicData?.folders?.length && (
-          <section className="mt-4 rounded-2xl bg-[#0B1F3A] p-6" id="portfolio-folders">
+          <section className="mt-4 rounded-2xl bg-[#0F1521] p-6" id="portfolio-folders">
             <SectionTitle>Project &amp; folder</SectionTitle>
-            <p className="mb-4 text-xs text-[#7F9FBF]">
+            <p className="mb-4 text-xs text-[#8C97A8]">
               {publicData.folders.length} folder dipublikasikan · klik untuk melihat scene di dalamnya
             </p>
             <div className="flex flex-col gap-3">
@@ -501,27 +501,27 @@ export function PublicPortfolioView() {
                   .filter((scene): scene is NonNullable<typeof scene> => !!scene)
                 const open = openFolder === folder.id
                 return (
-                  <div key={folder.id} className="overflow-hidden rounded-xl border border-[#1E4A78] bg-[#0B1F3A]">
+                  <div key={folder.id} className="overflow-hidden rounded-xl border border-[#202A3A] bg-[#0F1521]">
                     <button
                       onClick={() => setOpenFolder(open ? null : folder.id)}
-                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-[#0F294B]"
+                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-[#121A27]"
                     >
                       <img src={folder.cover} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-[#DCE9F7]">{folder.name}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[#7F9FBF]">
+                        <span className="block truncate text-sm font-semibold text-[#F5F7FA]">{folder.name}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-[#8C97A8]">
                           {folder.description}
                         </span>
                         <span className="mt-1 flex flex-wrap gap-1">
                           {folder.tags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="rounded-full bg-[#123153] px-2 py-0.5 text-[9px] text-[#7F9FBF]">{tag}</span>
+                            <span key={tag} className="rounded-full bg-[#151D2B] px-2 py-0.5 text-[9px] text-[#8C97A8]">{tag}</span>
                           ))}
                         </span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-[#123153] px-2.5 py-1 text-[10px] font-semibold text-[#7F9FBF]">
+                      <span className="shrink-0 rounded-full bg-[#151D2B] px-2.5 py-1 text-[10px] font-semibold text-[#8C97A8]">
                         <Folder size={10} className="mr-1 inline" />{scenes.length} scene
                       </span>
-                      <ChevronDown size={15} className={`shrink-0 text-[#5A7FA8] transition-transform ${open ? "rotate-180" : ""}`} />
+                      <ChevronDown size={15} className={`shrink-0 text-[#5F6B7C] transition-transform ${open ? "rotate-180" : ""}`} />
                     </button>
                     {open && (
                       <div className="animate-fade-up grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-4 border-t border-slate-100 p-4">
@@ -560,12 +560,12 @@ export function PublicPortfolioView() {
         )}
 
         {query && (
-          <p className="mt-4 text-xs text-[#7F9FBF]">
+          <p className="mt-4 text-xs text-[#8C97A8]">
             Hasil pencarian "{query}" — {posts.filter(matches).length} post, {tours.filter(matches).length} tour.
           </p>
         )}
 
-        <section className="mt-4 rounded-2xl bg-[#0B1F3A] p-6" id="portfolio-explore">
+        <section className="mt-4 rounded-2xl bg-[#0F1521] p-6" id="portfolio-explore">
           <SectionTitle>{sharedUid ? `360° posts — ${displayName}` : `360° posts by ${displayInitials}`}</SectionTitle>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-6">
             {shownPosts.map((item) => (
@@ -578,10 +578,10 @@ export function PublicPortfolioView() {
               />
             ))}
           </div>
-          {shownPosts.length === 0 && <p className="py-8 text-center text-xs text-[#7F9FBF]">Tidak ada post yang cocok.</p>}
+          {shownPosts.length === 0 && <p className="py-8 text-center text-xs text-[#8C97A8]">Tidak ada post yang cocok.</p>}
           {posts.length > 4 && (
             <div className="mt-6 text-center">
-              <button onClick={() => setAllPosts((v) => !v)} className="rounded-full bg-[#123153] px-5 py-2 text-xs font-semibold text-white">
+              <button onClick={() => setAllPosts((v) => !v)} className="rounded-full bg-[#151D2B] px-5 py-2 text-xs font-semibold text-white">
                 {allPosts ? "View less" : "View more"}
               </button>
             </div>
@@ -602,7 +602,7 @@ export function PublicPortfolioView() {
           </div>
         </div>
 
-        <section className="mt-10 rounded-2xl bg-[#0B1F3A] p-6" id="portfolio-tours">
+        <section className="mt-10 rounded-2xl bg-[#0F1521] p-6" id="portfolio-tours">
           <SectionTitle>{sharedUid ? `Virtual tours — ${displayName}` : `Virtual tours by ${displayInitials}`}</SectionTitle>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
             {shownTours.map((item) => (
@@ -615,32 +615,32 @@ export function PublicPortfolioView() {
               />
             ))}
           </div>
-          {shownTours.length === 0 && <p className="py-8 text-center text-xs text-[#7F9FBF]">Tidak ada tour yang cocok.</p>}
+          {shownTours.length === 0 && <p className="py-8 text-center text-xs text-[#8C97A8]">Tidak ada tour yang cocok.</p>}
           {tours.length > 3 && (
             <div className="mt-6 text-center">
-              <button onClick={() => setAllTours((v) => !v)} className="rounded-full bg-[#123153] px-5 py-2 text-xs font-semibold text-white">
+              <button onClick={() => setAllTours((v) => !v)} className="rounded-full bg-[#151D2B] px-5 py-2 text-xs font-semibold text-white">
                 {allTours ? "View less" : "View more"}
               </button>
             </div>
           )}
         </section>
 
-        <div className="mt-8 flex items-center gap-3 rounded-xl border border-[#1E4A78] bg-[#0B1F3A] p-5" id="portfolio-map">
+        <div className="mt-8 flex items-center gap-3 rounded-xl border border-[#202A3A] bg-[#0F1521] p-5" id="portfolio-map">
           <MapPin size={20} className="shrink-0 text-sky-500" />
           <div>
-            <h3 className="text-sm font-bold text-[#DCE9F7]">Lokasi &amp; kontak</h3>
-            <p className="mt-1 text-xs text-[#7F9FBF]">{profile.location} · {profile.email}</p>
+            <h3 className="text-sm font-bold text-[#F5F7FA]">Lokasi &amp; kontak</h3>
+            <p className="mt-1 text-xs text-[#8C97A8]">{profile.location} · {profile.email}</p>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl border border-[#1E4A78] bg-[#0B1F3A] p-5 sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl border border-[#202A3A] bg-[#0F1521] p-5 sm:flex-row sm:items-center">
           <div>
-            <h3 className="text-sm font-bold text-[#DCE9F7]">Share your world in 360</h3>
-            <p className="mt-1 text-xs text-[#7F9FBF]">
+            <h3 className="text-sm font-bold text-[#F5F7FA]">Share your world in 360</h3>
+            <p className="mt-1 text-xs text-[#8C97A8]">
               Turn this dead-end into your next discovery by publishing your own panorama.
             </p>
           </div>
-          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#4CC9F0] px-4 text-xs font-semibold text-[#061224] hover:bg-[#7ADDF5]">
+          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#7AA2FF] px-4 text-xs font-semibold text-[#0A0E17] hover:bg-[#A8C5FF]">
             Upload your own 360   →
           </button>
         </div>
@@ -648,16 +648,16 @@ export function PublicPortfolioView() {
         {/* Call To Action dari panel Design */}
         {design.cta.title && (
           <div
-            className={`mt-8 flex items-center justify-between gap-4 rounded-xl border border-[#1E4A78] bg-[#0B1F3A] p-4 ${design.cta.position === "left" ? "flex-row-reverse" : ""}`}
+            className={`mt-8 flex items-center justify-between gap-4 rounded-xl border border-[#202A3A] bg-[#0F1521] p-4 ${design.cta.position === "left" ? "flex-row-reverse" : ""}`}
             style={{ marginInline: design.cta.offset }}
           >
             <div>
-              <p className="text-sm font-bold text-[#DCE9F7]">{design.cta.title}</p>
-              <p className="mt-0.5 text-xs text-[#7F9FBF]">{design.cta.description}</p>
+              <p className="text-sm font-bold text-[#F5F7FA]">{design.cta.title}</p>
+              <p className="mt-0.5 text-xs text-[#8C97A8]">{design.cta.description}</p>
             </div>
             <a
               href={design.cta.href}
-              className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold text-[#061224]"
+              className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold text-[#0A0E17]"
               style={{ background: design.theme.primaryColor }}
             >
               {design.cta.layout === "bubble" ? "Hubungi" : "Lihat detail"}
@@ -667,7 +667,7 @@ export function PublicPortfolioView() {
 
         {/* Copyright / branding dari panel Setting */}
         {design.setting.copyrightEnabled && (
-          <div className="py-8 text-center text-[10px] text-[#5A7FA8]">
+          <div className="py-8 text-center text-[10px] text-[#5F6B7C]">
             {design.setting.logo && <img src={design.setting.logo} alt="" className="mx-auto mb-2 max-h-8" />}
             <a href={design.setting.copyrightLink} target="_blank" rel="noreferrer" className="font-semibold hover:underline">
               {design.setting.copyrightAuthor}

@@ -1,41 +1,40 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
 
 @theme {
-  /* Palet utama: biru tua bertingkat, satu aksen cyan. */
-  --color-abyss: #061224;
-  --color-panel: #0b1f3a;
-  --color-panel-2: #0f294b;
-  --color-raised: #123153;
-  --color-line: #1e4a78;
-  --color-inktext: #dce9f7;
-  --color-muted: #7f9fbf;
-  --color-signal: #4cc9f0;
+  /* Precision Dark: navy hampir hitam, tiga undakan permukaan, hairline. */
+  --color-abyss: #0a0e17;
+  --color-panel: #0f1521;
+  --color-panel-2: #121a27;
+  --color-raised: #151d2b;
+  --color-line: #202a3a;
+  --color-inktext: #f5f7fa;
+  --color-muted: #8c97a8;
+  --color-signal: #7aa2ff;
 
-  /* Override token bawaan supaya komponen zinc-existing ikut biru tua. */
-  --color-zinc-950: #061224;
-  --color-zinc-900: #0b1f3a;
-  --color-zinc-850: #0f294b;
-  --color-zinc-800: #123153;
-  --color-zinc-700: #1e4a78;
-  --color-zinc-600: #5a7fa8;
-  --color-zinc-500: #7f9fbf;
-  --color-zinc-400: #9bb8d4;
-  --color-zinc-300: #c3d6e8;
-  --color-zinc-200: #2c5480;
-  --color-zinc-100: #dce9f7;
-  --color-zinc-50: #eff6fd;
+  /* Token zinc dipetakan ke palet yang sama — semua panel ikut konsisten. */
+  --color-zinc-950: #0a0e17;
+  --color-zinc-900: #0f1521;
+  --color-zinc-850: #121a27;
+  --color-zinc-800: #151d2b;
+  --color-zinc-700: #202a3a;
+  --color-zinc-600: #5f6b7c;
+  --color-zinc-500: #8c97a8;
+  --color-zinc-400: #c7d0dd;
+  --color-zinc-300: #e2e8f0;
+  --color-zinc-200: #202a3a;
+  --color-zinc-100: #f5f7fa;
+  --color-zinc-50: #fafcff;
 
-  --color-ink-950: #061224;
-  --color-ink-900: #0b1f3a;
-  --color-ink-850: #0f294b;
-  --color-ink-800: #123153;
-  --color-ink-700: #1e4a78;
-  --color-accent: #4cc9f0;
-  --color-primary: #4cc9f0;
-  --color-brand: #4cc9f0;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", "IBM Plex Sans", sans-serif;
+  --color-ink-950: #0a0e17;
+  --color-ink-900: #0f1521;
+  --color-ink-850: #121a27;
+  --color-ink-800: #151d2b;
+  --color-ink-700: #202a3a;
+  --color-accent: #7aa2ff;
+  --color-primary: #7aa2ff;
+  --color-brand: #7aa2ff;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 

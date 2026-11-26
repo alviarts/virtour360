@@ -1,60 +1,41 @@
-# Arah Visual — Virtour360 (dark blue)
+# Arah Visual — Virtour360 (Precision Dark)
 
-Panduan ini mengikuti skill **`frontend-design`** dari `anthropics/skills` (GitHub). Dua pass: rencana → kritik → implementasi.
+Referensi yang dipilih: **Linear** (linear.app) — bukan sekadar palet gelap, tapi disiplin: kejelasan daripada dekorasi, hairline daripada kotak, tipografi sebagai fondasi, dan produk nyata sebagai pahlawan. Warna: biru tua yang hampir hitam, sesuai permintaan.
 
-## Subjek & tujuan
-Subjek: arsip panorama 360° untuk fotografer dan kreator yang membagikan tempat. Audiens: penonton yang mencari ruang untuk dijelajahi, dan kreator yang mempublikasikan karyanya. Tujuan Home: menemukan dan membuka satu panorama dengan cepat.
+## Token
 
-## Pass 1 — token
-
-**Warna (6)**
 | Peran | Hex |
 |---|---|
-| Abyss (latar) | `#061224` |
-| Panel | `#0B1F3A` |
-| Panel 2 | `#0F294B` |
-| Raised / garis | `#123153` / `#1E4A78` |
-| Teks / redup | `#DCE9F7` / `#7F9FBF` |
-| Signal (satu aksen) | `#4CC9F0` |
+| Canvas | `#0A0E17` |
+| Surface 1 | `#0F1521` |
+| Surface 2 | `#121A27` |
+| Raised | `#151D2B` |
+| Hairline | `#202A3A` |
+| Teks / sekunder / redup | `#F5F7FA` / `#8C97A8` / `#5F6B7C` |
+| Satu aksen (hanya untuk aksi & state) | `#7AA2FF` |
 
-**Tipografi**
-- Display: `Sora` 600/700 — judul hero, judul seksi.
-- Body: `IBM Plex Sans` 400/500 — paragraf, label, kontrol.
-- Kalimat biasa (sentence case), bukan ALL CAPS. Panjang baris < 80 karakter.
+Tangga greyscale 4 tingkat membawa hierarki. Warna tidak dipakai untuk menghias.
 
-**Layout**
-Home: editorial dua kolom — teks rata kiri di kiri, satu jendela panorama di kanan. Explore: grid asimetris, kartu pertama lebih lebar. Kategori: rail pill dengan jumlah asli. Kreator: baris kartu ringkas dengan thumbnail.
+## Tipografi
+- `Inter` 400/500/600. Headline 58px, weight 500, tracking `-0.04em`, line-height 1.05.
+- `IBM Plex Mono` **hanya** untuk data: koordinat, jumlah, kode UID.
+- Kalimat dua nada (putih + abu) menggantikan heading + paragraf tebal.
 
-```
-+ header -------------------------------------------+
-| logo        nav              [Buat] [Studio] [A]  |
-+---------------------------------------------------+
-| headline        |  +--------------------------+   |
-| deskripsi       |  |  panorama (satu drift)  |   |
-| [cari]          |  |  360° · Atrium           |   |
-| stat            |  |  [Buka panorama]         |   |
-|                 |  +--------------------------+   |
-+---------------------------------------------------+
-| Panorama pilihan        [Lihat semua]             |
-| [feature card 2 kolom] [card] [card]              |
-| Kreator publish · Kategori (dengan jumlah)        |
-+---------------------------------------------------+
-```
+## Struktur
+- Hairline 1px memisahkan seksi dan baris, bukan kartu dengan shadow.
+- Radius 6px untuk kontrol, 8px untuk gambar. Tidak ada pill di mana-mana.
+- Hero: judul ketat di kiri, satu panorama nyata di bawahnya dengan garis horizon dan pembacaan koordinat yang merespons pointer. Tidak ada glow dekoratif.
+- Trending: grid gambar dengan garis bawah hairline; yang pertama lebih lebar.
+- Kreator: baris-baris, bukan kartu.
+- Kategori: tab underline, bukan pill.
 
-**Prinsip**
-- Satu gerakan tidak-interaktif: hero panorama bergeser pelan bolak-balik. Kartu diam.
-- Struktur menyampaikan data: badge 360°, jumlah kategori, jumlah scene — bukan dekorasi.
-- Satu aksen (cyan). Tidak ada gradien dekoratif, bayangan abu-abu seragam, atau radius yang sama untuk semua elemen.
+## Prinsip reduksi (dibanding versi sebelumnya)
+- Dihapus: badge 360° di setiap kartu, gradient blur, kartu putsih dengan shadow, tombol pill, floating nav, animasi drift di kartu.
+- Dipertahankan: satu gerakan hero (drift panorama) dan pembacaan koordinat saat mouse bergerak — keduanya melayani subjek, bukan dekorasi.
 
-## Pass 2 — kritik & revisi
-- Ditolak: "big number + label + gradient" sebagai hero → diganti jendela panorama nyata.
-- Ditolak: ALL CAPS eyebrow, `→` di akhir tombol, string dengan titik tengah → diganti kalimat biasa.
-- Ditolak: animasi fade-up di setiap seksi dan drift di setiap kartu → hanya hero yang bergerak.
-- Ditolak: kartu identik dengan shadow lembut → grid asimetris, hairline border, dua radius (12/20).
-- Diterima: dark blue sesuai permintaan, bukan near-black + aksen asam.
+## Referensi lain yang dipertimbangkan
+- Vercel / Geist — editorial monokrom, dua tombol hero.
+- Awwwards immersive (aengel.io, bruno-simon.com) — scene penuh viewport, scroll-driven.
+- Poppr / Vawzen — dark + glow dan motif cincin per panorama (tidak dipilih karena brief ini menolak glow).
 
-## Status implementasi
-- Token didefinisikan di `src/styles/theme.css` (`@theme`), termasuk override `zinc-*` agar Studio/Dashboard/modal ikut navy.
-- Font dimuat dari Google Fonts; fallback system tetap ada.
-- `prefers-reduced-motion` mematikan drift hero.
-- Home, Portfolio, Studio, Dashboard, dan modal memakai palet yang sama.
+Referensi dipakai sebagai prinsip, bukan ditiru mentah.

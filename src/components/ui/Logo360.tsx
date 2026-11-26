@@ -10,7 +10,7 @@ interface Logo360Props {
  * tone "pink" untuk header gelap, "dark" untuk header terang, "white" untuk overlay.
  */
 export function Logo360({ tone = "pink", showText = true, size = 30, className = "" }: Logo360Props) {
-  const color = tone === "dark" ? "#0f172a" : "#4cc9f0"
+  const color = tone === "dark" ? "#0f172a" : "#7aa2ff"
   const textClass = tone === "dark" ? "text-slate-900" : "text-[#DCE9F7]"
 
   return (

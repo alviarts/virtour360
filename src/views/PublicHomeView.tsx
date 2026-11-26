@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { Bell, Camera, Compass, Heart, MapPin, Search, User } from "lucide-react"
+import { Camera, Compass, Heart, Search, User } from "lucide-react"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/useApp"
-import { navigate, navigateCreator } from "../lib/navigation"
+import { navigate, navigateCreator, navigateHash } from "../lib/navigation"
 import { LOCAL_CREATORS } from "../data/creators"
 import { buildCreatorScenes, buildExampleScenes } from "../data/examples"
 import type { Scene } from "../types/tour"
@@ -18,7 +18,6 @@ interface GalleryItem {
   views: string
 }
 
-/** Tiap entri memakai panorama berbeda — tidak ada gambar yang dipakai dua kali. */
 const ITEMS: GalleryItem[] = [
   { id: "h1", title: "Atrium — The Gallery", image: "/media/thumbnails/entrance_hall.jpg", panorama: "/media/panoramas/entrance_hall.jpg", category: "Interior", views: "2,4 rb" },
   { id: "h2", title: "Studio — Creative Room", image: "/media/thumbnails/art_studio.jpg", panorama: "/media/panoramas/art_studio.jpg", category: "Interior", views: "1,8 rb" },
@@ -32,25 +31,21 @@ const ITEMS: GalleryItem[] = [
 
 const CATEGORIES = ["Semua", "Interior", "Outdoor", "Travel", "Arsitektur", "Properti", "Publish"]
 
-/** Satu cincin per panorama, satu tick per sudut pandang. */
-function TourRing({ count, label }: { count: number; label: string }) {
+/** Penanda sudut pandang: satu tick per panorama, tanpa dekorasi tambahan. */
+function RingTicks({ count }: { count: number }) {
+  const n = Math.min(Math.max(count, 3), 9)
   return (
-    <span className="inline-flex items-center gap-2.5 text-[12px] text-[#9BB8D4]">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <circle cx="10" cy="10" r="7" stroke="#4CC9F0" strokeWidth="1.2" opacity="0.7" />
-        {Array.from({ length: Math.min(Math.max(count, 3), 9) }, (_, i) => {
-          const angle = (i / Math.min(Math.max(count, 3), 9)) * 360
-          return <line key={i} x1="10" y1="1.5" x2="10" y2="4" stroke="#4CC9F0" strokeWidth="1.2" transform={`rotate(${angle} 10 10)`} />
-        })}
-        <circle cx="10" cy="10" r="1.4" fill="#4CC9F0" />
-      </svg>
-      {label}
-    </span>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.2" stroke="currentColor" strokeWidth="1" opacity="0.45" />
+      {Array.from({ length: n }, (_, i) => (
+        <line key={i} x1="7" y1="0.8" x2="7" y2="2.6" stroke="currentColor" strokeWidth="1" transform={`rotate(${(i / n) * 360} 7 7)`} />
+      ))}
+    </svg>
   )
 }
 
 export function PublicHomeView() {
-  const { user, setAuthOpen, favorites, toggleFavorite, notify } = useApp()
+  const { user, setAuthOpen, favorites, toggleFavorite } = useApp()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("Semua")
   const [exploring, setExploring] = useState<GalleryItem | null>(null)
@@ -61,13 +56,10 @@ export function PublicHomeView() {
   const exampleScenes = useMemo(() => buildExampleScenes(), [])
   const publishedUid = typeof window !== "undefined" ? localStorage.getItem("virtour360.publishedUid") : null
 
-  // Satu efek mengetik di kolom cari, bukan animasi di setiap bagian.
   useEffect(() => {
     if (query) { setTyped(""); return }
-    const phrases = ["Cari panorama, tempat, atau kreator", "CariApartemen 360°", "Cari ruang publik"]
-    let phrase = 0
-    let char = 0
-    let deleting = false
+    const phrases = ["Cari panorama, tempat, atau kreator", "Cari Apartemen 360°", "Cari ruang publik"]
+    let phrase = 0, char = 0, deleting = false
     const timer = window.setInterval(() => {
       const full = phrases[phrase]
       if (!deleting) {
@@ -92,18 +84,13 @@ export function PublicHomeView() {
   }, [])
 
   const publishedItems: GalleryItem[] = useMemo(
-    () => (publicData?.scenes ?? []).map((scene, index) => ({
-      id: `pub-${scene.id}`,
-      title: scene.name,
-      image: scene.thumbnail,
-      panorama: scene.panorama,
-      category: "Publish",
-      views: `${index + 1} scene`,
+    () => (publicData?.scenes ?? []).map((scene, i) => ({
+      id: `pub-${scene.id}`, title: scene.name, image: scene.thumbnail,
+      panorama: scene.panorama, category: "Publish", views: `${i + 1} scene`,
     })),
     [publicData],
   )
 
-  // Hilangkan duplikat berdasarkan gambar + judul sebelum dirender.
   const allItems = useMemo(() => {
     const seen = new Set<string>()
     return [...publishedItems, ...ITEMS].filter((item) => {
@@ -122,47 +109,31 @@ export function PublicHomeView() {
   )
 
   const publishedCreators = useMemo(() => {
-    const list: { id: string; name: string; initials: string; color: string; title: string; image: string; panorama: string; views: string; kind: "own" | "remote" | "local" }[] = []
+    const list: { id: string; name: string; initials: string; title: string; image: string; panorama: string; views: string; kind: "own" | "remote" | "local" }[] = []
     if (user && publishedUid) {
       list.push({
-        id: publishedUid,
-        name: user.name,
-        initials: user.initials ?? user.name.slice(0, 2).toUpperCase(),
-        color: "bg-[#123153] text-[#DCE9F7]",
+        id: publishedUid, name: user.name, initials: user.initials ?? user.name.slice(0, 2).toUpperCase(),
         title: publicData?.folders?.[0]?.name ?? "Tour yang kamu publish",
-        image: publicData?.scenes?.[0]?.thumbnail ?? "/media/thumbnails/entrance_hall.jpg",
-        panorama: publicData?.scenes?.[0]?.panorama ?? "/media/panoramas/entrance_hall.jpg",
-        views: `${publicData?.scenes?.length ?? 1} scene`,
-        kind: "own" as const,
+        image: publicData?.scenes?.[0]?.thumbnail ?? ITEMS[0].image,
+        panorama: publicData?.scenes?.[0]?.panorama ?? ITEMS[0].panorama,
+        views: `${publicData?.scenes?.length ?? 1} scene`, kind: "own",
       })
     }
     for (const creator of publicData?.creators ?? []) {
       list.push({
-        id: creator.id,
-        name: creator.name,
-        initials: creator.initials,
-        color: creator.color,
+        id: creator.id, name: creator.name, initials: creator.initials,
         title: creator.posts?.[0]?.title ?? "Panorama 360°",
-        image: creator.posts?.[0]?.image ?? "/media/thumbnails/ballroom.jpg",
-        panorama: creator.posts?.[0]?.panorama ?? "/media/panoramas/ballroom.jpg",
-        views: creator.posts?.[0]?.views ?? "1 karya",
-        kind: "remote" as const,
+        image: creator.posts?.[0]?.image ?? ITEMS[3].image,
+        panorama: creator.posts?.[0]?.panorama ?? ITEMS[3].panorama,
+        views: creator.posts?.[0]?.views ?? "1 karya", kind: "remote",
       })
     }
-    const seen = new Set<string>()
     const local = LOCAL_CREATORS.map((c) => ({
-      id: c.id, name: c.name, initials: c.initials, color: c.color,
-      title: c.title,
-      image: c.image,
-      panorama: c.panorama,
-      views: c.views,
-      kind: "local" as const,
+      id: c.id, name: c.name, initials: c.initials, title: c.title,
+      image: c.image, panorama: c.panorama, views: c.views, kind: "local" as const,
     }))
-    return [...list, ...local].filter((c) => {
-      if (seen.has(c.id)) return false
-      seen.add(c.id)
-      return true
-    })
+    const seen = new Set<string>()
+    return [...list, ...local].filter((c) => { if (seen.has(c.id)) return false; seen.add(c.id); return true })
   }, [user, publishedUid, publicData])
 
   const categoryCounts = useMemo(() => {
@@ -176,84 +147,73 @@ export function PublicHomeView() {
     setExploringScenes(scenes ?? exampleScenes)
     setExploring(item)
   }
+  const goCreate = () => user ? navigate("dashboard") : setAuthOpen(true)
 
   return (
-    <div id="home-root" className="h-full w-full overflow-y-auto bg-[#061224] text-[#DCE9F7]">
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#1E4A78] bg-[#061224]/92 px-5 backdrop-blur">
-        <div className="flex items-center gap-7">
-          <button onClick={() => scrollTo("home-root")} aria-label="Ke atas"><Logo360 tone="white" size={28} /></button>
-          <nav className="hidden items-center gap-6 text-[13px] text-[#7F9FBF] md:flex">
-            <button onClick={() => scrollTo("home-explore")} className="hover:text-[#DCE9F7]">Jelajahi</button>
-            <button onClick={() => scrollTo("home-categories")} className="hover:text-[#DCE9F7]">Kategori</button>
-            <button onClick={() => navigate("portfolio")} className="hover:text-[#DCE9F7]">Portofolio</button>
-          </nav>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))}
-            className="flex h-9 items-center gap-2 rounded-full bg-[#4CC9F0] px-4 text-xs font-semibold text-[#061224] transition-colors hover:bg-[#7ADDF5]"
-          >
-            <Camera size={14} /> Buat tour
-          </button>
-          <button
-            onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))}
-            className="flex h-9 items-center gap-2 rounded-full border border-[#1E4A78] px-4 text-xs font-medium text-[#DCE9F7] hover:bg-[#123153]"
-          >
-            <Compass size={14} /> Studio
-          </button>
-          {user && (
-            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-[#1E4A78] text-[#7F9FBF]" title="Notifikasi">
-              <Bell size={15} />
+    <div id="home-root" className="h-full w-full overflow-y-auto bg-[#0A0E17] text-[#F5F7FA] antialiased">
+      <header className="sticky top-0 z-30 border-b border-[#202A3A] bg-[#0A0E17]/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-5 sm:px-8">
+          <div className="flex items-center gap-8">
+            <button onClick={() => scrollTo("home-root")} aria-label="Ke atas"><Logo360 tone="white" size={24} /></button>
+            <nav className="hidden items-center gap-6 text-[13px] text-[#8C97A8] md:flex">
+              <button onClick={() => scrollTo("home-explore")} className="hover:text-[#F5F7FA]">Jelajahi</button>
+              <button onClick={() => scrollTo("home-categories")} className="hover:text-[#F5F7FA]">Kategori</button>
+              <button onClick={() => navigate("portfolio")} className="hover:text-[#F5F7FA]">Portofolio</button>
+            </nav>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={goCreate} className="flex h-8 items-center gap-1.5 rounded-md bg-[#F5F7FA] px-3 text-xs font-medium text-[#0A0E17] hover:bg-white">
+              <Camera size={13} /> Buat tour
             </button>
-          )}
-          <button
-            onClick={() => (user ? navigate("dashboard") : setAuthOpen(true))}
-            className="flex h-9 items-center gap-2 rounded-full border border-[#1E4A78] px-4 text-xs font-medium text-[#DCE9F7] hover:bg-[#123153]"
-          >
-            <span className="grid size-5 place-items-center rounded-full bg-[#123153] text-[9px] font-bold text-[#4CC9F0]">{user?.initials ?? "?"}</span>
-            {user ? user.name : "Masuk"}
-          </button>
+            <button onClick={goCreate} className="flex h-8 items-center gap-1.5 rounded-md border border-[#202A3A] px-3 text-xs text-[#C7D0DD] hover:bg-[#151D2B]">
+              <Compass size={13} /> Studio
+            </button>
+            <button onClick={goCreate} className="ml-2 flex h-8 items-center gap-2 rounded-md px-2 text-xs text-[#8C97A8] hover:text-[#F5F7FA]">
+              <span className="grid size-5 place-items-center rounded bg-[#151D2B] text-[9px] font-medium text-[#7AA2FF]">{user?.initials ?? "?"}</span>
+              {user ? user.name : "Masuk"}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Hero: teks di kiri, satu jendela panorama di kanan. */}
-      <section className="border-b border-[#1E4A78] px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-        <div className="mx-auto grid max-w-[1180px] items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative max-w-xl">
-            <div className="pointer-events-none absolute -left-16 -top-20 size-72 rounded-full bg-[#4CC9F0]/10 blur-[90px]" />
-            <TourRing count={8} label="Delapan sudut pandang" />
-            <h1 className="relative mt-5 font-[family-name:var(--font-display)] text-[42px] font-semibold leading-[1.06] tracking-tight text-[#EFF6FD] sm:text-[56px]">
-              Jelajahi dunia dalam satu panorama
-            </h1>
-            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-[#7F9FBF]">
-              Temukan ruang, tempat, dan karya 360°. Geser untuk melihat setiap sudutnya, lalu bagikan milikmu sendiri.
-            </p>
-            <div className="mt-7 flex h-12 max-w-md items-center gap-2 rounded-full border border-[#1E4A78] bg-[#0B1F3A] px-4">
-              <Search size={17} className="shrink-0 text-[#7F9FBF]" />
-              <div className="relative min-w-0 flex-1">
-                {!query && (
-                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-sm text-[#5A7FA8]">
-                    {typed}<span className="typing-caret text-[#4CC9F0]">|</span>
-                  </span>
-                )}
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  aria-label="Cari panorama, tempat, atau kreator"
-                  className="relative w-full bg-transparent text-sm text-[#DCE9F7] outline-none"
-                />
-              </div>
-              <button onClick={() => scrollTo("home-explore")} className="h-8 shrink-0 rounded-full bg-[#4CC9F0] px-4 text-xs font-semibold text-[#061224]">Cari</button>
-            </div>
-            <div className="mt-7 flex flex-wrap gap-x-7 gap-y-2 text-xs text-[#5A7FA8]">
-              <span>1.200+ panorama</span>
-              <span>340 kreator</span>
-              <span>86 ribu eksplorasi</span>
+      <section className="border-b border-[#202A3A] px-5 pb-14 pt-14 sm:px-8 lg:pb-20 lg:pt-20">
+        <div className="mx-auto max-w-[1200px]">
+          <div className="flex items-center gap-2 text-[11px] text-[#7AA2FF]">
+            <RingTicks count={allItems.length} /> Virtour360 · arsip panorama
+          </div>
+          <h1 className="mt-6 max-w-[820px] text-[40px] font-medium leading-[1.05] tracking-[-0.04em] text-[#F5F7FA] sm:text-[58px]">
+            Jelajahi dunia dalam satu panorama
+            <span className="text-[#8C97A8]">. Pilih sudutnya, lalu bagikan milikmu.</span>
+          </h1>
+          <p className="mt-5 max-w-[540px] text-[14px] leading-relaxed text-[#8C97A8]">
+            Kumpulan ruang dan tempat yang bisa kamu putar, zoom, dan telusuri dari mana saja.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-2">
+            <button onClick={goCreate} className="h-9 rounded-md bg-[#F5F7FA] px-4 text-[13px] font-medium text-[#0A0E17] hover:bg-white">Buat tour</button>
+            <button onClick={() => scrollTo("home-explore")} className="h-9 rounded-md border border-[#202A3A] px-4 text-[13px] text-[#C7D0DD] hover:bg-[#151D2B]">Lihat karya</button>
+            <span className="ml-3 text-[11px] text-[#5F6B7C]">1.200+ panorama · 340 kreator · 86 ribu eksplorasi</span>
+          </div>
+
+          <div className="mt-6 flex h-10 max-w-[560px] items-center gap-2 rounded-md border border-[#202A3A] bg-[#0F1521] px-3">
+            <Search size={15} className="shrink-0 text-[#5F6B7C]" />
+            <div className="relative min-w-0 flex-1">
+              {!query && (
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center text-[13px] text-[#5F6B7C]">
+                  {typed}<span className="typing-caret text-[#7AA2FF]">|</span>
+                </span>
+              )}
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Cari panorama, tempat, atau kreator"
+                className="relative w-full bg-transparent text-[13px] text-[#F5F7FA] outline-none"
+              />
             </div>
           </div>
 
           <div
-            className="relative h-[300px] overflow-hidden rounded-[22px] border border-[#1E4A78] bg-[#0B1F3A] sm:h-[380px]"
+            className="relative mt-10 overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521]"
             onPointerMove={(event) => {
               const rect = event.currentTarget.getBoundingClientRect()
               setHeroView({
@@ -270,166 +230,144 @@ export function PublicHomeView() {
                 backgroundPosition: "0% 50%",
               }}
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#061224] via-[#061224]/10 to-transparent" />
-            {/* Garis orientasi: horizon + pembagi, bukan dekorasi generic */}
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#4CC9F0]/25" />
-            <div className="pointer-events-none absolute inset-y-0 left-1/3 w-px bg-[#DCE9F7]/10" />
-            <div className="pointer-events-none absolute inset-y-0 left-2/3 w-px bg-[#DCE9F7]/10" />
-            <div className="pointer-events-none absolute right-4 top-4 rounded-md bg-[#061224]/80 px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#4CC9F0] backdrop-blur">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0A0E17] via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-[#7AA2FF]/20" />
+            <div className="absolute right-3 top-3 rounded border border-[#202A3A] bg-[#0A0E17]/85 px-2 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#7AA2FF]">
               {heroView.yaw >= 0 ? "+" : ""}{heroView.yaw}° / {heroView.pitch >= 0 ? "+" : ""}{heroView.pitch}°
             </div>
-            <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 border-t border-[#202A3A]/70 bg-[#0A0E17]/75 px-4 py-3 backdrop-blur">
               <div>
-                <span className="rounded-full bg-[#4CC9F0] px-2.5 py-1 text-[10px] font-semibold text-[#061224]">360°</span>
-                <p className="mt-2 font-[family-name:var(--font-display)] text-lg font-semibold text-[#EFF6FD]">Atrium — The Gallery</p>
-                <p className="text-[11px] text-[#9BB8D4]">Panorama interior · 2,4 ribu penayangan</p>
+                <p className="text-[13px] font-medium text-[#F5F7FA]">Atrium — The Gallery</p>
+                <p className="mt-0.5 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">8 panorama · 24 sudut</p>
               </div>
-              <button
-                onClick={() => openItem(ITEMS[0])}
-                className="h-10 shrink-0 rounded-full bg-[#DCE9F7] px-4 text-xs font-semibold text-[#061224] hover:bg-white"
-              >
-                Buka panorama
-              </button>
+              <button onClick={() => openItem(ITEMS[0])} className="h-8 shrink-0 rounded-md bg-[#F5F7FA] px-3 text-xs font-medium text-[#0A0E17] hover:bg-white">Buka</button>
             </div>
           </div>
         </div>
       </section>
 
-      <main className="mx-auto max-w-[1180px] px-5 pb-28 sm:px-8">
-        <section id="home-explore" className="pt-14">
-          <div className="flex items-end justify-between gap-4">
+      <main className="mx-auto max-w-[1200px] px-5 pb-24 sm:px-8">
+        <section id="home-explore" className="pt-12">
+          <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
             <div>
-              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[#EFF6FD]">Panorama pilihan</h2>
-              <p className="mt-1 text-xs text-[#7F9FBF]">Tempat yang paling sering dijelajahi</p>
+              <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Panorama pilihan</h2>
+              <p className="mt-1 text-[12px] text-[#8C97A8]">Yang paling sering dijelajahi</p>
             </div>
-            <button onClick={() => { setCategory("Semua"); setQuery("") }} className="text-xs font-semibold text-[#4CC9F0] hover:text-[#7ADDF5]">Lihat semua</button>
+            <button onClick={() => { setCategory("Semua"); setQuery("") }} className="text-[12px] text-[#7AA2FF] hover:text-[#A8C5FF]">Lihat semua</button>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
             {results.map((item, index) => {
               const favorite = favorites.includes(item.id)
               const feature = index === 0 && category === "Semua" && !query
               return (
-                <article
-                  key={item.id}
-                  className={`group overflow-hidden border border-[#1E4A78] bg-[#0B1F3A] ${feature ? "rounded-[20px] sm:col-span-2" : "rounded-[12px]"}`}
-                >
-                  <div className={`relative overflow-hidden ${feature ? "aspect-[16/9]" : "aspect-[4/3]"}`}>
+                <article key={item.id} className={feature ? "sm:col-span-2" : ""}>
+                  <div className={`relative overflow-hidden rounded-md ${feature ? "aspect-[16/8]" : "aspect-[4/3]"}`}>
                     <button onClick={() => openItem(item)} className="block h-full w-full">
-                      <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                      <img src={item.image} alt={item.title} className="h-full w-full object-cover opacity-95 transition-opacity hover:opacity-100" />
                     </button>
                     <button
                       onClick={() => toggleFavorite(item.id)}
                       title={favorite ? "Hapus dari favorit" : "Simpan ke favorit"}
-                      className={`absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-[#061224]/70 text-[#DCE9F7] backdrop-blur ${favorite ? "text-[#4CC9F0]" : ""}`}
+                      className={`absolute right-2 top-2 grid size-7 place-items-center rounded border border-[#202A3A] bg-[#0A0E17]/80 text-[#8C97A8] backdrop-blur ${favorite ? "text-[#7AA2FF]" : ""}`}
                     >
-                      <Heart size={14} fill={favorite ? "currentColor" : "none"} />
+                      <Heart size={13} fill={favorite ? "currentColor" : "none"} />
                     </button>
-                    <span className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-[#061224]/80 px-2 py-1 text-[10px] font-semibold text-[#4CC9F0] backdrop-blur">360°</span>
-                    <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-[#061224]/80 px-2 py-1 text-[10px] text-[#9BB8D4] backdrop-blur">{item.views}</span>
                   </div>
-                  <div className="flex items-center justify-between gap-3 p-4">
-                    <button onClick={() => openItem(item)} className="min-w-0 truncate text-left text-[13px] font-semibold text-[#DCE9F7] hover:text-[#4CC9F0]">{item.title}</button>
-                    {feature ? <TourRing count={4} label={item.category} /> : <span className="shrink-0 text-[11px] text-[#5A7FA8]">{item.category}</span>}
+                  <div className="mt-3 flex items-center justify-between gap-3 border-b border-[#202A3A] pb-3">
+                    <button onClick={() => openItem(item)} className="min-w-0 truncate text-left text-[13px] text-[#F5F7FA] hover:text-[#7AA2FF]">{item.title}</button>
+                    <span className="flex shrink-0 items-center gap-2 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">
+                      <RingTicks count={4} /> {item.category} · {item.views}
+                    </span>
                   </div>
                 </article>
               )
             })}
           </div>
-          {results.length === 0 && (
-            <p className="py-12 text-center text-sm text-[#7F9FBF]">Tidak ada panorama yang cocok.</p>
-          )}
+          {results.length === 0 && <p className="py-12 text-center text-[13px] text-[#8C97A8]">Tidak ada panorama yang cocok.</p>}
         </section>
 
         <section id="home-creators" className="mt-16">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
             <div>
-              <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[#EFF6FD]">Kreator yang sudah mempublikasikan</h2>
-              <p className="mt-1 text-xs text-[#7F9FBF]">Karya mereka bisa dibuka langsung dari sini</p>
+              <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Kreator yang sudah mempublikasikan</h2>
+              <p className="mt-1 text-[12px] text-[#8C97A8]">Satu baris untuk setiap karya</p>
             </div>
-            <span className="rounded-full border border-[#1E4A78] px-3 py-1 text-[11px] text-[#7F9FBF]">{publishedCreators.length} kreator</span>
+            <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">{publishedCreators.length}</span>
           </div>
-          <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {publishedCreators.map((creator, index) => (
+          <div className="mt-2">
+            {publishedCreators.map((creator) => (
               <button
                 key={creator.id}
                 onClick={() => {
                   if (creator.kind === "own" && publicData?.scenes?.length) {
                     openItem({ id: creator.id, title: creator.title, image: creator.image, panorama: creator.panorama, category: "Publish", views: creator.views }, publicData.scenes)
+                    return
+                  }
+                  const index = LOCAL_CREATORS.findIndex((c) => c.id === creator.id)
+                  if (creator.kind === "local" && index >= 0) {
+                    openItem({ id: creator.id, title: creator.title, image: creator.image, panorama: creator.panorama, category: "Publish", views: creator.views }, buildCreatorScenes(index))
                   } else if (creator.kind === "local") {
                     navigateCreator(creator.id)
                   } else {
-                    openItem({ id: creator.id, title: creator.title, image: creator.image, panorama: creator.panorama, category: "Publish", views: creator.views }, buildCreatorScenes(index))
+                    navigateHash(`#/p/${creator.id}`)
                   }
                 }}
-                className="flex items-center gap-3 rounded-[12px] border border-[#1E4A78] bg-[#0B1F3A] p-3 text-left transition-colors hover:border-[#4CC9F0]"
+                className="group flex w-full items-center gap-4 border-b border-[#202A3A] py-3 text-left hover:bg-[#0F1521]"
               >
-                <img src={creator.image} alt="" className="size-14 shrink-0 rounded-[8px] object-cover" />
+                <img src={creator.image} alt="" className="size-11 shrink-0 rounded object-cover" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
-                    <span className={`grid size-6 shrink-0 place-items-center rounded-full text-[9px] font-bold ${creator.color}`}>{creator.initials}</span>
-                    <span className="truncate text-[13px] font-semibold text-[#DCE9F7]">{creator.name}</span>
+                    <span className="grid size-5 place-items-center rounded bg-[#151D2B] font-[family-name:var(--font-mono)] text-[9px] text-[#7AA2FF]">{creator.initials}</span>
+                    <span className="truncate text-[13px] text-[#F5F7FA] group-hover:text-[#7AA2FF]">{creator.name}</span>
                   </span>
-                  <span className="mt-1 block truncate text-[11px] text-[#7F9FBF]">{creator.title}</span>
+                  <span className="mt-0.5 block truncate text-[11px] text-[#8C97A8]">{creator.title}</span>
                 </span>
-                <span className="shrink-0 text-[10px] text-[#5A7FA8]">{creator.views}</span>
+                <span className="shrink-0 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">{creator.views}</span>
               </button>
             ))}
           </div>
           {publishedUid && user && (
-            <p className="mt-3 text-[11px] text-[#5A7FA8]">
-              Tour kamu: <a href={publicShareUrl(publishedUid)} className="text-[#4CC9F0] hover:underline">/p/{publishedUid}</a>
+            <p className="mt-3 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">
+              tour kamu: <a href={publicShareUrl(publishedUid)} className="text-[#7AA2FF] hover:underline">/p/{publishedUid}</a>
             </p>
           )}
         </section>
 
         <section id="home-categories" className="mt-16">
-          <h2 className="font-[family-name:var(--font-display)] text-xl font-semibold text-[#EFF6FD]">Jelajahi berdasarkan kategori</h2>
-          <p className="mt-1 text-xs text-[#7F9FBF]">Pilih satu untuk memfilter panorama di atas</p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Jelajahi berdasarkan kategori</h2>
+          <p className="mt-1 text-[12px] text-[#8C97A8]">Filter panorama di atas</p>
+          <div className="mt-4 flex flex-wrap gap-x-6 border-b border-[#202A3A]">
             {CATEGORIES.map((item) => (
               <button
                 key={item}
                 onClick={() => { setCategory(item); scrollTo("home-explore") }}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
-                  category === item
-                    ? "border-[#4CC9F0] bg-[#4CC9F0] text-[#061224]"
-                    : "border-[#1E4A78] bg-[#0B1F3A] text-[#9BB8D4] hover:border-[#4CC9F0]"
+                className={`-mb-px border-b py-2 text-[12px] transition-colors ${
+                  category === item ? "border-[#F5F7FA] text-[#F5F7FA]" : "border-transparent text-[#8C97A8] hover:text-[#C7D0DD]"
                 }`}
               >
-                {item}
-                <span className={category === item ? "text-[#061224]/60" : "text-[#5A7FA8]"}>{categoryCounts[item] ?? 0}</span>
+                {item} <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">{categoryCounts[item] ?? 0}</span>
               </button>
             ))}
           </div>
         </section>
 
-        <div className="mt-16 flex flex-col items-start justify-between gap-5 rounded-[20px] border border-[#1E4A78] bg-[#0B1F3A] p-6 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#123153] text-[#4CC9F0]"><MapPin size={18} /></span>
-            <div>
-              <h3 className="text-sm font-semibold text-[#DCE9F7]">Punya panorama 360° sendiri?</h3>
-              <p className="mt-1 text-xs text-[#7F9FBF]">Unggah dan bagikan karyamu dalam beberapa menit.</p>
-            </div>
+        <div className="mt-16 flex flex-col items-start justify-between gap-4 border border-[#202A3A] rounded-md px-5 py-5 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="text-[14px] text-[#F5F7FA]">Punya panorama 360° sendiri?</h3>
+            <p className="mt-1 text-[12px] text-[#8C97A8]">Unggah dan bagikan karyamu dalam beberapa menit.</p>
           </div>
-          <button onClick={() => setAuthOpen(true)} className="h-10 shrink-0 rounded-full bg-[#4CC9F0] px-5 text-xs font-semibold text-[#061224] hover:bg-[#7ADDF5]">Unggah panorama 360°</button>
+          <button onClick={() => setAuthOpen(true)} className="h-8 shrink-0 rounded-md bg-[#F5F7FA] px-3 text-xs font-medium text-[#0A0E17] hover:bg-white">Unggah panorama 360°</button>
         </div>
       </main>
 
-      <footer className="border-t border-[#1E4A78] bg-[#061224] px-6 py-8">
-        <div className="mx-auto flex max-w-[1180px] flex-col items-center justify-between gap-4 sm:flex-row">
-          <Logo360 tone="white" size={26} />
-          <p className="text-[11px] text-[#5A7FA8]">© 2026 Virtour360 — Jelajahi dunia dalam satu panorama.</p>
-          <button onClick={() => navigate("portfolio")} className="flex items-center gap-1.5 text-xs text-[#7F9FBF] hover:text-[#DCE9F7]"><User size={13} /> Portofolio</button>
+      <footer className="border-t border-[#202A3A] px-6 py-8">
+        <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-4 sm:flex-row">
+          <Logo360 tone="white" size={22} />
+          <p className="font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">© 2026 Virtour360</p>
+          <button onClick={() => navigate("portfolio")} className="flex items-center gap-1.5 text-[11px] text-[#8C97A8] hover:text-[#F5F7FA]"><User size={12} /> Portofolio</button>
         </div>
       </footer>
-
-      <div className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-[#1E4A78] bg-[#0B1F3A]/95 px-2 py-1.5 backdrop-blur">
-        <button onClick={() => scrollTo("home-root")} className="flex items-center gap-1.5 rounded-full bg-[#123153] px-3 py-1.5 text-xs font-medium text-[#DCE9F7]"><Compass size={14} /> Home</button>
-        <button onClick={() => scrollTo("home-explore")} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-[#7F9FBF] hover:text-[#DCE9F7]"><MapPin size={14} /> Jelajahi</button>
-        <button onClick={() => navigate("portfolio")} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-[#7F9FBF] hover:text-[#DCE9F7]"><User size={14} /> Author</button>
-        <button onClick={() => scrollTo("home-categories")} className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs text-[#7F9FBF] hover:text-[#DCE9F7]"><Search size={14} /> Kategori</button>
-      </div>
 
       {exploring && (
         <PublicViewerModal
