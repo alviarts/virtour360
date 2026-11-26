@@ -289,8 +289,8 @@ export function PublicHomeView() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-[1200px] px-5 pb-24 sm:px-8">
-        <section id="home-explore" className="pt-12">
+      <main className="mx-auto flex max-w-[1200px] flex-col px-5 pb-24 sm:px-8">
+        <section id="home-explore" className="order-2 pt-12">
           <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
             <div>
               <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Panorama pilihan</h2>
@@ -338,7 +338,7 @@ export function PublicHomeView() {
           {results.length === 0 && <p className="py-12 text-center text-[13px] text-[#8C97A8]">Tidak ada panorama yang cocok.</p>}
         </section>
 
-        <section id="home-product" className="mt-24">
+        <section id="home-product" className="order-1 mt-4">
           <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
             <div>
               <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Satu ruang dari panorama ke publik</h2>
@@ -372,7 +372,7 @@ export function PublicHomeView() {
 
             <figure className="absolute bottom-0 left-[6%] z-30 w-[54%] overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521] shadow-[0_26px_60px_-26px_rgba(0,0,0,0.95)] transition-transform duration-500 hover:-translate-y-1"
               style={{ transform: "perspective(1000px) rotateX(4deg)" }}>
-              <img src="/media/screens/portfolio.jpg" alt="Halaman publik setelah publish" className="w-full object-cover" />
+              <img src="/media/screens/portfolio.png" alt="Halaman publik setelah publish" className="w-full object-cover" />
               <figcaption className="border-t border-[#202A3A] bg-[#0F1521] px-3 py-2 font-[family-name:var(--font-mono)] text-[10px] text-[#8C97A8]">03 · /p/&lt;uid&gt; / publik</figcaption>
             </figure>
 
@@ -387,7 +387,7 @@ export function PublicHomeView() {
           </div>
         </section>
 
-        <section id="home-creators" className="mt-16">
+        <section id="home-creators" className="order-3 mt-16">
           <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
             <div>
               <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Kreator yang sudah mempublikasikan</h2>
@@ -434,7 +434,7 @@ export function PublicHomeView() {
           )}
         </section>
 
-        <section id="home-categories" className="mt-16">
+        <section id="home-categories" className="order-4 mt-16">
           <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Jelajahi berdasarkan kategori</h2>
           <p className="mt-1 text-[12px] text-[#8C97A8]">Filter panorama di atas</p>
           <div className="mt-4 flex flex-wrap gap-x-6 border-b border-[#202A3A]">
@@ -452,7 +452,7 @@ export function PublicHomeView() {
           </div>
         </section>
 
-        <div className="mt-16 flex flex-col items-start justify-between gap-4 border border-[#202A3A] rounded-md px-5 py-5 sm:flex-row sm:items-center">
+        <div className="order-5 mt-16 flex flex-col items-start justify-between gap-4 border border-[#202A3A] rounded-md px-5 py-5 sm:flex-row sm:items-center">
           <div>
             <h3 className="text-[14px] text-[#F5F7FA]">Punya panorama 360° sendiri?</h3>
             <p className="mt-1 text-[12px] text-[#8C97A8]">Unggah dan bagikan karyamu dalam beberapa menit.</p>
