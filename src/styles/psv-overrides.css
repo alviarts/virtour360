@@ -4,15 +4,9 @@
   background: #09090b;
 }
 
+/* Tanpa loader: panorama langsung tampil begitu frame pertama siap. */
 .psv-loader {
-  background: rgba(9, 9, 11, 0.72);
-  backdrop-filter: blur(6px);
-}
-
-.psv-loader-content {
-  color: #fafafa;
-  font-size: 12px;
-  letter-spacing: 0.02em;
+  display: none !important;
 }
 
 .psv-tooltip {

@@ -10,6 +10,7 @@ import {
   List,
   MoreHorizontal,
   Pencil,
+  ScrollText,
   Plus,
   Search,
   Trash2,
@@ -31,16 +32,17 @@ interface LeftSidebarProps {
 type GroupMode = "none" | "source" | "category"
 
 export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCreate, onRemoveScene }: LeftSidebarProps) {
-  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene } = useApp()
+  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene, logActivity, activity, clearActivity } = useApp()
   const [view, setView] = useState<"grid" | "list">("grid")
   const [newGroup, setNewGroup] = useState(false)
   const [groupName, setGroupName] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [collapsed, setCollapsed] = useState(false)
-  const [groupMode, setGroupMode] = useState<GroupMode>("none")
+  const [groupMode, setGroupMode] = useState<GroupMode>("category")
   const [infoOpen, setInfoOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [logOpen, setLogOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -51,7 +53,14 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
   }, [scenes, query])
 
   const groupedScenes = useMemo(() => {
-    const bucket = new Map<string, Scene[]>()
+    // Tampilkan SEMUA grup (termasuk yang kosong) supaya grup baru terlihat
+    // dan bisa dihapus, bukan hanya grup yang punya scene.
+    const keys = groupMode === "source"
+      ? ["Upload Anda", "Scene bawaan"]
+      : groupMode === "category"
+        ? allGroups
+        : ["Uncategory"]
+    const bucket = new Map<string, Scene[]>(keys.map((key) => [key, []]))
     filtered.forEach((scene) => {
       const key =
         groupMode === "source"
@@ -62,7 +71,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
       bucket.set(key, [...(bucket.get(key) ?? []), scene])
     })
     return [...bucket.entries()]
-  }, [filtered, groupMode])
+  }, [filtered, groupMode, allGroups])
 
   const hotspots = scenes.reduce((sum, s) => sum + s.hotspots.length, 0)
   const uploads = scenes.filter((s) => s.id.startsWith("pano-")).length
@@ -76,6 +85,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
     }
     createGroup(name)
     setSceneGroup(currentSceneId, name)
+    logActivity(`Grup "${name}" dibuat`)
     notify(`Grup "${name}" dibuat dan scene aktif dipindahkan ke sana.`)
     setGroupName("")
     setNewGroup(false)
@@ -88,6 +98,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
     { label: "Info", icon: Info, action: () => setInfoOpen((v) => !v) },
     { label: "Search", icon: Search, action: () => setSearchOpen((v) => !v) },
     { label: "More", icon: MoreHorizontal, action: () => setMoreOpen((v) => !v) },
+    { label: "Log", icon: ScrollText, action: () => setLogOpen((v) => !v) },
   ]
 
   return (
@@ -166,6 +177,27 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
         </div>
       )}
 
+      {logOpen && (
+        <div className="animate-fade-up rounded-lg border border-zinc-700 bg-black/40 p-2">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1 text-[10px] font-semibold text-zinc-200"><ScrollText size={11} /> Weblog aktivitas</span>
+            <button onClick={clearActivity} className="text-[9px] text-zinc-500 hover:text-zinc-200">Bersihkan</button>
+          </div>
+          {activity.length ? (
+            <div className="hide-scrollbar flex max-h-40 flex-col gap-1 overflow-y-auto">
+              {activity.map((entry) => (
+                <div key={entry.id} className="flex gap-1.5 border-b border-zinc-800/60 pb-1 text-[9px] leading-snug">
+                  <span className="shrink-0 font-mono text-zinc-600">{new Date(entry.at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="text-zinc-400">{entry.text}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="py-2 text-center text-[9px] text-zinc-600">Belum ada aktivitas.</p>
+          )}
+        </div>
+      )}
+
       {searchOpen && (
         <div className="flex h-8 items-center gap-2 rounded-lg border border-zinc-700 px-2">
           <Search size={12} className="text-zinc-500" />
@@ -202,12 +234,9 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               </button>
               <button
                 onClick={() => {
-                  if (allGroups.length > 1) {
-                    deleteGroup(label)
-                    notify(`Grup "${label}" dihapus — scene dipindah ke Uncategory.`)
-                  } else {
-                    notify("Ini grup default — tidak bisa dihapus.")
-                  }
+                  deleteGroup(label)
+                  logActivity(`Grup "${label}" dihapus`)
+                  notify(`Grup "${label}" dihapus — scene dipindah ke Uncategory.`)
                 }}
                 title="Hapus grup"
                 aria-label="Hapus grup"

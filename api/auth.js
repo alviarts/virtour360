@@ -1,5 +1,11 @@
+import crypto from "node:crypto"
 import { createClient } from "@supabase/supabase-js"
 import { hashPassword, signSession, verifyPassword, verifySession } from "./_auth.js"
+
+/** UID publik unik yang dibuat saat user mendaftar. */
+function makeUid() {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 10)
+}
 
 function makeInitials(name) {
   return String(name).trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "U"
@@ -38,10 +44,10 @@ export default async function handler(req, res) {
     const normalized = String(email).trim().toLowerCase()
     const { data: existing } = await supabase.from("virtour_users").select("email").eq("email", normalized).maybeSingle()
     if (existing) return res.status(409).json({ error: "Email sudah terdaftar. Silakan login." })
-    const user = { name: String(name).trim(), email: normalized, initials: makeInitials(name), password_hash: hashPassword(password) }
+    const user = { name: String(name).trim(), email: normalized, initials: makeInitials(name), uid: makeUid(), password_hash: hashPassword(password) }
     const { error } = await supabase.from("virtour_users").insert(user)
     if (error) return res.status(500).json({ error: error.message })
-    return res.status(200).json({ ok: true, token: signSession(user), user: { name: user.name, email: user.email, initials: user.initials } })
+    return res.status(200).json({ ok: true, token: signSession(user), user: { name: user.name, email: user.email, initials: user.initials, uid: user.uid } })
   }
 
   if (action === "login") {
@@ -50,10 +56,16 @@ export default async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message })
     if (!row) return res.status(404).json({ error: "Akun tidak ditemukan. Silakan daftar dulu." })
     if (!verifyPassword(req.body.password, row.password_hash)) return res.status(401).json({ error: "Password salah." })
+    let uid = row.uid
+    if (!uid) {
+      uid = makeUid()
+      await supabase.from("virtour_users").update({ uid }).eq("email", email)
+    }
+    const signed = { ...row, uid }
     return res.status(200).json({
       ok: true,
-      token: signSession(row),
-      user: { name: row.name, email: row.email, initials: row.initials },
+      token: signSession(signed),
+      user: { name: row.name, email: row.email, initials: row.initials, uid },
     })
   }
 
@@ -70,7 +82,7 @@ export default async function handler(req, res) {
     }
     const { error } = await supabase.from("virtour_users").update({ name, email, initials: makeInitials(name) }).eq("email", session.email)
     if (error) return res.status(500).json({ error: error.message })
-    const user = { name, email, initials: makeInitials(name) }
+    const user = { name, email, initials: makeInitials(name), uid: session.uid }
     return res.status(200).json({ ok: true, token: signSession(user), user })
   }
 

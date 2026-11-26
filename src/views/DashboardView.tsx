@@ -13,7 +13,7 @@ import {
 import { useApp } from "../context/useApp"
 import { NewProjectModal } from "../components/auth/NewProjectModal"
 import { Logo360 } from "../components/ui/Logo360"
-import { navigate } from "../lib/navigation"
+import { navigate, navigateHash } from "../lib/navigation"
 import type { Scene } from "../types/tour"
 
 const navItems = ["Project", "Media", "Portofolio"]
@@ -306,7 +306,13 @@ export function DashboardView() {
                 </button>
               ))}
             </div>
-            <button onClick={() => navigate("portfolio")} className="flex items-center gap-1.5 text-xs font-medium text-zinc-200 hover:text-white">
+            <button
+              onClick={() => user?.uid
+                ? navigateHash(`#/p/${user.uid}`)
+                : notify("UID publik belum tersedia. Silakan logout lalu masuk lagi.")}
+              title="Buka tour publik sesuai UID akun kamu"
+              className="flex items-center gap-1.5 text-xs font-medium text-zinc-200 hover:text-white"
+            >
               — View Public Profile
             </button>
           </div>

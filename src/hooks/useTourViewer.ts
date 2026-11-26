@@ -114,7 +114,13 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   const [gyroscope, setGyroscope] = useState(false)
   const [placementType, setPlacementType] = useState<HotspotType | null>(null)
 
-  const currentScene: Scene = findScene(scenes, currentSceneId)
+  const currentScene: Scene = scenes.length
+    ? findScene(scenes, currentSceneId)
+    : {
+        id: "empty", name: "Belum ada scene", description: "", group: "Uncategory",
+        panorama: "", thumbnail: "", initialView: { yaw: 0, pitch: 0, zoom: 70 },
+        hotspots: [], project: { title: "Project baru", role: "", client: "", year: "", tags: [] },
+      }
 
   /* Event handler yang dipasang sekali memakai ref agar selalu membaca data terbaru. */
   const live = useRef({ scenes, currentSceneId, options })
@@ -148,7 +154,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   }, [])
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current || !scenes.length) return
 
     const viewer = new Viewer({
       container: containerRef.current,

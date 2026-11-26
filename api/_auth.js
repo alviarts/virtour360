@@ -9,7 +9,7 @@ function secret() {
 /** T token sederhana bertanda tangan — cukup untuk demo 2–5 orang. */
 export function signSession(user) {
   const payload = Buffer.from(
-    JSON.stringify({ name: user.name, email: user.email, initials: user.initials, exp: Date.now() + SESSION_DAYS * 86400000 }),
+    JSON.stringify({ name: user.name, email: user.email, initials: user.initials, uid: user.uid, exp: Date.now() + SESSION_DAYS * 86400000 }),
   ).toString("base64url")
   const sig = crypto.createHmac("sha256", secret()).update(payload).digest("base64url")
   return `${payload}.${sig}`
@@ -23,7 +23,7 @@ export function verifySession(token) {
     if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null
     const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"))
     if (!data.email || !data.exp || data.exp < Date.now()) return null
-    return { name: data.name, email: data.email, initials: data.initials }
+    return { name: data.name, email: data.email, initials: data.initials, uid: data.uid }
   } catch {
     return null
   }

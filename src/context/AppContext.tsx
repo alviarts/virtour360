@@ -24,6 +24,7 @@ import {
 } from "../lib/db"
 import { isRemote, isServerMode } from "../lib/supabase"
 import { getAuthToken, setAuthToken } from "../lib/authToken"
+import { makePublicUid } from "../lib/publicStore"
 import { normalizeEffects, type SceneEffects } from "../lib/effects"
 import {
   loadRemoteState,
@@ -37,6 +38,8 @@ export interface User {
   name: string
   email: string
   initials: string
+  /** UID publik pembuat, dibuat saat mendaftar — dipakai link profile. */
+  uid?: string
 }
 
 /** Project dibuat dari Dashboard sebelum masuk Studio. */
@@ -45,6 +48,13 @@ export interface Project {
   name: string
   category: string
   createdAt: number
+}
+
+/** Jejak aktivitas supaya perubahan terlihat (weblog lokal). */
+export interface ActivityEntry {
+  id: string
+  text: string
+  at: number
 }
 
 interface StoredUser extends User {
@@ -122,6 +132,10 @@ export interface AppContextValue {
   setActiveProject: (id: string) => void
   removeProject: (id: string) => void
 
+  activity: ActivityEntry[]
+  logActivity: (text: string) => void
+  clearActivity: () => void
+
   authOpen: boolean
   setAuthOpen: (open: boolean) => void
   uploadOpen: boolean
@@ -150,6 +164,7 @@ const QUALITY_KEY = "virtour360.imageQuality"
 const STUDIO_CONFIG_KEY = "virtour360.studioConfig"
 const PROJECTS_KEY = "virtour360.projects"
 const ACTIVE_PROJECT_KEY = "virtour360.activeProject"
+const ACTIVITY_KEY = "virtour360.activity"
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -294,6 +309,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(() => localStorage.getItem(ACTIVE_PROJECT_KEY))
   const activeProject = projects.find((p) => p.id === activeProjectId) ?? null
 
+  const [activity, setActivity] = useState<ActivityEntry[]>(() => readJSON<ActivityEntry[]>(ACTIVITY_KEY, []))
+  const logActivity = useCallback((text: string) => {
+    setActivity((prev) => {
+      const next = [{ id: uid("act"), text, at: Date.now() }, ...prev].slice(0, 30)
+      persist(ACTIVITY_KEY, next)
+      return next
+    })
+  }, [])
+  const clearActivity = useCallback(() => {
+    setActivity([])
+    persist(ACTIVITY_KEY, [])
+  }, [])
+
   const createProject = useCallback((name: string, category: string): Project => {
     const project: Project = {
       id: `prj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -308,8 +336,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
     setActiveProjectId(project.id)
     localStorage.setItem(ACTIVE_PROJECT_KEY, project.id)
+    logActivity(`Project "${project.name}" dibuat · ${project.category}`)
     return project
-  }, [])
+  }, [logActivity])
 
   const setActiveProject = useCallback((id: string) => {
     setActiveProjectId(id)
@@ -326,7 +355,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setActiveProjectId(null)
       localStorage.removeItem(ACTIVE_PROJECT_KEY)
     }
-  }, [activeProjectId])
+    logActivity("Project dihapus")
+  }, [activeProjectId, logActivity])
   const [activeSceneId, setActiveSceneId] = useState<string>("atrium")
   const [audioByScene, setAudioByScene] = useState<Record<string, SceneAudio>>({})
   const [assetMedia, setAssetMedia] = useState<Record<string, SceneMedia>>({})
@@ -507,9 +537,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return "Email sudah terdaftar. Silakan login."
     }
     if (password.length < 6) return "Password minimal 6 karakter."
-    const next: StoredUser = { name: name.trim(), email: email.trim(), password, initials: makeInitials(name) }
+    const next: StoredUser = { name: name.trim(), email: email.trim(), password, initials: makeInitials(name), uid: makePublicUid() }
     localStorage.setItem(USERS_KEY, JSON.stringify([...users, next]))
-    const session: User = { name: next.name, email: next.email, initials: next.initials }
+    const session: User = { name: next.name, email: next.email, initials: next.initials, uid: next.uid }
     const didReset = await resetWorkspaceIfOwnerChanged(session.email)
     localStorage.setItem(SESSION_KEY, JSON.stringify(session))
     setUser(session)
@@ -552,7 +582,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const found = readUsers().find((u) => u.email.toLowerCase() === email.trim().toLowerCase())
     if (!found) return "Akun tidak ditemukan. Silakan daftar dulu."
     if (found.password !== password) return "Password salah."
-    const session: User = { name: found.name, email: found.email, initials: found.initials }
+    const resolvedUid = found.uid ?? makePublicUid()
+    if (!found.uid) {
+      localStorage.setItem(
+        USERS_KEY,
+        JSON.stringify(readUsers().map((u) => (u.email === found.email ? { ...u, uid: resolvedUid } : u))),
+      )
+    }
+    const session: User = { name: found.name, email: found.email, initials: found.initials, uid: resolvedUid }
     const didReset = await resetWorkspaceIfOwnerChanged(session.email)
     localStorage.setItem(SESSION_KEY, JSON.stringify(session))
     setUser(session)
@@ -608,6 +645,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: name.trim(),
         email: email.trim(),
         initials: makeInitials(name),
+        uid: user.uid,
       }
       localStorage.setItem(SESSION_KEY, JSON.stringify(session))
       setUser(session)
@@ -982,7 +1020,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         tags: ["360°", "Upload"],
       },
     }))
-    return [...staticScenes, ...uploaded]
+    // Akun baru mulai dari nol: tidak ada scene/template bawaan.
+    // Template hanya dipakai mode tamu untuk demo publik.
+    const base = user ? [] : staticScenes
+    return [...base, ...uploaded]
       .map((scene) => ({
         ...scene,
         ...(sceneGroupOverrides[scene.id] ? { group: sceneGroupOverrides[scene.id] } : {}),
@@ -1040,6 +1081,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createProject,
         setActiveProject,
         removeProject,
+        activity,
+        logActivity,
+        clearActivity,
         effectsByScene,
         setSceneEffects,
         resetSceneEffects,

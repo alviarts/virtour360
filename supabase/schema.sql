@@ -6,6 +6,7 @@ create table if not exists public.virtour_users (
   email text primary key,
   name text not null,
   initials text not null,
+  uid text,
   password_hash text not null,
   created_at timestamptz not null default now()
 );

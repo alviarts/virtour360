@@ -14,6 +14,7 @@ import { useTourViewer, type Quality } from "./hooks/useTourViewer"
 import { useFullscreen } from "./hooks/useFullscreen"
 import { useHotkeys } from "./hooks/useHotkeys"
 import { useApp } from "./context/useApp"
+import { theme } from "./config/theme"
 import { profile } from "./data/profile"
 import { navigate } from "./lib/navigation"
 import { publicShareUrl } from "./lib/publicStore"
@@ -145,6 +146,7 @@ export default function App() {
     effectsByScene,
     studioConfig,
     activeProject,
+    logActivity,
   } = useApp()
 
   const currentEffects = effectsByScene[activeSceneId] ?? defaultEffects
@@ -351,6 +353,7 @@ export default function App() {
         </>
       )}
 
+      {scenes.length ? (
       <TourViewer
         containerRef={tour.containerRef}
         scene={tour.currentScene}
@@ -396,8 +399,8 @@ export default function App() {
         onExitPreview={() => setPreview(false)}
         prevScene={scenes[(currentIndex - 1 + scenes.length) % scenes.length]}
         nextScene={scenes[(currentIndex + 1) % scenes.length]}
-        onPrevScene={() => tour.goToScene(scenes[(currentIndex - 1 + scenes.length) % scenes.length].id)}
-        onNextScene={() => tour.goToScene(scenes[(currentIndex + 1) % scenes.length].id)}
+        onPrevScene={() => tour.goToScene(scenes[(currentIndex - 1 + scenes.length) % scenes.length]?.id ?? "")}
+        onNextScene={() => tour.goToScene(scenes[(currentIndex + 1) % scenes.length]?.id ?? "")}
         audioName={audioByScene[tour.currentScene.id]?.name}
         onRemoveAudio={() => {
           void removeSceneAudio(tour.currentScene.id).then(() => notify("Audio dihapus."))
@@ -410,6 +413,23 @@ export default function App() {
         onClearSelectedHotspot={tour.clearSelectedHotspot}
         onUploadAudio={() => audioInputRef.current?.click()}
       />
+      ) : (
+        <main
+          className="absolute bottom-0 top-0 grid place-items-center bg-zinc-950 px-6 text-center text-zinc-200"
+          style={{ left: theme.size.sidebar, right: preview ? 0 : theme.size.inspector }}
+        >
+          <div className="max-w-sm">
+            <div className="mx-auto grid size-16 place-items-center rounded-2xl border border-zinc-800 bg-zinc-900 text-2xl">360°</div>
+            <h2 className="mt-5 text-lg font-semibold text-white">Belum ada scene</h2>
+            <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+              Project "{activeProject?.name ?? "baru"}" masih kosong. Unggah panorama 360° pertama untuk mulai menyusun tour.
+            </p>
+            <button onClick={() => setUploadOpen(true)} className="mt-5 h-9 rounded-full bg-white px-4 text-xs font-semibold text-black hover:bg-zinc-200">
+              Unggah panorama
+            </button>
+          </div>
+        </main>
+      )}
 
       {!preview && (
         <>
@@ -434,15 +454,6 @@ export default function App() {
             onRemoveAudio={() => void removeSceneAudio(tour.currentScene.id)}
             audioName={audioByScene[tour.currentScene.id]?.name}
           />
-
-          {!tour.isReady && (
-            <div className="absolute bottom-0 left-60 right-[260px] top-0 z-40 grid place-items-center bg-zinc-950/70 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-3">
-                <span className="size-8 animate-spin rounded-full border-2 border-zinc-700 border-t-amber-400" />
-                <span className="text-xs text-zinc-400">Menyiapkan panorama⬦</span>
-              </div>
-            </div>
-          )}
 
           <div className="pointer-events-none absolute bottom-3 right-[272px] z-10 hidden text-[10px] text-zinc-600 lg:block">
             {user?.name ?? profile.name} · {tour.currentScene.project.title} · {tour.currentScene.project.year}
@@ -477,6 +488,7 @@ export default function App() {
           onPublished={(uid) => {
             setPublishedUid(uid)
             localStorage.setItem("virtour360.publishedUid", uid)
+            logActivity(`Tour dipublish · /p/${uid}`)
             notify("Link, QR, dan embed siap dibagikan.")
           }}
         />
