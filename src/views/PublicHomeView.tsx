@@ -338,6 +338,55 @@ export function PublicHomeView() {
           {results.length === 0 && <p className="py-12 text-center text-[13px] text-[#8C97A8]">Tidak ada panorama yang cocok.</p>}
         </section>
 
+        <section id="home-product" className="mt-24">
+          <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
+            <div>
+              <h2 className="text-[17px] font-medium tracking-[-0.02em] text-[#F5F7FA]">Satu ruang dari panorama ke publik</h2>
+              <p className="mt-1 text-[12px] text-[#8C97A8]">Ini tampilan aslinya: susun scene, atur hotspot, lalu bagikan.</p>
+            </div>
+            <span className="flex items-center gap-2 font-[family-name:var(--font-mono)] text-[10px] text-[#5F6B7C]">
+              <RingTicks count={8} /> 03 layar
+            </span>
+          </div>
+
+          <div className="relative mt-8 h-[520px] sm:hidden">
+            <img src="/media/screens/studio-editor.jpg" alt="Tampilan editor Virtour360" className="h-full w-full rounded-md border border-[#202A3A] object-cover object-left-top" />
+          </div>
+
+          <div className="relative mt-8 hidden h-[560px] sm:block">
+            {/* Latar: bayangan lembut + garis hairline */}
+            <div className="pointer-events-none absolute inset-x-10 bottom-8 top-16 rounded-xl border border-[#202A3A]/60 bg-[#0F1521]/40" />
+            <div className="pointer-events-none absolute left-1/2 top-1/2 h-px w-[80%] -translate-x-1/2 bg-[#7AA2FF]/10" />
+
+            <figure className="absolute left-0 top-0 w-[70%] overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521] shadow-[0_40px_90px_-40px_rgba(0,0,0,0.95)] transition-transform duration-500 hover:-translate-y-1 hover:rotate-0"
+              style={{ transform: "perspective(1200px) rotateY(6deg) rotateX(2deg)" }}>
+              <img src="/media/screens/studio-editor.jpg" alt="Editor scene dan hotspot" className="w-full object-cover" />
+              <figcaption className="border-t border-[#202A3A] bg-[#0F1521] px-3 py-2 font-[family-name:var(--font-mono)] text-[10px] text-[#8C97A8]">01 · studio / scene editor</figcaption>
+            </figure>
+
+            <figure className="absolute right-0 top-[26%] z-20 w-[50%] overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.95)] transition-transform duration-500 hover:-translate-y-1"
+              style={{ transform: "perspective(1000px) rotateY(-7deg)" }}>
+              <img src="/media/screens/studio-design.jpg" alt="Panel Design" className="w-full object-cover" />
+              <figcaption className="border-t border-[#202A3A] bg-[#0F1521] px-3 py-2 font-[family-name:var(--font-mono)] text-[10px] text-[#8C97A8]">02 · design / theme</figcaption>
+            </figure>
+
+            <figure className="absolute bottom-0 left-[6%] z-30 w-[54%] overflow-hidden rounded-lg border border-[#202A3A] bg-[#0F1521] shadow-[0_26px_60px_-26px_rgba(0,0,0,0.95)] transition-transform duration-500 hover:-translate-y-1"
+              style={{ transform: "perspective(1000px) rotateX(4deg)" }}>
+              <img src="/media/screens/portfolio.jpg" alt="Halaman publik setelah publish" className="w-full object-cover" />
+              <figcaption className="border-t border-[#202A3A] bg-[#0F1521] px-3 py-2 font-[family-name:var(--font-mono)] text-[10px] text-[#8C97A8]">03 · /p/&lt;uid&gt; / publik</figcaption>
+            </figure>
+
+            <figure className="absolute bottom-[6%] right-0 z-40 w-[38%] overflow-hidden rounded-md border border-[#202A3A] bg-[#0F1521] shadow-[0_22px_50px_-24px_rgba(0,0,0,0.95)]">
+              <img src="/media/screens/studio-hotspot.jpg" alt="Popup hotspot konten" className="w-full object-cover" />
+              <figcaption className="border-t border-[#202A3A] bg-[#0F1521] px-2.5 py-1.5 font-[family-name:var(--font-mono)] text-[9px] text-[#8C97A8]">04 · hotspot / content</figcaption>
+            </figure>
+
+            <span className="absolute right-[8%] top-[4%] z-50 flex items-center gap-2 rounded-md border border-[#202A3A] bg-[#0A0E17]/90 px-2.5 py-1.5 font-[family-name:var(--font-mono)] text-[10px] text-[#7AA2FF] backdrop-blur">
+              <RingTicks count={8} /> 360° pipeline
+            </span>
+          </div>
+        </section>
+
         <section id="home-creators" className="mt-16">
           <div className="flex items-end justify-between border-b border-[#202A3A] pb-3">
             <div>

@@ -43,6 +43,9 @@ Supaya tidak terasa kaku dan datar, hero disusun sebagai tumpukan lima lapisan:
 
 Grid explore memakai offset vertikal berselang dan kartu unggulan yang menimpa batas seksi. Parallax terikat pada gerakan pointer (user-controlled), bukan autoplay. `prefers-reduced-motion` tetap mematikan drift.
 
+## Aset produk
+Empat tangkapan layar asli aplikasi disimpan di `public/media/screens/` (`studio-editor`, `studio-design`, `studio-hotspot`, `portfolio`). Home menampilkannya dalam susunan bertumpuk dengan perspektif ringan dan caption monospace — mengikuti prinsip Linear/Vercel bahwa antarmuka produk sendiri adalah ilustrasi utama, bukan gambar stok.
+
 ## Referensi lain yang dipertimbangkan
 - Vercel / Geist — editorial monokrom, dua tombol hero.
 - Awwwards immersive (aengel.io, bruno-simon.com) — scene penuh viewport, scroll-driven.
