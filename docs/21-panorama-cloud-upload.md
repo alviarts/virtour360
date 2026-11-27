@@ -41,7 +41,9 @@ Akar teknisnya:
 2. `src/lib/remoteStore.ts`:
    - `uploadAssetFile(id, file, kind)` dipakai untuk ketiga jenis aset.
    - Mode server meminta signed URL ke `/api/storage`, lalu browser meng-upload
-     langsung ke Supabase Storage dengan `uploadToSignedUrl()`.
+     langsung ke Supabase Storage memakai `PUT` biasa ke `signedUrl` (tanpa klien
+     Supabase di browser). Ini penting karena build produksi sengaja tidak
+     menyertakan klien Supabase publishable key.
    - Ini menghindari batas body 4,5 MB Vercel Function sekaligus tidak
      memerlukan kebijakan RLS anon untuk insert.
    - `removeStorageFile(url)` dipakai saat aset dihapus/diganti.
@@ -81,9 +83,14 @@ bisa dibuka siapa pun dengan panorama penuh dan audio.
 
 ```text
 npm run typecheck   ✅
-npm test            ✅ 46/46
+npm test            ✅ 48/48
 npm run build       ✅
 ```
+
+QA lanjutan menemukan satu miss produksi: `uploadAssetFile()` masih kembali `null`
+lebih awal saat `supabase` browser bernilai `null`, sehingga endpoint `/api/storage`
+tidak pernah dipanggil. Sekarang mode server memakai `fetch(signedUrl, { method: "PUT" })`
+dan diuji di `tests/storage-upload.test.ts` dengan klien Supabase sengaja di-mock `null`.
 
 Hasil verifikasi produksi setelah deploy (`75c905c`, bundle `index-BmO99spc.js`):
 

@@ -116,11 +116,12 @@ export async function uploadAssetFile(
   file: File | Blob,
   kind: UploadKind = "panorama",
 ): Promise<string | null> {
-  if (!supabase) return null
   const contentType = file.type || (kind === "audio" ? "audio/mpeg" : "image/jpeg")
   const ext = extensionFor(contentType, kind)
 
   if (isServerMode) {
+    // Mode server tidak perlu klien Supabase di browser: service key ada di Vercel
+    // Function, dan upload dilakukan langsung ke signed URL dengan fetch biasa.
     const response = await fetch("/api/storage", {
       method: "POST",
       headers: {
@@ -129,17 +130,26 @@ export async function uploadAssetFile(
       },
       body: JSON.stringify({ id, contentType, kind }),
     })
-    const json = (await response.json()) as { path?: string; token?: string; publicUrl?: string; error?: string }
-    if (!response.ok || !json.path || !json.token || !json.publicUrl) {
+    const json = (await response.json()) as {
+      path?: string
+      token?: string
+      signedUrl?: string
+      publicUrl?: string
+      error?: string
+    }
+    if (!response.ok || !json.signedUrl || !json.publicUrl) {
       throw new Error(json.error || "Gagal menyiapkan upload aset.")
     }
-    const { error } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .uploadToSignedUrl(json.path, json.token, file, { contentType, upsert: true })
-    if (error) throw error
+    const uploaded = await fetch(json.signedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": contentType, "x-upsert": "true" },
+      body: file,
+    })
+    if (!uploaded.ok) throw new Error("Gagal mengunggah aset ke Supabase Storage.")
     return json.publicUrl
   }
 
+  if (!supabase) return null
   const path = kind === "panorama" ? `${id}.${ext}` : `${kind}/${id}.${ext}`
   const { error } = await supabase.storage
     .from(STORAGE_BUCKET)
@@ -155,7 +165,7 @@ export async function uploadPanoramaFile(id: string, file: File | Blob): Promise
 
 /** Hapus object Storage dari URL publik (berlaku untuk semua jenis aset). */
 export async function removeStorageFile(url: string | undefined): Promise<void> {
-  if (!supabase || !url) return
+  if (!url) return
   if (isServerMode) {
     const response = await fetch("/api/storage", {
       method: "DELETE",
@@ -168,6 +178,7 @@ export async function removeStorageFile(url: string | undefined): Promise<void> 
     if (!response.ok) throw new Error("Gagal menghapus aset di Storage.")
     return
   }
+  if (!supabase) return
   const marker = `/${STORAGE_BUCKET}/`
   const index = url.indexOf(marker)
   if (index < 0) return
