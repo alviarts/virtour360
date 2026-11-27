@@ -175,3 +175,12 @@ Semua perubahan dicatat di sini. Format: tanggal, area, perubahan, alasan.
 - Deploy produksi: https://virtour360-lemon.vercel.app
 - Alias lama `portfolio-360-lemon.vercel.app` tetap aktif.
 - Perbaikan: BOM di `vercel.json` dihapus, `.vercel` link di-rebuild.
+
+## 2026-11-27 — QA lanjutan: keamanan publish & tombol login
+- Endpoint publish/state diamankan: POST/DELETE butuh sesi, kunci state tamu dibatasi `guest:`.
+- Password gate dipindah ke server (cookie httpOnly); `passwordHash` tidak dikirim ke pengunjung.
+- Tombol **Masuk/Create/Upload your own 360** di halaman profil publik kini membuka
+  halaman login/signup baru (`#/login`, `#/signup`), bukan modal lama.
+- Verifikasi produksi: `POST /api/public` tanpa token → 401, `GET /api/state?key=virtour:pub:*` → 403,
+  publish + hapus dengan token → 200, klik Masuk → `#/login`, 0 error konsol.
+- Test: 55/55, typecheck & build hijau. Detail: [22-publish-security.md](22-publish-security.md).
