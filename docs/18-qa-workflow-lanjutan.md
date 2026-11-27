@@ -43,7 +43,7 @@ Dokumen ini mencatat pengecekan satu per satu terhadap masukan browser dan perba
 ## 7. Tombol Home di tour publish
 - **Masalah:** tombol mengarah ke `#/home`; user ingin kembali ke portofolio user.
 - **Perbaikan:** `PublicTourView.tsx` memakai `navigateProfile(ownerName, ownerUid)`; `ownerName` dari `payload.profile.name`/slug, `ownerUid` dipakai bila user login sebagai pemilik. Tombol dan `onClose` viewer memakai handler yang sama, teks "Portofolio".
-- **QA:** tanpa login → `#/u/awe`; setelah login → `#/u/awe-693f28`. Keduanya menampilkan `360° posts — awe` dan `Virtual tours — awe`.
+- **QA:** tanpa login → `#/u/awe`; setelah login → `#/u/awe-ea8520` (UID turunan email karena kolom `uid` belum ada di tabel Supabase). Keduanya menampilkan `360° posts — awe` dan `Virtual tours — awe`.
 
 ## 8. Dashboard tetap "perlu login" setelah logout
 - **Fakta:** ini guard yang bekerja (`Root.tsx` menampilkan `LoginRequired` bila `view` privat dan `user === null`), bukan bug sesi. Namun pengalaman user membingungkan karena hash masih `#/dashboard`.
@@ -62,9 +62,17 @@ Dokumen ini mencatat pengecekan satu per satu terhadap masukan browser dan perba
 - **QA Supabase:** REST `virtour_state`/`virtour_users` → 200; `supabase-js` membaca 5 baris `virtour:pub:*`; publish uji `qa-browser-write-zzz9` → `ok: true`, muncul di feed, lalu dihapus; sisipan baris uji lewat REST menaikkan hitungan 6 → 7 dalam ≤5,5 detik via polling, penghapusan kembali ke 6; websocket Realtime terhubung (`wss://.../realtime/v1/websocket`) namun event belum masuk <1,8 detik karena tabel belum masuk publication.
 - **Belum selesai di sisi Dashboard Supabase:** bucket `panoramas` belum ada (`NoSuchBucket`) dan `virtour_state` perlu ditambahkan ke `supabase_realtime` publication. Query SQL ada di `docs/19-koneksi-supabase.md`. Sampai dijalankan, upload panorama memakai fallback lokal dan feed memakai polling 2,5 detik.
 
+## 11. Semua akun dipindah ke Supabase
+- **Permintaan:** "semuanya supabase dong, bahkan user:password:email".
+- **Keputusan:** tidak memakai Supabase Auth/GoTrue karena project mengaktifkan konfirmasi email dan signup kena `429 email rate limit exceeded`. Akun disimpan di tabel `virtour_users` yang sudah ada, memakai `password_hash` scrypt format `salt:hash` yang identik dengan `api/_auth.js`.
+- **Perubahan:** `src/lib/authRemote.ts` baru (hash/verifikasi scrypt via `@noble/hashes`, CRUD `virtour_users`, UID turunan SHA-256 bila kolom `uid` belum ada, migrasi akun lokal sekali saat login). `AppContext` memakai fungsi itu untuk register/login/profile/password dan memvalidasi sesi ke Supabase saat mount. `logout()` ikut menghapus sisa `virtour360.users`. `ProfileModal` kini menyebut Supabase bila `isRemote`.
+- **Kompatibilitas:** hash scrypt lama di tabel (salt hex dipakai sebagai string UTF-8) diverifikasi dengan benar di browser — akun `awe@gmail.com` langsung bisa login tanpa dibuat ulang.
+- **QA akun uji:** daftar `qa-supabase@example.com` lewat UI → baris dibuat, `plain: false`; profil diubah → nama remote `QA Supabase Pro`; password diubah → hash berubah `2a1ba936…` → `1685df44…`; password lama ditolak, baru diterima; akun uji dihapus (`DELETE 204`).
+- **QA regresi:** logout → login ulang stabil, `virtour360.users = null`, 0 error console; sweep 10 rute 0 error/gambar rusak/overflow.
+
 ## Verifikasi akhir
 - `npm run typecheck` ✅
 - `npm test` — 46/46 ✅
 - `npm run build` ✅
-- Browser sweep 21 rute: 0 error console, 0 `src=""`, 0 gambar rusak, 0 overflow horizontal ✅
+- Browser sweep 10 rute pasca-auth: 0 error console, 0 `src=""`, 0 gambar rusak, 0 overflow horizontal ✅
 - End-to-end: login → pindah project → pratinjau → collapse per grup → salin link → publish per project → feed Customers → klik tour → kembali ke profil → logout → Home ✅

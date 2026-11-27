@@ -92,11 +92,14 @@ muncul gambar rusak di device lain). Untuk panorama lintas device, pakai Opsi B.
 ### Opsi B — Mode klien (anon public key)
 
 1. SQL Editor → jalankan `supabase/schema.sql`
-2. Settings → API → ambil **Project URL** + **anon public** key (diawali `eyJ...`)
+2. Settings → API → ambil **Project URL** + **publishable/anon public** key
+   (`sb_publishable_...` atau anon key lama `eyJ...`)
 3. Isi `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`, lalu build/deploy ulang
 
 Kelebihannya: panorama yang diunggah ikut tersimpan di Supabase Storage
-(bucket `panoramas`) dan bisa dibuka dari device lain.
+(bucket `panoramas`) dan bisa dibuka dari device lain. Akun (email, nama, dan
+`password_hash` scrypt) juga tersimpan di `virtour_users` — browser tidak lagi
+menyimpan password plaintext. Detail: `docs/19-koneksi-supabase.md`.
 
 > ⚠️ Jangan pernah memasukkan `sb_secret_...`, `service_role`, atau password DB
 > ke env berprefix `VITE_` — nilainya ikut ter-bundle ke browser.

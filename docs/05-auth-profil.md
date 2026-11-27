@@ -10,8 +10,8 @@
 
 | Aspek | Temuan |
 | --- | --- |
-| Provider auth | **Bukan Supabase Auth**. Akun disimpan di tabel `public.virtour_users` (email + `password_hash` scrypt) melalui Vercel Function `/api/auth`. Di mode lokal akun disimpan plaintext di `localStorage`. |
-| Metode | Email + password saja. **Tidak ada** magic link, OAuth/Google, email verification, forgot/reset password, 2FA. |
+| Provider auth | **Bukan Supabase Auth**, tetapi semua akun ada di Supabase: tabel `public.virtour_users` (email + nama + `password_hash` scrypt). Mode klien menulis tabel itu langsung dengan publishable key; mode server memakai `/api/auth`. Akun lokal plaintext hanya dipakai bila env Supabase kosong. |
+| Metode | Email + password saja. **Tidak ada** magic link, OAuth/Google, email verification, forgot/reset password, 2FA. Sengaja memakai tabel (bukan GoTrue) supaya tidak menunggu konfirmasi email dan tidak kena rate limit signup. |
 | Token | Custom HMAC-SHA256 "T token" (`base64url(payload).base64url(sig)`, berlaku 30 hari), disimpan di `localStorage` key `virtour360.token`, dikirim sebagai `Bearer`. |
 | Session restore | `/api/auth` GET saat mount hanya jika token ada; token invalid/expired dihapus. |
 | Guard | Hash-router: `#/studio` dan `#/dashboard` menampilkan `LoginRequired` bila `user === null`. `#/home`, `#/portfolio`, `#/p/<uid>` publik. |
@@ -28,12 +28,12 @@ Sumber: `src/lib/supabase.ts:3-35`, `src/context/AppContext.tsx:117-128`, `.env.
 
 | Mode | Syarat | Akun & sesi | Data workspace | Deploy live |
 | --- | --- | --- | --- | --- |
-| **Lokal** (default) | env kosong | `localStorage`: `virtour360.users` (berisi `password` plaintext), `virtour360.session` | `localStorage` + IndexedDB (`virtour360`, store `panoramas`/`assets`) | Tidak |
-| **Server** (direkomendasikan) | `VITE_USE_SERVER_DB=1` + `SUPABASE_URL` + `SUPABASE_SECRET_KEY` di Vercel | `/api/auth` → tabel `virtour_users`; password di-hash scrypt di server; token HMAC | `/api/state`, key `user:<email>` / `guest:<id>` | **Ya** (terverifikasi, lihat §10) |
-| **Klien** | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` | Akun tetap lokal; Supabase hanya dipakai untuk state & Storage | `virtour_state` via anon key + bucket `panoramas` | Tidak |
+| **Lokal** (fallback) | env kosong | `localStorage`: `virtour360.users` (berisi `password` plaintext), `virtour360.session` | `localStorage` + IndexedDB (`virtour360`, store `panoramas`/`assets`) | Tidak |
+| **Server** | `VITE_USE_SERVER_DB=1` + `SUPABASE_URL` + `SUPABASE_SECRET_KEY` di Vercel | `/api/auth` → tabel `virtour_users`; password di-hash scrypt di server; token HMAC | `/api/state`, key `user:<email>` / `guest:<id>` | **Ya** (terverifikasi, lihat §10) |
+| **Klien** (aktif sekarang) | `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (publishable) | `virtour_users` via publishable key; password di-hash scrypt di browser (`@noble/hashes`) dengan format identik `/api/_auth.js`; sesi adalah cermin lokal dan divalidasi ke Supabase saat mount | `virtour_state` via publishable key + bucket `panoramas` | Tidak |
 
 Catatan kode:
-- `supabase` client browser dibuat hanya jika URL ada dan anon key **bukan** `sb_secret_*`/`service_role`; secret ditolak dengan `console.warn` (`supabase.ts:10-27`). `persistSession: false` — Supabase Auth tidak menyimpan sesi.
+- `supabase` client browser dibuat hanya jika URL ada dan anon key **bukan** `sb_secret_*`/`service_role`; secret ditolak dengan `console.warn` (`supabase.ts:10-27`). `persistSession: false` — GoTrue tidak dipakai.
 - `isRemote = isServerMode || supabase !== null` (`supabase.ts:30-32`); sinkronisasi state di `AppContext.tsx:321-392` (debounce 800 ms untuk save).
 - `SHARED_STATE_ID = "virtour360-shared"` (`supabase.ts:35`) — fallback state bersama; di bundle live konstanta ini ter-tree-shake karena mode server aktif.
 
@@ -67,7 +67,13 @@ Catatan kode:
 - `login` → `api/auth.js:47-58`: email dinormalisasi, 404 "Akun tidak ditemukan. Silakan daftar dulu." bila tidak ada, 401 "Password salah." bila hash cocok, kembalikan token + user.
 - Keduanya: `setAuthToken(token)` → `localStorage.setItem("virtour360.session", JSON.stringify(user))` → `setUser(session)`.
 
-**Mode lokal** (`AppContext.tsx:421-443`, `464-483`): baca `virtour360.users`; email duplikat → error; login mencocokkan `found.password !== password` (plaintext); buat session `{name, email, initials}`.
+**Mode klien Supabase** (`src/lib/authRemote.ts`):
+- `register` → `remoteSignUp()`: cek duplikat lewat `GET /rest/v1/virtour_users`, hash password dengan scrypt `N=16384, r=8, p=1, dkLen=64` (salt hex 16 byte dipakai sebagai teks, sama seperti `api/_auth.js`), lalu `POST /rest/v1/virtour_users`. Kolom `uid` opsional — bila belum ada di schema, UID turunan SHA-256(email) dipakai.
+- `login` → `remoteSignIn()`: ambil baris email, verifikasi hash scrypt di browser. Bila baris belum ada tetapi akun lokal lama ada di `virtour360.users` dengan password yang sama, akun itu dimigrasikan sekali ke Supabase lalu localStorage users dihapus.
+- `updateProfile` / `changePassword` → `PATCH /rest/v1/virtour_users` lewat publishable key. Tidak ada password plaintext yang disimpan lokal.
+- Sesi tetap dicermin ke `virtour360.session`, tetapi saat mount `remoteValidateSession(email)` memastikan akun masih ada di Supabase; kalau tidak, sesi dihapus.
+
+**Mode lokal fallback** (`AppContext.tsx`): baca `virtour360.users`; email duplikat → error; login mencocokkan `found.password !== password` (plaintext); buat session `{name, email, initials}`. Hanya dipakai bila tidak ada env Supabase.
 
 **Pergantian identitas**: `resetWorkspaceIfOwnerChanged(email)` (`AppContext.tsx:177-188`) menyimpan `virtour360.owner = email`; bila pemilik berubah, key `hotspots`, `media`, `favorites`, `effects`, `groups`, `sceneOrder`, `sceneGroups`, `imageQuality` dihapus dan IndexedDB dikosongkan via `clearAllLocalData()` (`src/lib/db.ts:43-57`). Di mode server daftar reset lebih pendek (tidak termasuk groups/order/quality — `AppContext.tsx:455-461`).
 
@@ -143,7 +149,7 @@ Menampilkan ikon `User`, teks "Anda sedang melihat sebagai **publik**. Masuk dip
 
 - Pesan error merah dan sukses hijau di `ProfileModal.tsx:156-157`; tombol "Simpan profil" / "Simpan password" di `:159-161`.
 - **Yang TIDAK ada**: avatar/foto profil, bio, nomor telepon/kontak, lokasi, link social, username, preferensi notifikasi, hapus akun, export data. Inisial dihitung otomatis dari nama (`AppContext.tsx:151-153`, `api/auth.js:4-6`).
-- Subtitle modal **"Perubahan disimpan di browser ini."** (`ProfileModal.tsx:48`) — **menyesatkan di mode server**: `updateProfile`/`changePassword` justru menulis ke DB via `/api/auth` (`AppContext.tsx:494-501`, `:530-533`; `api/auth.js:62-85`).
+- Subtitle modal kini dinamis (`ProfileModal.tsx`): **"Akun, email, dan password tersimpan di Supabase."** bila `isRemote`, otherwise "Perubahan disimpan di browser ini." prior bug teks menyesatkan sudah diperbaiki.
 - `updateProfile` (server): validasi nama ≥ 2, email regex, cek email dipakai akun lain → 409 "Email sudah dipakai akun lain.", update `virtour_users`, terbitkan token baru. **Email adalah primary key**, jadi mengubah email mengubah identitas; `OWNER_KEY` dan key state lama tidak ikut dimigrasi → workspace remote tampak kosong sampai data disalin manual. Mode lokal: validasi serupa di `AppContext.tsx:503-522`.
 - `changePassword` (server): validasi password baru ≥ 6, verifikasi password lama via scrypt → 401 "Password lama salah." (`api/auth.js:77-85`). Mode lokal: `AppContext.tsx:535-542` (plaintext).
 
@@ -228,7 +234,7 @@ Catatan: interaksi klik modal login tidak dapat dilakukan karena browser tidak t
 8. **Publish "Draft"/"Password" palsu**: opsi access tidak memengaruhi payload maupun endpoint publik (§7). Jangan menganggap link "draft" bersifat privat.
 9. **Profil publik bukan profil akun**: bio/email/website/lokasi berasal dari data demo statis (`profile.ts`), sehingga pengguna tidak bisa mengubah "profil publik" yang tampil di portofolio.
 10. **Perubahan email = perubahan identitas** tanpa migrasi `owner`/state key; potensi kehilangan akses ke workspace lama (§6).
-11. **Teks UI menyesatkan**: "Perubahan disimpan di browser ini." padahal server mode menyimpan ke DB; README menyebut prefix `public:<id>` padahal kode memakai `guest:<id>`.
+11. ~~Teks UI menyesatkan "Perubahan disimpan di browser ini."~~ **Sudah diperbaiki** — subtitle modal mengikuti `isRemote`. Catatan lama README tentang prefix `public:<id>` juga sudah tidak relevan; kode memakai `guest:<id>`.
 12. **Tidak ada upload avatar, social, bio, kontak, peran, tim, atau invite** — bila produk menuntut fitur tersebut, semuanya harus dibangun dari nol (tabel baru + RLS + UI).
 
 ---

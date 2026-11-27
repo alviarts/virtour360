@@ -23,6 +23,14 @@ import {
   type StoredPanorama,
 } from "../lib/db"
 import { isRemote, isServerMode } from "../lib/supabase"
+import {
+  isAuthRemote,
+  remoteChangePassword,
+  remoteSignIn,
+  remoteSignUp,
+  remoteUpdateProfile,
+  remoteValidateSession,
+} from "../lib/authRemote"
 import { getAuthToken, setAuthToken } from "../lib/authToken"
 import { makePublicUid } from "../lib/publicStore"
 import { normalizeEffects, type SceneEffects } from "../lib/effects"
@@ -476,6 +484,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .catch(() => setAuthToken(""))
   }, [])
 
+  // Sesi lokal hanya cermin akun Supabase: validasi saat mount supaya akun
+  // yang dihapus di Supabase tidak tetap login di browser.
+  useEffect(() => {
+    if (!isAuthRemote()) return
+    const cached = readJSON<User | null>(SESSION_KEY, null)
+    if (!cached?.email) return
+    let alive = true
+    void remoteValidateSession(cached.email)
+      .then((valid) => {
+        if (alive && !valid) {
+          localStorage.removeItem(SESSION_KEY)
+          setUser(null)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      alive = false
+    }
+  }, [])
+
   useEffect(() => {
     getPanoramas()
       .then(setPanoramas)
@@ -610,6 +638,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return null
     }
+    if (isAuthRemote()) {
+      if (password.length < 6) return "Password minimal 6 karakter."
+      const result = await remoteSignUp(name, email, password)
+      if (!result.ok || !result.user) return result.error || "Gagal mendaftar."
+      const didReset = await resetWorkspaceIfOwnerChanged(result.user.email)
+      persist(SESSION_KEY, result.user)
+      setUser(result.user)
+      // Akun lokal lama tidak diperlukan lagi — semua kredensial ada di Supabase.
+      localStorage.removeItem(USERS_KEY)
+      if (didReset) {
+        setPanoramas([])
+        setHotspotOverrides({})
+        setMediaOverrides({})
+        setFavorites([])
+        setEffectsByScene({})
+        setGroups(["Uncategory"])
+        setSceneOrder({})
+        setSceneGroupOverrides({})
+        setImageQualityState("standard")
+        setStudioConfig(normalizeStudioConfig(null))
+        setProjects([])
+        setActiveProjectId(null)
+        localStorage.removeItem(ACTIVE_PROJECT_KEY)
+      }
+      return null
+    }
     const users = readUsers()
     if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
       return "Email sudah terdaftar. Silakan login."
@@ -657,6 +711,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return null
     }
+    if (isAuthRemote()) {
+      let result = await remoteSignIn(email, password)
+      if (!result.ok) {
+        // Migrasi sekali: akun lokal lama dipindah ke tabel Supabase.
+        const legacy = readUsers().find((u) => u.email.toLowerCase() === email.trim().toLowerCase())
+        if (legacy && legacy.password === password) {
+          const migrated = await remoteSignUp(legacy.name, legacy.email, password, legacy.uid)
+          if (migrated.ok && migrated.user) result = migrated
+        }
+      }
+      if (!result.ok || !result.user) return result.error || "Gagal masuk."
+      const session: User = result.user
+      const didReset = await resetWorkspaceIfOwnerChanged(session.email)
+      persist(SESSION_KEY, session)
+      setUser(session)
+      localStorage.removeItem(USERS_KEY)
+      if (didReset) {
+        setPanoramas([])
+        setHotspotOverrides({})
+        setMediaOverrides({})
+        setFavorites([])
+        setEffectsByScene({})
+        setGroups(["Uncategory"])
+        setSceneOrder({})
+        setSceneGroupOverrides({})
+        setImageQualityState("standard")
+        setStudioConfig(normalizeStudioConfig(null))
+        setProjects([])
+        setActiveProjectId(null)
+        localStorage.removeItem(ACTIVE_PROJECT_KEY)
+      }
+      return null
+    }
     const found = readUsers().find((u) => u.email.toLowerCase() === email.trim().toLowerCase())
     if (!found) return "Akun tidak ditemukan. Silakan daftar dulu."
     if (found.password !== password) return "Password salah."
@@ -692,6 +779,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setAuthToken("")
     localStorage.removeItem(SESSION_KEY)
+    // Kredensial tidak pernah disimpan lokal saat mode Supabase aktif.
+    if (isAuthRemote()) localStorage.removeItem(USERS_KEY)
     setUser(null)
   }, [])
 
@@ -709,6 +798,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (name.trim().length < 2) return "Nama minimal 2 karakter."
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return "Format email tidak valid."
+      if (isAuthRemote()) {
+        const result = await remoteUpdateProfile(user.email, name, email)
+        if (!result.ok || !result.user) return result.error || "Gagal menyimpan profil."
+        persist(SESSION_KEY, result.user)
+        setUser(result.user)
+        if (result.message) notify(result.message)
+        return null
+      }
       const users = readUsers()
       if (users.some((u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.email !== user.email)) {
         return "Email sudah dipakai akun lain."
@@ -729,7 +826,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setUser(session)
       return null
     },
-    [user],
+    [user, notify],
   )
 
   const changePassword = useCallback(
@@ -741,6 +838,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return null
       }
       if (next.length < 6) return "Password baru minimal 6 karakter."
+      if (isAuthRemote()) {
+        const result = await remoteChangePassword(user.email, current, next)
+        if (!result.ok) return result.error || "Gagal mengubah password."
+        notify("Password berhasil diperbarui.")
+        return null
+      }
       const users = readUsers()
       const index = users.findIndex((u) => u.email === user.email)
       if (index < 0) return "Akun tidak ditemukan."
@@ -749,7 +852,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(USERS_KEY, JSON.stringify(users))
       return null
     },
-    [user],
+    [user, notify],
   )
 
   /* ------------------------------- Panorama -------------------------------- */

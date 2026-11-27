@@ -60,11 +60,16 @@ Status yang sudah diverifikasi:
 - Tabel `public.virtour_users` dan `public.virtour_state` ada dan bisa dibaca/tulis memakai publishable key.
 - Publish project disimpan sebagai baris `virtour:pub:<uid>` di `virtour_state` (format sama dengan `api/public.js`), sehingga `#/p/<uid>` dan feed Customers bisa dibuka dari perangkat lain.
 - Customers menampilkan badge **Supabase** untuk data remote dan **Lokal** untuk publish di browser ini.
-- Akun lokal tidak dikirim ke Supabase: `users` pada state remote selalu kosong di mode klien, jadi password plaintext tidak pernah naik ke cloud.
+- Akun **seluruhnya** ada di Supabase: email, nama, dan `password_hash` scrypt disimpan di tabel `virtour_users` (bukan lagi plaintext di browser). `virtour360.session` hanya cermin sesi dan divalidasi ke Supabase saat halaman dimuat.
+- `virtour_state.users` sengaja dikosongkan di mode klien supaya password plaintext tidak pernah naik ke cloud lewat jalur state.
+- Akun lokal lama (`virtour360.users`) otomatis dimigrasikan sekali saat login pertama, lalu kuncinya dihapus.
 
 Langkah yang **masih perlu dijalankan sekali** di Supabase Dashboard → SQL Editor (karena publishable key tidak boleh membuat schema):
 
 ```sql
+-- 0. Kolom uid opsional untuk profil publik (tabel lama belum punya)
+alter table public.virtour_users add column if not exists uid text;
+
 -- 1. Bucket untuk panorama 360° (saat ini belum ada)
 insert into storage.buckets (id, name, public)
 values ('panoramas', 'panoramas', true)

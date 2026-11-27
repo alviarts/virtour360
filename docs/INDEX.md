@@ -5,7 +5,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 ## Status saat ini
 - Visual mengikuti referensi **Linear** (`linear.app`): token asli, font asli, struktur landing, animasi scroll/dot-grid/marquee.
 - Sistem/fitur tetap **Virtour360** (turunan Panoee): Studio, 9 tipe hotspot, publish, groups, weblog, viewer 360°.
-- Supabase sudah terhubung di `.env` lokal (publishable key): state bersama, publish `virtour:pub:*`, dan feed Customers realtime/fallback. Langkah SQL bucket + publication ada di [19-koneksi-supabase.md](19-koneksi-supabase.md).
+- Supabase sudah terhubung di `.env` lokal (publishable key): state bersama, publish `virtour:pub:*`, feed Customers realtime/fallback, **dan seluruh akun (email/nama/password_hash scrypt) di tabel `virtour_users`**. Langkah SQL bucket + publication + kolom `uid` ada di [19-koneksi-supabase.md](19-koneksi-supabase.md).
 - Perubahan terbaru sudah di-commit dan di-push ke `origin/main` (commit terakhir ada di `git log`).
 
 ## A. Riset fitur & sistem

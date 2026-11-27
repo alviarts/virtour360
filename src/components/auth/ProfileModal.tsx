@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Lock, User, X } from "lucide-react"
 import { useApp } from "../../context/useApp"
+import { isRemote } from "../../lib/supabase"
 
 type Mode = "profile" | "password"
 
@@ -45,7 +46,9 @@ export function ProfileModal({ onClose }: { onClose: () => void }) {
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-base font-semibold text-white">Pengaturan akun</h2>
-            <p className="mt-1 text-[11px] text-zinc-500">Perubahan disimpan di browser ini.</p>
+            <p className="mt-1 text-[11px] text-zinc-500">
+              {isRemote ? "Akun, email, dan password tersimpan di Supabase." : "Perubahan disimpan di browser ini."}
+            </p>
           </div>
           <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200" aria-label="Tutup">
             <X size={16} />

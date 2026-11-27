@@ -36,7 +36,7 @@ Catatan: `#/p/<uid>` tetap untuk project publish; `#/u/<slug>` untuk profil user
 - Dropdown Product/Resources akhirnya muncul di **semua** halaman marketing, tidak hanya Home. Entri dropdown menuju rute nyata (`#/studio`, `#/resources/...`, `#/pricing`).
 - Isi Resources sekarang dokumentasi lengkap, bukan satu paragraf: alur kerja, rute, penyimpanan, 9 jenis hotspot, embed/QR, komunitas, changelog, fitur & batasan, syarat & ketentuan, kebijakan privasi.
 - Customers tidak lagi memakai daftar creator statis sebagai satu-satunya sumber: `listPublishedPayloads()` menggabungkan baris `virtour:pub:*` dari Supabase dan publish lokal, lalu `watchPublishedChanges()` memperbarui lewat event publish, storage event, `postgres_changes`, serta polling 2,5 detik. Kartu diberi badge **Supabase**, **Lokal**, atau **Contoh**.
-- Status Supabase: **terhubung** lewat `.env` lokal (publishable key). Customers menampilkan 4 tour Supabase + 2 tour lokal. Bucket storage dan publikasi Realtime masih perlu dijalankan sekali lewat SQL Editor — lihat `docs/19-koneksi-supabase.md`.
+- Status Supabase: **terhubung** lewat `.env` lokal (publishable key). Customers menampilkan 4 tour Supabase + 2 tour lokal; akun (email/nama/hash password) juga tersimpan di `virtour_users`. Bucket storage dan publikasi Realtime masih perlu dijalankan sekali lewat SQL Editor — lihat `docs/19-koneksi-supabase.md`.
 - Header marketing mengikuti state login: avatar + nama + tombol Keluar; **Keluar kini kembali ke `#/home`**, bukan meninggalkan halaman dengan pesan "Dashboard perlu login".
 
 Catatan: `#/p/<uid>` tetap untuk project publish; `#/u/<slug>` untuk profil user; `#/portfolio` fallback lama.

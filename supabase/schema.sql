@@ -11,6 +11,9 @@ create table if not exists public.virtour_users (
   created_at timestamptz not null default now()
 );
 
+-- Tambahan untuk project yang sudah punya tabel dari versi sebelumnya.
+alter table public.virtour_users add column if not exists uid text;
+
 alter table public.virtour_users enable row level security;
 drop policy if exists "virtour360 users service" on public.virtour_users;
 create policy "virtour360 users service"

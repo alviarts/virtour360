@@ -398,7 +398,7 @@ QA produksi mengonfirmasi `POST /api/state` + `GET` ulang hotspot tersimpan, env
 | Audio & gambar scene | ✅ Tersimpan (Blob) | `lib/db.ts:94-127` |
 | Kualitas gambar Standard/High/Original | ✅ Tersimpan | `AppContext.tsx:245-251` |
 | Publish + UID + QR + embed | ✅ Tersimpan ke `virtour:pub:<uid>` | `publicStore.ts:125-150` |
-| Auth register/login/profile/password | ✅ Server (mode produksi) | `AppContext.tsx:403-545`; `api/auth.js` |
+| Auth register/login/profile/password | ✅ Server (mode produksi) atau Supabase client (mode aktif) | `AppContext.tsx`; `api/auth.js`; `src/lib/authRemote.ts` |
 | Kualitas viewer hemat/standar/tinggi | ⚠️ Lokal (state hook) | `useTourViewer.ts:110,532-537` — hilang setelah reload |
 | Mini-map / side menu / tour graph / preview | ⚠️ Lokal (state `App.tsx`) | `App.tsx:109,114-116` |
 | 3 Suggestion | ⚠️ Hardcode | `TopBar.tsx:112`; aksinya nyata (`App.tsx:242-254`) |
