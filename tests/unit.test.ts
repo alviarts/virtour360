@@ -6,8 +6,11 @@ import {
   findScene,
   isNodeLink,
   navigationTarget,
+  polygonHotspots,
   sceneLinks,
 } from "../src/lib/sceneGraph"
+import { readableTextOn, safeExternalHref } from "../src/lib/color"
+import { studioThemeStyle } from "../src/lib/viewerTheme"
 import { defaultStudioConfig, normalizeStudioConfig } from "../src/types/studio"
 import { defaultHotspotStyle, hotspotKindLabels, hotspotKinds, type Hotspot, type Scene } from "../src/types/tour"
 import { hashPassword, makePublicUid } from "../src/lib/publicStore"
@@ -69,6 +72,43 @@ describe("unit — sceneGraph", () => {
   it("findScene fallback ke scene pertama", () => {
     const scenes = [makeScene([], "first"), makeScene([], "second")]
     expect(findScene(scenes, "missing").id).toBe("first")
+  })
+
+  it("polygon dipisah dari marker konten", () => {
+    const area = makeSpot({
+      id: "area",
+      type: "info",
+      polygon: { kind: "shape", points: [{ yaw: 0, pitch: 0 }, { yaw: 10, pitch: 0 }, { yaw: 10, pitch: 10 }] },
+    })
+    const point = makeSpot({ id: "point" })
+    const scene = makeScene([area, point])
+    expect(contentHotspots(scene).map((spot) => spot.id)).toEqual(["point"])
+    expect(polygonHotspots(scene).map((spot) => spot.id)).toEqual(["area"])
+  })
+})
+
+describe("unit — tema & CTA viewer publik", () => {
+  it("CTA default nonaktif dan ikut dinormalisasi", () => {
+    expect(defaultStudioConfig.cta.enabled).toBe(false)
+    const merged = normalizeStudioConfig({ cta: { title: "Sewa" } as never })
+    expect(merged.cta.enabled).toBe(false)
+    expect(merged.cta.title).toBe("Sewa")
+    expect(normalizeStudioConfig({ cta: { enabled: true } as never }).cta.enabled).toBe(true)
+  })
+
+  it("safeExternalHref menolak javascript: dan menjaga mailto/tel/https", () => {
+    expect(safeExternalHref("javascript:alert(1)")).toBe("")
+    expect(safeExternalHref("mailto:halo@example.com")).toBe("mailto:halo@example.com")
+    expect(safeExternalHref("tel:+62812345")).toBe("tel:+62812345")
+    expect(safeExternalHref("https://wa.me/62812345")).toBe("https://wa.me/62812345")
+  })
+
+  it("warna teks CTA tetap terbaca dan variabel tema terbentuk", () => {
+    expect(readableTextOn("#ffffff")).toBe("#09090b")
+    expect(readableTextOn("#000000")).toBe("#ffffff")
+    const style = studioThemeStyle(normalizeStudioConfig({ theme: { primaryColor: "#123456" } as never })) as Record<string, unknown>
+    expect(style["--studio-primary"]).toBe("#123456")
+    expect(String(style.fontFamily)).toContain("Inter")
   })
 })
 

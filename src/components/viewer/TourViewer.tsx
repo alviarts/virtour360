@@ -12,6 +12,7 @@ import {
   MousePointer2,
   Music2,
   Palette,
+  PenLine,
   Pencil,
   RotateCcw,
   Shapes,
@@ -67,6 +68,10 @@ interface TourViewerProps {
   placementType?: HotspotType | null
   onCancelPlacement?: () => void
   onDraw?: () => void
+  onDrawLine?: () => void
+  drawingPolygon?: { kind: "shape" | "line"; points: unknown[] } | null
+  onFinishPolygon?: () => void
+  onCancelPolygon?: () => void
   onUploadAudio?: () => void
   showMiniMap?: boolean
   showSideMenu?: boolean
@@ -109,6 +114,10 @@ export function TourViewer({
   placementType,
   onCancelPlacement,
   onDraw,
+  onDrawLine,
+  drawingPolygon,
+  onFinishPolygon,
+  onCancelPolygon,
   onUploadAudio,
   showMiniMap = true,
   showSideMenu = false,
@@ -278,6 +287,7 @@ export function TourViewer({
               {[
                 { label: "Tambah hotspot", icon: MousePointer2, run: onAddHotspot },
                 { label: "Gambar area", icon: Shapes, run: onDraw },
+                { label: "Gambar garis", icon: PenLine, run: onDrawLine },
                 ...(onPickHotspot ? [
                   { label: "Media", icon: ImageIcon, run: () => onPickHotspot("Image") },
                   { label: "Tourguide", icon: Hand, run: () => onPickHotspot("Article") },
@@ -325,6 +335,22 @@ export function TourViewer({
               >
                 Batalkan penempatan hotspot
               </button>
+            )}
+            {drawingPolygon && (
+              <div className="mt-2 flex gap-1">
+                <button
+                  onClick={() => runHud(() => onFinishPolygon?.())}
+                  className="flex-1 rounded-lg bg-amber-400/15 py-2 text-[10px] font-semibold text-amber-200 hover:bg-amber-400/25"
+                >
+                  Selesai ({drawingPolygon.points.length} titik)
+                </button>
+                <button
+                  onClick={() => runHud(() => onCancelPolygon?.())}
+                  className="rounded-lg border border-white/10 px-3 py-2 text-[10px] text-zinc-300 hover:bg-white/10"
+                >
+                  Batal
+                </button>
+              </div>
             )}
           </div>
         </div>

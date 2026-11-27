@@ -4,6 +4,7 @@ import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/useApp"
 import { loadPublicPayload, publicUidFromHash, recordPublicView, unlockPublicPayload, type PublicPayload } from "../lib/publicStore"
 import { navigateProfile } from "../lib/navigation"
+import { normalizeStudioConfig } from "../types/studio"
 
 /**
  * Halaman untuk link publish `#/p/<uid>`.
@@ -45,6 +46,7 @@ export function PublicTourView() {
     [payload, localScenes],
   )
   const stalePanorama = scenes.some((scene) => typeof scene.panorama === "string" && scene.panorama.startsWith("blob:"))
+  const design = useMemo(() => normalizeStudioConfig(payload?.studioConfig), [payload?.studioConfig])
   const title =
     payload?.folders?.[0]?.name ??
     payload?.scenes?.[0]?.project?.title ??
@@ -136,6 +138,7 @@ export function PublicTourView() {
         panorama={scenes[0].panorama}
         scenes={scenes}
         sceneId={payload?.studioConfig?.setting.initialScene}
+        studioConfig={design}
         onClose={goPortfolio}
       />
       <button

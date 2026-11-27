@@ -191,8 +191,10 @@ export default function App() {
     onSceneChange: setActiveSceneId,
     onAddHotspot: addHotspot,
     onMoveHotspot: (sceneId, id, yaw, pitch) => updateHotspot(sceneId, id, { yaw, pitch }),
+    onAddPolygon: addHotspot,
     onNotify: notify,
     effects: currentEffects,
+    polygonDesign: studioConfig.polygon,
   })
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen(shellRef)
 
@@ -461,7 +463,11 @@ export default function App() {
         }}
         placementType={tour.placementType}
         onCancelPlacement={tour.stopPlacement}
-        onDraw={() => tour.startPlacement("project")}
+        onDraw={() => tour.startPolygon("shape")}
+        onDrawLine={() => tour.startPolygon("line")}
+        drawingPolygon={tour.drawingPolygon}
+        onFinishPolygon={tour.finishPolygon}
+        onCancelPolygon={tour.cancelPolygon}
         onOpenDesign={() => setDesignOpen(true)}
         selectedHotspot={tour.selectedHotspot}
         onClearSelectedHotspot={tour.clearSelectedHotspot}

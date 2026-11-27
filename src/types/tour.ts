@@ -74,6 +74,11 @@ export interface Hotspot {
   price?: string
   ctaLabel?: string
   ctaHref?: string
+  /** Area/garis yang digambar di panorama. Dirender sebagai overlay SVG, bukan marker. */
+  polygon?: {
+    kind: "shape" | "line"
+    points: { yaw: number; pitch: number }[]
+  }
   style?: HotspotStyle
 }
 

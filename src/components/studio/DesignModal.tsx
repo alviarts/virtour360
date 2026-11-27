@@ -312,6 +312,7 @@ export function DesignModal({ onClose }: { onClose: () => void }) {
       case "cta":
         return (
           <Card title="Call to Action Setup">
+            <Toggle label="Tampilkan di viewer publik" checked={c.cta.enabled} onChange={(v) => patch({ cta: { ...c.cta, enabled: v } })} />
             <Select label="Layout" value={c.cta.layout} options={["bubble", "list"]} onChange={(v) => patch({ cta: { ...c.cta, layout: v as typeof c.cta.layout } })} />
             <Select label="Position" value={c.cta.position} options={["left", "right"]} onChange={(v) => patch({ cta: { ...c.cta, position: v as typeof c.cta.position } })} />
             <Num label="Offset" value={c.cta.offset} min={0} max={120} onChange={(v) => patch({ cta: { ...c.cta, offset: v } })} />

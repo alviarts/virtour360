@@ -31,6 +31,7 @@ import {
 import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
 import { normalizeStudioConfig } from "../types/studio"
+import { safeExternalHref } from "../lib/color"
 
 const THUMBS = [
   "/media/thumbnails/entrance_hall.jpg",
@@ -735,8 +736,8 @@ export function PublicPortfolioView() {
           </button>
         </div>
 
-        {/* Call To Action dari panel Design */}
-        {design.cta.title && (
+        {/* Call To Action dari panel Design — hanya saat diaktifkan */}
+        {design.cta.enabled && design.cta.title && safeExternalHref(design.cta.href) && (
           <div
             className={`mt-8 flex items-center justify-between gap-4 rounded-xl border border-[#23252a] bg-[#0f1011] p-4 ${design.cta.position === "left" ? "flex-row-reverse" : ""}`}
             style={{ marginInline: design.cta.offset }}
@@ -746,8 +747,9 @@ export function PublicPortfolioView() {
               <p className="mt-0.5 text-xs text-[#8a8f98]">{design.cta.description}</p>
             </div>
             <a
-              href="#/contact"
-              onClick={(e) => { e.preventDefault(); navigate("contact") }}
+              href={safeExternalHref(design.cta.href)}
+              target="_blank"
+              rel="noreferrer"
               className="cursor-pointer shrink-0 rounded-full px-4 py-2 text-xs font-semibold text-[#08090a]"
               style={{ background: design.theme.primaryColor }}
             >
@@ -786,6 +788,7 @@ export function PublicPortfolioView() {
           panorama={exploring.panorama}
           scenes={exploring.sceneId ? sourceScenes : undefined}
           sceneId={exploring.sceneId ?? undefined}
+          studioConfig={design}
           onClose={() => setExploring(null)}
         />
       )}

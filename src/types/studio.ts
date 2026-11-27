@@ -101,6 +101,8 @@ export interface FormDesign {
 }
 
 export interface CtaDesign {
+  /** CTA hanya tampil di viewer publik jika diaktifkan di Design → Call To Action. */
+  enabled: boolean
   layout: "bubble" | "list"
   position: "left" | "right"
   offset: number
@@ -260,6 +262,7 @@ export const defaultStudioConfig: StudioConfig = {
   },
   form: { layout: "dialog", background: "#FFFFFF", overlay: "#000000,45%" },
   cta: {
+    enabled: false,
     layout: "bubble",
     position: "right",
     offset: 16,

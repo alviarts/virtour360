@@ -8,10 +8,12 @@ import { GyroscopePlugin } from "@photo-sphere-viewer/gyroscope-plugin"
 import { SettingsPlugin } from "@photo-sphere-viewer/settings-plugin"
 import { defaultSceneId } from "../data/scenes"
 import { tourConfig } from "../config/tour.config"
-import { contentHotspots, findScene, navigationTarget, sceneLinks } from "../lib/sceneGraph"
+import { contentHotspots, findScene, navigationTarget, polygonHotspots, sceneLinks } from "../lib/sceneGraph"
 import { clamp, round } from "../lib/format"
 import { defaultHotspotStyle, hotspotKindLabels, type Hotspot, type HotspotIcon, type HotspotKind, type HotspotType, type Scene } from "../types/tour"
 import { effectsToCss, type SceneEffects } from "../lib/effects"
+import { createPolygonLayer } from "../lib/viewerPolygons"
+import type { PolygonDesign } from "../types/studio"
 
 export type Quality = "hemat" | "standar" | "tinggi"
 
@@ -89,8 +91,10 @@ interface ViewerOptions {
   onSceneChange: (id: string) => void
   onAddHotspot: (sceneId: string, spot: Hotspot) => void
   onMoveHotspot?: (sceneId: string, id: string, yaw: number, pitch: number) => void
+  onAddPolygon?: (sceneId: string, spot: Hotspot) => void
   onNotify?: (message: string) => void
   effects: SceneEffects
+  polygonDesign?: PolygonDesign
 }
 
 export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
@@ -128,6 +132,52 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
   /* Event handler yang dipasang sekali memakai ref agar selalu membaca data terbaru. */
   const live = useRef({ scenes, currentSceneId, options })
   live.current = { scenes, currentSceneId, options }
+
+  /* Mode menggambar area: berbeda dari penempatan marker, jadi saling mengunci. */
+  const [drawingPolygon, setDrawingPolygon] = useState<{
+    kind: "shape" | "line"
+    points: { yaw: number; pitch: number }[]
+  } | null>(null)
+  const drawingRef = useRef(drawingPolygon)
+  drawingRef.current = drawingPolygon
+
+  const finishPolygon = useCallback(() => {
+    const drawing = drawingRef.current
+    if (!drawing) return
+    const minimum = drawing.kind === "line" ? 2 : 3
+    if (drawing.points.length < minimum) {
+      live.current.options.onNotify?.(
+        `${drawing.kind === "line" ? "Garis" : "Area"} butuh minimal ${minimum} titik.`,
+      )
+      setDrawingPolygon(null)
+      return
+    }
+    const design = live.current.options.polygonDesign
+    const spot: Hotspot = {
+      id: `poly-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      type: "info",
+      yaw: drawing.points[0].yaw,
+      pitch: drawing.points[0].pitch,
+      title: drawing.kind === "line" ? "Garis area" : "Area",
+      description: "Area yang digambar di panorama.",
+      polygon: { kind: drawing.kind, points: drawing.points },
+      style: {
+        ...defaultHotspotStyle,
+        color: design?.border ?? "#ffffff",
+        showLabel: false,
+      },
+    }
+    live.current.options.onAddPolygon?.(live.current.currentSceneId, spot)
+    live.current.options.onNotify?.("Area tersimpan. Klik area di viewer untuk membukanya.")
+    setDrawingPolygon(null)
+  }, [])
+
+  const startPolygon = useCallback((kind: "shape" | "line") => {
+    setPlacementType(null)
+    setDrawingPolygon({ kind, points: [] })
+  }, [])
+
+  const cancelPolygon = useCallback(() => setDrawingPolygon(null), [])
 
   /*
    * Satu jalur aktivasi untuk semua klik hotspot (event PSV `select-marker`
@@ -314,6 +364,8 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
 
     // Klik di mana saja di viewer (termasuk area di luar bola) tetap menaruh titik.
     const onUp = (event: PointerEvent) => {
+      // Mode gambar area memakai handler sendiri; jangan menaruh marker.
+      if (drawingRef.current) return
       const viewer = viewerRef.current
       if (!viewer || !placementRef.current) return
       const rect = container.getBoundingClientRect()
@@ -350,6 +402,79 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       hud.remove()
     }
   }, [placementType])
+
+  /* HUD + klik untuk membentuk polygon/line. Enter selesai, Escape batal. */
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !drawingPolygon) return
+
+    const hud = document.createElement("div")
+    hud.className = "hs-polygon-hud"
+    const label = document.createElement("span")
+    label.className = "hs-polygon-hud-label"
+    const finishButton = document.createElement("button")
+    finishButton.type = "button"
+    finishButton.className = "hs-polygon-hud-finish"
+    finishButton.textContent = "Selesai"
+    const cancelButton = document.createElement("button")
+    cancelButton.type = "button"
+    cancelButton.textContent = "Batal"
+    hud.append(label, finishButton, cancelButton)
+    container.appendChild(hud)
+
+    const renderLabel = () => {
+      const name = drawingPolygon.kind === "line" ? "Garis" : "Area"
+      label.textContent = `${name} · ${drawingPolygon.points.length} titik · klik panorama untuk menambah`
+    }
+    renderLabel()
+    finishButton.onclick = (event) => { event.stopPropagation(); finishPolygon() }
+    cancelButton.onclick = (event) => { event.stopPropagation(); cancelPolygon() }
+
+    const onUp = (event: PointerEvent) => {
+      if ((event.target as HTMLElement | null)?.closest("button")) return
+      const viewer = viewerRef.current
+      if (!viewer) return
+      const rect = container.getBoundingClientRect()
+      let yaw = 0
+      let pitch = 0
+      try {
+        const coords = viewer.dataHelper.viewerCoordsToSphericalCoords({
+          x: event.clientX - rect.left,
+          y: event.clientY - rect.top,
+        })
+        yaw = radToDeg(coords.yaw)
+        pitch = radToDeg(coords.pitch)
+      } catch {
+        const dx = ((event.clientX - rect.left) / rect.width) * 2 - 1
+        const dy = ((event.clientY - rect.top) / rect.height) * 2 - 1
+        const pos = viewer.getPosition()
+        yaw = radToDeg(pos.yaw) + dx * 180
+        pitch = clamp(radToDeg(pos.pitch) - dy * 90, -90, 90)
+      }
+      setDrawingPolygon((previous) => {
+        if (!previous) return previous
+        return {
+          ...previous,
+          points: [...previous.points, { yaw: round(yaw, 0), pitch: round(pitch, 0) }],
+        }
+      })
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Enter") finishPolygon()
+      if (event.key === "Escape") cancelPolygon()
+    }
+
+    window.addEventListener("pointerup", onUp)
+    window.addEventListener("keydown", onKey)
+    return () => {
+      window.removeEventListener("pointerup", onUp)
+      window.removeEventListener("keydown", onKey)
+      finishButton.onclick = null
+      cancelButton.onclick = null
+      hud.remove()
+    }
+  }, [drawingPolygon, finishPolygon, cancelPolygon])
 
   /* Geser marker hotspot ke posisi baru dengan mouse (drag). */
   useEffect(() => {
@@ -490,6 +615,22 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     const scene = findScene(scenes, currentSceneId)
     markersRef.current?.setMarkers(contentHotspots(scene).map(markerConfig))
   }, [currentSceneId, isReady, scenes])
+
+  /* Area polygon digambar sebagai SVG yang mengikuti rotasi panorama. */
+  useEffect(() => {
+    if (!isReady || !containerRef.current || !viewerRef.current) return
+    const design = options.polygonDesign
+    if (!design) return
+    const scene = findScene(scenes, currentSceneId)
+    const layer = createPolygonLayer(
+      containerRef.current,
+      viewerRef.current,
+      polygonHotspots(scene),
+      design,
+      (spot) => activateHotspot(spot),
+    )
+    return () => layer.destroy()
+  }, [isReady, currentSceneId, scenes, options.polygonDesign, activateHotspot])
 
   /*Efek warna & leveling diterapkan ke kanvas viewer secara langsung.*/
   useEffect(() => {
@@ -695,6 +836,10 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     placementType,
     startPlacement,
     stopPlacement,
+    drawingPolygon,
+    startPolygon,
+    cancelPolygon,
+    finishPolygon,
     quality,
     setQuality,
     qualityLabel: QUALITY[quality].label,

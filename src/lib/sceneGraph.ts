@@ -25,9 +25,14 @@ export function sceneLinks(scene: Scene): { nodeId: string; position: { yaw: str
     .map((h) => ({ nodeId: h.targetSceneId!, position: { yaw: `${h.yaw}deg`, pitch: `${h.pitch}deg` } }))
 }
 
-/** Marker konten: semua hotspot kecuali yang sudah dirender sebagai panah navigasi. */
+/** Marker konten: panah navigasi dan area polygon dirender oleh layer masing-masing. */
 export function contentHotspots(scene: Scene): Hotspot[] {
-  return scene.hotspots.filter((h) => !isNodeLink(h))
+  return scene.hotspots.filter((h) => !isNodeLink(h) && !h.polygon)
+}
+
+/** Hotspot area/garis yang dirender sebagai overlay SVG. */
+export function polygonHotspots(scene: Scene): Hotspot[] {
+  return scene.hotspots.filter((h) => !!h.polygon && !isNodeLink(h))
 }
 
 export function findScene(scenes: Scene[], id: string): Scene {

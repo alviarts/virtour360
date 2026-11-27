@@ -77,6 +77,15 @@ describe("component — DesignModal", () => {
     await userEvent.click(screen.getByRole("button", { name: "Setting" }))
     expect(screen.getByText("Multi-Language")).toBeTruthy()
   })
+
+  it("CTA bisa diaktifkan dari panel Call To Action", async () => {
+    render(<DesignModal onClose={() => {}} />)
+    await userEvent.click(screen.getByRole("button", { name: "Call To Action" }))
+    await userEvent.click(screen.getByLabelText("Tampilkan di viewer publik"))
+    expect(mocks.updateStudioConfig).toHaveBeenCalled()
+    const patch = mocks.updateStudioConfig.mock.calls[0][0] as { cta: { enabled: boolean } }
+    expect(patch.cta.enabled).toBe(true)
+  })
 })
 
 describe("component — PublishModal", () => {
