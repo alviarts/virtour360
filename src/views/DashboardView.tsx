@@ -14,6 +14,7 @@ import {
 import { useApp } from "../context/useApp"
 import { NewProjectModal } from "../components/auth/NewProjectModal"
 import { Logo360 } from "../components/ui/Logo360"
+import { ThemeToggle } from "../components/ui/ThemeToggle"
 import { navigate, navigateProfile, profileSlug } from "../lib/navigation"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import type { Scene } from "../types/tour"
@@ -158,7 +159,17 @@ export function DashboardView() {
     navigate("studio")
   }
 
-  const openProjectById = (id: string) => {
+  /** Klik kartu hanya mengganti selection; Studio dibuka lewat tombol eksplisit. */
+  const selectProject = (id: string) => setActiveProject(id)
+
+  /** Link publish hanya dibuat lewat modal Publish di Studio. */
+  const openPublishFor = (id: string) => {
+    setActiveProject(id)
+    try { sessionStorage.setItem("virtour360.openPublish", "1") } catch { /* sesi privat */ }
+    navigate("studio")
+  }
+
+  const openStudioFor = (id: string) => {
     setActiveProject(id)
     navigate("studio")
   }
@@ -213,6 +224,7 @@ export function DashboardView() {
                 /u/{userSlug}
               </button>
             )}
+            <ThemeToggle compact />
             <button onClick={() => setChangelogOpen((v) => !v)} className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-700 px-3 text-xs whitespace-nowrap text-zinc-200 hover:bg-white/5 lg:flex">
               <Sparkles size={13} /> Changelog
             </button>
@@ -289,12 +301,13 @@ export function DashboardView() {
                 return (
                 <div
                   key={project.id}
-                  onClick={() => openProjectById(project.id)}
+                  onClick={() => selectProject(project.id)}
+                  title="Pilih project ini"
                   className={`group cursor-pointer overflow-hidden rounded-xl border transition-colors ${
                     activeProject?.id === project.id ? "border-[#d1005c] bg-[#d1005c]/5" : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-600"
                   }`}
                 >
-                  <button onClick={(e) => { e.stopPropagation(); openProjectById(project.id) }} className="block h-[120px] w-full overflow-hidden bg-zinc-950 text-left">
+                  <button onClick={(e) => { e.stopPropagation(); selectProject(project.id) }} className="block h-[120px] w-full overflow-hidden bg-zinc-950 text-left" title="Pilih project ini">
                     {cover ? (
                       <img src={cover} alt={`Pratinjau ${project.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                     ) : (
@@ -307,7 +320,10 @@ export function DashboardView() {
                         {project.name.slice(0, 2).toUpperCase()}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-medium text-zinc-100">{project.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-xs font-medium text-zinc-100">{project.name}</p>
+                          {activeProject?.id === project.id && <span className="shrink-0 rounded-full bg-[#d1005c]/20 px-1.5 py-0.5 text-[9px] text-pink-200">Dipilih</span>}
+                        </div>
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
                           <span className="inline-block rounded-full bg-cyan-500/15 px-2 py-0.5 text-[9px] font-medium text-cyan-300">{project.category}</span>
                           <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-medium ${
@@ -330,8 +346,19 @@ export function DashboardView() {
                       <option value="review">Dalam review</option>
                       <option value="published">Dipublikasi</option>
                     </select>
+                    {project.status === "published" && !project.publishedUid && (
+                      <div className="mt-2 rounded-lg border border-[#f2c14e]/25 bg-[#f2c14e]/[0.08] p-2">
+                        <p className="text-[10px] leading-relaxed text-[#f2c14e]">Link publish belum dibuat — status saja tidak membuat link.</p>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openPublishFor(project.id) }}
+                          className="mt-1.5 text-[10px] font-semibold text-zinc-100 underline decoration-[#f2c14e]/50 underline-offset-2 hover:text-white"
+                        >
+                          Buat link lewat modal Publish →
+                        </button>
+                      </div>
+                    )}
                     <div className="mt-3 flex gap-2">
-                      <button onClick={(e) => { e.stopPropagation(); openProjectById(project.id) }} className="h-8 flex-1 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
+                      <button onClick={(e) => { e.stopPropagation(); openStudioFor(project.id) }} className="h-8 flex-1 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
                         Buka Studio
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); previewProject(project) }} title="Pratinjau 360° project ini" className="grid size-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-300 hover:border-white/30 hover:text-white">
@@ -525,7 +552,7 @@ export function DashboardView() {
                 <div className="grid h-full place-items-center px-6 text-center">
                   <div>
                     <p className="text-sm text-zinc-300">Belum ada 360° di project ini.</p>
-                    <button onClick={() => { const id = projects.find((p) => p.name === preview.title)?.id; if (id) openProjectById(id) }} className="mt-4 rounded-full bg-white px-4 py-2 text-[11px] font-semibold text-black">
+                    <button onClick={() => { const id = projects.find((p) => p.name === preview.title)?.id; if (id) openStudioFor(id) }} className="mt-4 rounded-full bg-white px-4 py-2 text-[11px] font-semibold text-black">
                       Unggah di Studio
                     </button>
                   </div>

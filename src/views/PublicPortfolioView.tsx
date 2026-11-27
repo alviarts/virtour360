@@ -747,7 +747,7 @@ export function PublicPortfolioView() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-[#8a8f98]">
             <button onClick={() => navigate("home")} className="hover:text-white">Home</button>
             <button onClick={() => navigate("product")} className="hover:text-white">Product</button>
-            <button onClick={() => navigate("customers")} className="hover:text-white">Customers</button>
+            <button onClick={() => navigate("customers")} className="hover:text-white">Explore</button>
             <button onClick={() => navigate("resources")} className="hover:text-white">Resources</button>
             <button onClick={() => navigate("contact")} className="hover:text-white">Contact</button>
             <a href="https://instagram.com/vwrks" target="_blank" rel="noreferrer" className="hover:text-white">Instagram</a>

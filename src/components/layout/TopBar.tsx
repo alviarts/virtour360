@@ -11,6 +11,7 @@ import {
   Undo2,
 } from "lucide-react"
 import { theme } from "../../config/theme"
+import { ThemeToggle } from "../ui/ThemeToggle"
 
 const tools = [
   { id: "select", icon: Pencil, label: "Pilih & edit hotspot", disabled: false },
@@ -122,6 +123,7 @@ export function TopBar({
           3 Suggestion
         </button>
         <div className="flex items-center gap-1.5">
+          <ThemeToggle compact />
           <button
             type="button"
             title={preview ? "Keluar pratinjau" : "Pratinjau tanpa panel"}
@@ -135,7 +137,7 @@ export function TopBar({
           <button
             type="button"
             onClick={onPublish}
-            className="flex h-8 items-center rounded-lg bg-sky-500 px-3 text-xs font-semibold text-white transition-colors hover:bg-sky-400"
+            className="flex h-8 items-center rounded-lg bg-sky-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-sky-500"
           >
             Published
           </button>

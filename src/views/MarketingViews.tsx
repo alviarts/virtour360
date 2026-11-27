@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpDown,
   BookOpen,
+  CalendarDays,
+  Check,
   ChevronDown,
+  Clock3,
   FileText,
   Globe2,
   LifeBuoy,
@@ -12,12 +16,17 @@ import {
   MapPin,
   MessageCircle,
   Play,
+  Search,
   Shield,
   Sparkles,
   Users,
+  X,
   type LucideIcon,
 } from "lucide-react"
 import { Logo360 } from "../components/ui/Logo360"
+import { ThemeToggle } from "../components/ui/ThemeToggle"
+import { WorkflowFlow } from "../components/ui/WorkflowFlow"
+import { HotspotDemo } from "../components/ui/HotspotDemo"
 import { TourStage } from "../components/ui/TourStage"
 import { useApp } from "../context/useApp"
 import { navigate, navigateHash, profileSlug } from "../lib/navigation"
@@ -25,7 +34,17 @@ import { isRemote } from "../lib/supabase"
 import { listPublishedPayloads, watchPublishedChanges, type PublishedItem } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 
-const LINKS = ["Home", "Product", "Resources", "Customers", "Pricing", "Contact"] as const
+const LINKS = ["Home", "Product", "Resources", "Explore", "Pricing", "Contact"] as const
+
+/** Label menu → rute internal ("Explore" tetap memakai view customers). */
+const LINK_ROUTE: Record<(typeof LINKS)[number], "home" | "product" | "resources" | "customers" | "pricing" | "contact"> = {
+  Home: "home",
+  Product: "product",
+  Resources: "resources",
+  Explore: "customers",
+  Pricing: "pricing",
+  Contact: "contact",
+}
 
 type MenuEntry = { title: string; detail: string; route: string }
 const MENUS: Record<string, MenuEntry[]> = {
@@ -61,7 +80,7 @@ function Shell({ title, lead, children }: { title: string; lead: string; childre
             {LINKS.map((link) => (
               <div key={link} className="relative" onMouseEnter={() => setMenu(MENUS[link] ? link : "")}>
                 <button
-                  onClick={() => navigate(link.toLowerCase() as "product")}
+                  onClick={() => navigate(LINK_ROUTE[link])}
                   className={`flex items-center gap-1 transition-colors hover:text-white ${menu === link ? "text-white" : "text-[#d0d6e0]"}`}
                 >
                   {link}
@@ -86,6 +105,7 @@ function Shell({ title, lead, children }: { title: string; lead: string; childre
             ))}
           </nav>
           <div className="ml-5 flex items-center gap-2 text-[12px]">
+            <ThemeToggle />
             {user ? (
               <>
                 <button onClick={() => navigate("dashboard")} className="flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1.5 hover:bg-white/5">
@@ -122,7 +142,7 @@ function Shell({ title, lead, children }: { title: string; lead: string; childre
           <Logo360 tone="white" size={24} />
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-[#8a8f98]">
             {LINKS.map((link) => (
-              <button key={link} onClick={() => navigate(link.toLowerCase() as "product")} className="hover:text-white">{link}</button>
+              <button key={link} onClick={() => navigate(LINK_ROUTE[link])} className="hover:text-white">{link}</button>
             ))}
             <button onClick={() => navigateHash("#/resources/terms")} className="hover:text-white">Syarat & ketentuan</button>
             <button onClick={() => navigateHash("#/resources/privacy")} className="hover:text-white">Privasi</button>
@@ -208,11 +228,16 @@ type FeedCard = {
   slug: string
   demo: boolean
   source?: "local" | "supabase"
+  updatedAt?: string
 }
+
+type FeedSort = "newest" | "oldest" | "name"
 
 export function CustomersView() {
   const [feed, setFeed] = useState<PublishedItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [query, setQuery] = useState("")
+  const [sort, setSort] = useState<FeedSort>("newest")
 
   const reload = useCallback(async () => {
     const items = await listPublishedPayloads()
@@ -238,6 +263,7 @@ export function CustomersView() {
       slug: uid.split("/")[0] || profileSlug(name),
       demo: false,
       source,
+      updatedAt: payload.updatedAt,
     }
   })
 
@@ -251,7 +277,16 @@ export function CustomersView() {
     demo: true,
   }))
 
-  const cards = [...realCards, ...demoCards]
+  const cards = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const matches = (card: FeedCard) => !q || `${card.name} ${card.title} ${card.uid}`.toLowerCase().includes(q)
+    const real = realCards.filter(matches)
+    const demo = demoCards.filter(matches)
+    if (sort === "name") return [...real, ...demo].sort((a, b) => a.name.localeCompare(b.name))
+    const ordered = sort === "oldest" ? [...real].reverse() : real
+    return [...ordered, ...demo]
+  }, [realCards, demoCards, query, sort])
+
   const supabaseCount = realCards.filter((card) => card.source === "supabase").length
   const localCount = realCards.length - supabaseCount
 
@@ -266,6 +301,40 @@ export function CustomersView() {
         </span>
         <button onClick={() => void reload()} className="rounded-md border border-white/10 px-2.5 py-1 hover:border-white/25 hover:text-white">Segarkan</button>
       </div>
+
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <div className="flex h-9 w-full max-w-[260px] items-center gap-2 rounded-md border border-white/10 bg-white/[0.02] px-3">
+          <Search size={13} className="shrink-0 text-[#62666d]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Cari nama atau judul tour…"
+            aria-label="Cari tour berdasarkan nama"
+            className="min-w-0 flex-1 bg-transparent text-[12px] outline-none placeholder:text-[#62666d]"
+          />
+          {query && <button onClick={() => setQuery("")} title="Hapus pencarian" className="text-[#62666d] hover:text-white"><X size={12} /></button>}
+        </div>
+        <div className="flex h-9 items-center gap-2 rounded-md border border-white/10 px-2.5 text-[11px] text-[#8a8f98]">
+          <ArrowUpDown size={12} className="shrink-0" />
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as FeedSort)}
+            aria-label="Urutkan tour"
+            className="bg-transparent outline-none"
+          >
+            <option value="newest">Terbaru</option>
+            <option value="oldest">Terlama</option>
+            <option value="name">Nama A–Z</option>
+          </select>
+        </div>
+        {(query || sort !== "newest") && (
+          <button onClick={() => { setQuery(""); setSort("newest") }} className="h-9 rounded-md border border-white/10 px-2.5 text-[11px] text-[#8a8f98] hover:border-white/25 hover:text-white">
+            Reset filter
+          </button>
+        )}
+        <span className="ml-auto font-[family-name:var(--font-mono)] text-[10px] text-[#62666d]">{cards.length} ditampilkan</span>
+      </div>
+
       <p className="mt-3 max-w-[760px] text-[11px] leading-relaxed text-[#62666d]">
         {isRemote ? (
           <>
@@ -309,9 +378,21 @@ export function CustomersView() {
                     </span>
                   )}
                 </div>
+                <p className="mt-3 flex items-center gap-1.5 border-t border-white/[0.06] pt-3 font-[family-name:var(--font-mono)] text-[9px] text-[#62666d]">
+                  <CalendarDays size={11} />
+                  {card.updatedAt ? new Date(card.updatedAt).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "Contoh bawaan"}
+                </p>
               </div>
             </button>
           ))}
+        </div>
+      )}
+      {!loading && !cards.length && (
+        <div className="mt-12 rounded-xl border border-dashed border-white/10 py-16 text-center">
+          <p className="text-[13px] text-[#8a8f98]">Tidak ada tour yang cocok dengan pencarian ini.</p>
+          <button onClick={() => { setQuery(""); setSort("newest") }} className="mt-4 rounded-md border border-white/15 px-3 py-1.5 text-[11px] text-[#d0d6e0] hover:border-white/30">
+            Reset filter
+          </button>
         </div>
       )}
     </Shell>
@@ -439,7 +520,7 @@ const DOCS: ResourceDoc[] = [
     name: "Community",
     desc: "Lihat karya kreator lain.",
     Icon: Users,
-    intro: "Halaman Customers mengumpulkan tour yang sudah dipublish. Kartu berasal dari data publish nyata, bukan daftar statis.",
+    intro: "Halaman Explore mengumpulkan tour yang sudah dipublish. Kartu berasal dari data publish nyata, bukan daftar statis, dan bisa difilter berdasarkan nama atau tanggal.",
     sections: [
       {
         title: "Feed publish",
@@ -451,7 +532,7 @@ const DOCS: ResourceDoc[] = [
       },
       {
         title: "Bergabung",
-        paragraphs: ["Buat akun, publish project pertama, lalu tour kamu akan muncul di feed Customers. Profil publik tersedia di #/u/<slug> dan menampilkan hanya project yang sudah dipublish."],
+        paragraphs: ["Buat akun, publish project pertama, lalu tour kamu akan muncul di feed Explore. Profil publik tersedia di #/u/<slug> dan menampilkan hanya project yang sudah dipublish."],
       },
     ],
   },
@@ -466,10 +547,10 @@ const DOCS: ResourceDoc[] = [
         title: "Terbaru",
         bullets: [
           "Publish per project: UID unik dan slug acak, publish ulang tidak menimpa project lain.",
-          "Dashboard: klik kartu untuk pindah project; pratinjau dipindah ke tombol mata.",
+          "Dashboard: klik kartu hanya memilih project; Studio dibuka lewat tombol eksplisit, pratinjau lewat tombol mata.",
           "Portofolio: hanya menampilkan project published milik akun, thumbnail persisten setelah refresh.",
           "Viewer: project satu scene tidak lagi memicu error plugin tour; tombol kembali di link publish menuju portofolio pemilik.",
-          "Halaman marketing: dropdown Product/Resources, dokumentasi lengkap, dan feed Customers yang diperbarui otomatis.",
+          "Halaman marketing: dropdown Product/Resources, dokumentasi animatif, dan feed Explore yang bisa difilter nama/tanggal.",
         ],
       },
       {
@@ -549,38 +630,128 @@ const DOCS: ResourceDoc[] = [
   },
 ]
 
+const DOC_HIGHLIGHTS: Record<string, string[]> = {
+  terms: [
+    "Password disimpan sebagai hash, bukan teks mentah.",
+    "Konten yang kamu unggah tetap menjadi hak kamu.",
+    "Dilarang menyalahgunakan akses publik atau data akun lain.",
+    "Perubahan ketentuan diumumkan lewat Resources atau email akun.",
+  ],
+  privacy: [
+    "Data akun: nama, email, inisial, UID, dan hash password.",
+    "Mode lokal menyimpan data hanya di perangkatmu.",
+    "Pengunjung tour publik tidak perlu memberi data pribadi.",
+    "Hubungi kami untuk penghapusan data pada mode server.",
+  ],
+}
+
 export function ResourcesView() {
   const slug = window.location.hash.match(/^#\/resources\/([^/?]+)/)?.[1]
   const current = DOCS.find((doc) => doc.slug === slug)
+  const [activeSection, setActiveSection] = useState(0)
+
+  useEffect(() => setActiveSection(0), [slug])
 
   if (current) {
+    const words = [current.intro, ...current.sections.flatMap((s) => [...(s.paragraphs ?? []), ...(s.bullets ?? [])])].join(" ").length
+    const minutes = Math.max(1, Math.round(words / 550))
+    const highlights = DOC_HIGHLIGHTS[current.slug]
+    const goTo = (index: number) => {
+      setActiveSection(index)
+      document.getElementById(`doc-section-${index}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+
     return (
       <Shell title={current.name} lead={current.desc}>
-        <div className={`${CARD} mt-12 max-w-[820px]`}>
-          <span className="grid size-10 place-items-center rounded-lg bg-white/5 text-[#e4f222]"><current.Icon size={18} /></span>
-          <p className="mt-6 text-[14px] leading-[1.7] text-[#d0d6e0]">{current.intro}</p>
-          <div className="mt-8 space-y-8">
-            {current.sections.map((section) => (
-              <section key={section.title}>
-                <h2 className="text-[13px] font-medium text-[#f7f8f8]">{section.title}</h2>
-                {section.paragraphs?.map((paragraph) => (
-                  <p key={paragraph} className="mt-3 text-[12px] leading-[1.7] text-[#8a8f98]">{paragraph}</p>
-                ))}
-                {section.bullets && (
-                  <ul className="mt-3 space-y-2 text-[12px] leading-[1.7] text-[#a6aab1]">
-                    {section.bullets.map((bullet) => <li key={bullet} className="flex gap-2"><span className="text-[#e4f222]">·</span><span>{bullet}</span></li>)}
-                  </ul>
-                )}
-                {section.note && (
-                  <p className="mt-4 rounded-lg border border-[#e4f222]/15 bg-[#e4f222]/5 px-3 py-2 text-[11px] leading-relaxed text-[#c7cb93]">{section.note}</p>
-                )}
-              </section>
-            ))}
-          </div>
-        </div>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <button onClick={() => navigate("resources")} className={BTN}><ArrowLeft size={13} /> Kembali ke Resources</button>
-          <button onClick={() => navigate("contact")} className={BTN}>Butuh bantuan? <ArrowRight size={13} /></button>
+        <div className="mt-12 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_236px]">
+          <article className={`${CARD} min-w-0`}>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="grid size-11 place-items-center rounded-xl bg-white/5 text-[#e4f222]"><current.Icon size={19} /></span>
+              <div>
+                <p className="font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide text-[#62666d]">Panduan · diperbarui Nov 2026</p>
+                <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#8a8f98]"><Clock3 size={12} /> {minutes} menit baca · {current.sections.length} bagian</p>
+              </div>
+            </div>
+
+            <p className="mt-7 text-[14px] leading-[1.75] text-[#d0d6e0]">{current.intro}</p>
+
+            {highlights && (
+              <div className="mt-7 rounded-xl border border-[#e4f222]/20 bg-[#e4f222]/[0.04] p-4">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-[#e4f222]">Ringkasan singkat</p>
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {highlights.map((item) => (
+                    <li key={item} className="flex gap-2 text-[11px] leading-relaxed text-[#a6aab1]">
+                      <Check size={12} className="mt-0.5 shrink-0 text-[#e4f222]" /> {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {current.slug === "documentation" && <WorkflowFlow />}
+            {current.slug === "hotspot-guide" && <HotspotDemo />}
+
+            <div className="mt-10 space-y-10">
+              {current.sections.map((section, index) => (
+                <section key={section.title} id={`doc-section-${index}`} className="scroll-mt-24">
+                  <div className="flex items-baseline gap-3 border-b border-white/[0.06] pb-3">
+                    <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#e4f222]">{String(index + 1).padStart(2, "0")}</span>
+                    <h2 className="text-[14px] font-medium text-[#f7f8f8]">{section.title}</h2>
+                  </div>
+                  {section.paragraphs?.map((paragraph) => (
+                    <p key={paragraph} className="mt-4 text-[12px] leading-[1.8] text-[#8a8f98]">{paragraph}</p>
+                  ))}
+                  {section.bullets && (
+                    <ul className="mt-4 space-y-3 text-[12px] leading-[1.7] text-[#a6aab1]">
+                      {section.bullets.map((bullet) => (
+                        <li key={bullet} className="flex gap-2.5">
+                          <span className="mt-[7px] size-1 shrink-0 rounded-full bg-[#e4f222]" />
+                          <span>{bullet}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {section.note && (
+                    <p className="mt-5 rounded-lg border border-[#e4f222]/15 bg-[#e4f222]/5 px-3 py-2.5 text-[11px] leading-relaxed text-[#c7cb93]">{section.note}</p>
+                  )}
+                </section>
+              ))}
+            </div>
+
+            <div className="mt-10 flex flex-wrap gap-3 border-t border-white/[0.06] pt-6">
+              <button onClick={() => navigate("resources")} className={BTN}><ArrowLeft size={13} /> Kembali ke Resources</button>
+              <button onClick={() => navigate("contact")} className={BTN}>Butuh bantuan? <ArrowRight size={13} /></button>
+            </div>
+          </article>
+
+          <aside className="hidden lg:sticky lg:top-24 lg:block">
+            <p className="font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide text-[#62666d]">Dalam halaman ini</p>
+            <nav className="mt-3 border-l border-white/10">
+              {current.sections.map((section, index) => (
+                <button
+                  key={section.title}
+                  onClick={() => goTo(index)}
+                  className={`block w-full border-l-2 py-2 pl-3 text-left text-[11px] transition-colors ${
+                    activeSection === index ? "border-[#e4f222] text-[#f7f8f8]" : "border-transparent text-[#8a8f98] hover:text-white"
+                  }`}
+                >
+                  {section.title}
+                </button>
+              ))}
+            </nav>
+            <p className="mt-8 font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-wide text-[#62666d]">Panduan lain</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {DOCS.filter((item) => item.slug !== current.slug).slice(0, 5).map((item) => (
+                <button
+                  key={item.slug}
+                  onClick={() => navigateHash(`#/resources/${item.slug}`)}
+                  className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-[#8a8f98] hover:border-white/25 hover:text-white"
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+          </aside>
         </div>
       </Shell>
     )
@@ -588,13 +759,24 @@ export function ResourcesView() {
 
   return (
     <Shell title="Resources and documentation" lead="Semua yang kamu butuhkan untuk membuat, mempublikasikan, dan membagikan tour 360°.">
-      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {DOCS.map(({ slug: itemSlug, name, desc, Icon }) => (
-          <button key={itemSlug} onClick={() => navigateHash(`#/resources/${itemSlug}`)} className={`${CARD} text-left transition-colors hover:border-white/25`}>
-            <span className="grid size-9 place-items-center rounded-lg bg-white/5 text-[#e4f222]"><Icon size={17} /></span>
+      <div className="mt-10 flex flex-wrap items-center gap-2 text-[11px] text-[#8a8f98]">
+        <span className="rounded-full border border-[#e4f222]/25 bg-[#e4f222]/5 px-2.5 py-1 font-[family-name:var(--font-mono)] text-[10px] text-[#e4f222]">{DOCS.length} panduan</span>
+        <span>Mulai dari Quick start, lalu buka Documentation untuk alur lengkap.</span>
+      </div>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {DOCS.map(({ slug: itemSlug, name, desc, Icon }, index) => (
+          <button
+            key={itemSlug}
+            onClick={() => navigateHash(`#/resources/${itemSlug}`)}
+            className={`${CARD} group text-left transition-all hover:-translate-y-0.5 hover:border-white/25`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="grid size-9 place-items-center rounded-lg bg-white/5 text-[#e4f222] transition-transform group-hover:scale-105"><Icon size={17} /></span>
+              <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#62666d]">{String(index + 1).padStart(2, "0")}</span>
+            </div>
             <p className="mt-5 text-[13px] font-medium text-[#f7f8f8]">{name}</p>
             <p className="mt-2 text-[12px] leading-relaxed text-[#8a8f98]">{desc}</p>
-            <p className="mt-4 font-[family-name:var(--font-mono)] text-[10px] text-[#e4f222]">/resources/{itemSlug}</p>
+            <p className="mt-4 flex items-center gap-1 font-[family-name:var(--font-mono)] text-[10px] text-[#e4f222]">/resources/{itemSlug} <ArrowRight size={11} className="transition-transform group-hover:translate-x-1" /></p>
           </button>
         ))}
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { ArrowRight, ChevronRight } from "lucide-react"
 import { Logo360 } from "../components/ui/Logo360"
+import { ThemeToggle } from "../components/ui/ThemeToggle"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { SlackBox } from "../components/ui/SlackBox"
 import { TourStage } from "../components/ui/TourStage"
@@ -10,7 +11,16 @@ import { Reveal } from "../components/ui/Reveal"
 import { useApp } from "../context/useApp"
 import { navigate, navigateHash, navigateProfile } from "../lib/navigation"
 
-const NAV = ["Home", "Product", "Resources", "Customers", "Pricing", "Contact"]
+const NAV = ["Home", "Product", "Resources", "Explore", "Pricing", "Contact"] as const
+
+const NAV_ROUTE: Record<(typeof NAV)[number], "home" | "product" | "resources" | "customers" | "pricing" | "contact"> = {
+  Home: "home",
+  Product: "product",
+  Resources: "resources",
+  Explore: "customers",
+  Pricing: "pricing",
+  Contact: "contact",
+}
 
 const MENUS: Record<string, { title: string; detail: string }[]> = {
   Product: [
@@ -104,7 +114,7 @@ export function PublicHomeView() {
       <header
         className="sticky relative top-0 z-40 h-[72px]"
         onMouseLeave={() => setMenu("")}
-        style={{ background: "linear-gradient(rgba(11,11,11,.8) 0%, rgba(27,27,28,.76) 100%)", backdropFilter: "blur(12px)" }}
+        style={{ background: "var(--home-nav-bg)", backdropFilter: "blur(12px)" }}
       >
         <div className="mx-auto flex h-full max-w-[1200px] items-center px-6">
           <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center gap-2">
@@ -115,7 +125,7 @@ export function PublicHomeView() {
               <div key={item} className="relative">
                 <button
                   onMouseEnter={() => setMenu(item)}
-                  onClick={() => navigate(item.toLowerCase() as "product")}
+                  onClick={() => navigate(NAV_ROUTE[item])}
                   className={`transition-colors hover:text-white ${menu === item ? "text-white" : ""}`}
                 >
                   {item}
@@ -145,6 +155,7 @@ export function PublicHomeView() {
           </nav>
 
           <div className="ml-2 flex items-center gap-2 text-[12px] md:ml-10">
+            <ThemeToggle />
             {user ? (
               <button onClick={() => navigate("dashboard")} className="flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1.5 hover:bg-white/5">
                 <span className="grid size-5 place-items-center rounded-full bg-[#e4f222] text-[9px] font-semibold text-[#08090a]">{user.initials}</span>
@@ -362,7 +373,7 @@ export function PublicHomeView() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-[#8a8f98]">
             <button onClick={() => navigate("product")} className="hover:text-white">Product</button>
             <button onClick={() => navigate("pricing")} className="hover:text-white">Pricing</button>
-            <button onClick={() => navigate("customers")} className="hover:text-white">Customers</button>
+            <button onClick={() => navigate("customers")} className="hover:text-white">Explore</button>
             <button onClick={() => navigate("resources")} className="hover:text-white">Resources</button>
             <button onClick={() => navigate("contact")} className="hover:text-white">Contact</button>
             <a href="https://instagram.com/vwrks" target="_blank" rel="noreferrer" className="hover:text-white">Instagram</a>

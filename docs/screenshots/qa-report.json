@@ -1,0 +1,607 @@
+{
+  "generatedAt": "2026-11-27T12:58:08",
+  "base": "http://localhost:5173",
+  "screenshots": [
+    {
+      "name": "desktop-dark-home",
+      "file": "desktop-dark-home.png",
+      "url": "http://localhost:5173/#/home",
+      "dom": {
+        "h1": "Virtual tour software for teams and creators. Built to publi",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 131,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 37.8,
+        "darkPixelPct": 79.2,
+        "lightPixelPct": 2.1,
+        "lumaStdDev": 53.7,
+        "edgeDensity": 13.62,
+        "uniqueColors": 53912
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-resources",
+      "file": "desktop-dark-resources.png",
+      "url": "http://localhost:5173/#/resources",
+      "dom": {
+        "h1": "Resources and documentation",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 63,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 16.4,
+        "darkPixelPct": 96.5,
+        "lightPixelPct": 0.8,
+        "lumaStdDev": 25.2,
+        "edgeDensity": 7.82,
+        "uniqueColors": 3867
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-resources-terms",
+      "file": "desktop-dark-resources-terms.png",
+      "url": "http://localhost:5173/#/resources/terms",
+      "dom": {
+        "h1": "Syarat & ketentuan",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 59,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 16.5,
+        "darkPixelPct": 96.4,
+        "lightPixelPct": 0.6,
+        "lumaStdDev": 22.9,
+        "edgeDensity": 7.91,
+        "uniqueColors": 4745
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-customers",
+      "file": "desktop-dark-customers.png",
+      "url": "http://localhost:5173/#/customers",
+      "dom": {
+        "h1": "Explore tours from the community",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 97,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 31.7,
+        "darkPixelPct": 83.9,
+        "lightPixelPct": 1.4,
+        "lumaStdDev": 48.9,
+        "edgeDensity": 12.71,
+        "uniqueColors": 69833
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-documentation-workflow",
+      "file": "desktop-dark-documentation-workflow.png",
+      "url": "http://localhost:5173/#/resources/documentation",
+      "dom": {
+        "h1": "Documentation",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 84,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 19.0,
+        "darkPixelPct": 93.3,
+        "lightPixelPct": 0.6,
+        "lumaStdDev": 29.2,
+        "edgeDensity": 9.54,
+        "uniqueColors": 35325
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-hotspot-guide-demo",
+      "file": "desktop-dark-hotspot-guide-demo.png",
+      "url": "http://localhost:5173/#/resources/hotspot-guide",
+      "dom": {
+        "h1": "Hotspot guide",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 76,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 28.3,
+        "darkPixelPct": 84.3,
+        "lightPixelPct": 0.9,
+        "lumaStdDev": 39.0,
+        "edgeDensity": 11.38,
+        "uniqueColors": 80043
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-dashboard",
+      "file": "desktop-dark-dashboard.png",
+      "url": "http://localhost:5173/#/dashboard",
+      "dom": {
+        "h1": null,
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 35,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 13.6,
+        "darkPixelPct": 97.4,
+        "lightPixelPct": 0.5,
+        "lumaStdDev": 21.7,
+        "edgeDensity": 5.26,
+        "uniqueColors": 6108
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-publish-modal",
+      "file": "desktop-dark-publish-modal.png",
+      "url": "http://localhost:5173/#/studio",
+      "dom": {
+        "h1": null,
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 64,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 13.2,
+        "darkPixelPct": 96.6,
+        "lightPixelPct": 2.1,
+        "lumaStdDev": 36.8,
+        "edgeDensity": 3.23,
+        "uniqueColors": 2236
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-home",
+      "file": "desktop-light-home.png",
+      "url": "http://localhost:5173/#/home",
+      "dom": {
+        "h1": "Virtual tour software for teams and creators. Built to publi",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 131,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 218.6,
+        "darkPixelPct": 2.5,
+        "lightPixelPct": 79.0,
+        "lumaStdDev": 56.2,
+        "edgeDensity": 19.62,
+        "uniqueColors": 54583
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-resources",
+      "file": "desktop-light-resources.png",
+      "url": "http://localhost:5173/#/resources",
+      "dom": {
+        "h1": "Resources and documentation",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 63,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 241.1,
+        "darkPixelPct": 0.5,
+        "lightPixelPct": 97.5,
+        "lumaStdDev": 21.6,
+        "edgeDensity": 10.86,
+        "uniqueColors": 3902
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-resources-terms",
+      "file": "desktop-light-resources-terms.png",
+      "url": "http://localhost:5173/#/resources/terms",
+      "dom": {
+        "h1": "Syarat & ketentuan",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 59,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 241.2,
+        "darkPixelPct": 0.3,
+        "lightPixelPct": 97.4,
+        "lumaStdDev": 19.4,
+        "edgeDensity": 11.06,
+        "uniqueColors": 4826
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-customers",
+      "file": "desktop-light-customers.png",
+      "url": "http://localhost:5173/#/customers",
+      "dom": {
+        "h1": "Explore tours from the community",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 97,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 225.0,
+        "darkPixelPct": 1.8,
+        "lightPixelPct": 83.9,
+        "lumaStdDev": 49.0,
+        "edgeDensity": 15.32,
+        "uniqueColors": 69940
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-documentation-workflow",
+      "file": "desktop-light-documentation-workflow.png",
+      "url": "http://localhost:5173/#/resources/documentation",
+      "dom": {
+        "h1": "Documentation",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 84,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 242.3,
+        "darkPixelPct": 0.3,
+        "lightPixelPct": 97.9,
+        "lumaStdDev": 17.8,
+        "edgeDensity": 10.45,
+        "uniqueColors": 5249
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-hotspot-guide-demo",
+      "file": "desktop-light-hotspot-guide-demo.png",
+      "url": "http://localhost:5173/#/resources/hotspot-guide",
+      "dom": {
+        "h1": "Hotspot guide",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 76,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 213.4,
+        "darkPixelPct": 5.5,
+        "lightPixelPct": 79.9,
+        "lumaStdDev": 65.5,
+        "edgeDensity": 15.39,
+        "uniqueColors": 79533
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-dashboard",
+      "file": "desktop-light-dashboard.png",
+      "url": "http://localhost:5173/#/dashboard",
+      "dom": {
+        "h1": null,
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 35,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 245.8,
+        "darkPixelPct": 0.0,
+        "lightPixelPct": 98.5,
+        "lumaStdDev": 14.1,
+        "edgeDensity": 8.55,
+        "uniqueColors": 5988
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-publish-modal",
+      "file": "desktop-light-publish-modal.png",
+      "url": "http://localhost:5173/#/studio",
+      "dom": {
+        "h1": null,
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 64,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 246.3,
+        "darkPixelPct": 0.0,
+        "lightPixelPct": 99.7,
+        "lumaStdDev": 9.9,
+        "edgeDensity": 5.66,
+        "uniqueColors": 1474
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-dark-home",
+      "file": "mobile-dark-home.png",
+      "url": "http://localhost:5173/#/home",
+      "dom": {
+        "h1": "Virtual tour software for teams and creators. Built to publi",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 113,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 34.4,
+        "darkPixelPct": 82.2,
+        "lightPixelPct": 4.0,
+        "lumaStdDev": 51.5,
+        "edgeDensity": 19.06,
+        "uniqueColors": 20356
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-dark-resources-documentation",
+      "file": "mobile-dark-resources-documentation.png",
+      "url": "http://localhost:5173/#/resources/documentation",
+      "dom": {
+        "h1": "Documentation",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 68,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 20.3,
+        "darkPixelPct": 94.7,
+        "lightPixelPct": 1.4,
+        "lumaStdDev": 33.3,
+        "edgeDensity": 12.01,
+        "uniqueColors": 3770
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-dark-resources-hotspot-guide",
+      "file": "mobile-dark-resources-hotspot-guide.png",
+      "url": "http://localhost:5173/#/resources/hotspot-guide",
+      "dom": {
+        "h1": "Hotspot guide",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 61,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 32.5,
+        "darkPixelPct": 84.2,
+        "lightPixelPct": 2.1,
+        "lumaStdDev": 46.5,
+        "edgeDensity": 16.14,
+        "uniqueColors": 28336
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-dark-customers",
+      "file": "mobile-dark-customers.png",
+      "url": "http://localhost:5173/#/customers",
+      "dom": {
+        "h1": "Explore tours from the community",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 26,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 30.2,
+        "darkPixelPct": 85.1,
+        "lightPixelPct": 2.8,
+        "lumaStdDev": 49.7,
+        "edgeDensity": 15.8,
+        "uniqueColors": 21929
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-light-home",
+      "file": "mobile-light-home.png",
+      "url": "http://localhost:5173/#/home",
+      "dom": {
+        "h1": "Virtual tour software for teams and creators. Built to publi",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 113,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 226.0,
+        "darkPixelPct": 2.3,
+        "lightPixelPct": 86.2,
+        "lumaStdDev": 46.3,
+        "edgeDensity": 25.82,
+        "uniqueColors": 19335
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-light-resources-documentation",
+      "file": "mobile-light-resources-documentation.png",
+      "url": "http://localhost:5173/#/resources/documentation",
+      "dom": {
+        "h1": "Documentation",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 68,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 239.5,
+        "darkPixelPct": 0.6,
+        "lightPixelPct": 96.3,
+        "lumaStdDev": 25.3,
+        "edgeDensity": 16.59,
+        "uniqueColors": 3882
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-light-resources-hotspot-guide",
+      "file": "mobile-light-resources-hotspot-guide.png",
+      "url": "http://localhost:5173/#/resources/hotspot-guide",
+      "dom": {
+        "h1": "Hotspot guide",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 61,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 208.4,
+        "darkPixelPct": 8.5,
+        "lightPixelPct": 78.1,
+        "lumaStdDev": 70.3,
+        "edgeDensity": 21.93,
+        "uniqueColors": 28433
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "mobile-light-customers",
+      "file": "mobile-light-customers.png",
+      "url": "http://localhost:5173/#/customers",
+      "dom": {
+        "h1": "Explore tours from the community",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 26,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 390,
+        "height": 844,
+        "meanLuma": 240.7,
+        "darkPixelPct": 1.2,
+        "lightPixelPct": 95.9,
+        "lumaStdDev": 30.6,
+        "edgeDensity": 18.18,
+        "uniqueColors": 3240
+      },
+      "consoleErrors": []
+    }
+  ],
+  "flags": []
+}

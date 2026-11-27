@@ -125,6 +125,16 @@ export default function App() {
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
+  // Dashboard → "Buat link lewat modal Publish": buka modal begitu Studio siap.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("virtour360.openPublish") === "1") {
+        sessionStorage.removeItem("virtour360.openPublish")
+        setPublishOpen(true)
+      }
+    } catch { /* sesi privat */ }
+  }, [])
+
   const {
     scenes,
     user,

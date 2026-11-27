@@ -1,0 +1,125 @@
+/* Mode terang — dibuka lewat tombol Sun/Moon di header.
+   Variabel zinc dipetakan ulang supaya komponen Studio/Dashboard yang memakai
+   token tema ikut berubah; selector arbitrer menangani halaman marketing. */
+
+:root[data-theme="light"] {
+  --home-nav-bg: linear-gradient(rgba(247, 248, 248, .9) 0%, rgba(236, 238, 241, .86) 100%);
+  color-scheme: light;
+  --color-void: #f7f8f8;
+  --color-carbon: #ffffff;
+  --color-obsidian: #f1f2f4;
+  --color-graphite: #e4e7eb;
+  --color-smoke: #c9ced5;
+  --color-ash: #6b717a;
+  --color-fog: #565c65;
+  --color-mist: #33383f;
+  --color-bone: #1c1e21;
+  --color-paper: #08090a;
+
+  --color-zinc-950: #f7f8f8;
+  --color-zinc-900: #ffffff;
+  --color-zinc-850: #f1f2f4;
+  --color-zinc-800: #e6e9ed;
+  --color-zinc-700: #d2d7dd;
+  --color-zinc-600: #6b717a;
+  --color-zinc-500: #6b717a;
+  --color-zinc-400: #3d4249;
+  --color-zinc-300: #292d33;
+  --color-zinc-200: #e6e9ed;
+  --color-zinc-100: #1b1d20;
+  --color-zinc-50: #08090a;
+
+  --color-ink-950: #f7f8f8;
+  --color-ink-900: #ffffff;
+  --color-ink-850: #f1f2f4;
+  --color-ink-800: #e6e9ed;
+  --color-ink-700: #d2d7dd;
+}
+
+/* Teks yang di dark mode memakai zinc terang harus tetap gelap di light mode.
+   Variabel zinc dipakai untuk background/border, jadi warna teks ditimpa eksplisit. */
+[data-theme="light"] .text-zinc-50,
+[data-theme="light"] .text-zinc-100,
+[data-theme="light"] .text-zinc-200,
+[data-theme="light"] .text-zinc-300 { color: #1c1e21; }
+[data-theme="light"] .text-zinc-400 { color: #3d4249; }
+[data-theme="light"] .text-zinc-500 { color: #565c65; }
+[data-theme="light"] .text-zinc-600,
+[data-theme="light"] .placeholder\:text-zinc-600::placeholder { color: #6b717a; }
+[data-theme="light"] .hover\:text-zinc-200:hover { color: #08090a; }
+[data-theme="light"] .hover\:text-zinc-300:hover { color: #08090a; }
+[data-theme="light"] .hover\:text-zinc-400:hover { color: #292d33; }
+
+/* Overlay modal mengikuti warna halaman, bukan hitam pekat seperti di dark mode. */
+[data-theme="light"] .fixed.inset-0.bg-black\/70 { background-color: rgba(247, 248, 248, .82); }
+[data-theme="light"] .fixed.inset-0.bg-black\/60 { background-color: rgba(247, 248, 248, .78); }
+
+/* Latar & permukaan marketing */
+[data-theme="light"] .bg-\[\#08090a\] { background-color: #f7f8f8; }
+[data-theme="light"] .bg-\[\#08090a\]\/90 { background-color: rgba(247, 248, 248, .92); }
+[data-theme="light"] .bg-\[\#08090a\]\/85 { background-color: rgba(247, 248, 248, .88); }
+[data-theme="light"] .bg-\[\#08090a\]\/80 { background-color: rgba(247, 248, 248, .86); }
+[data-theme="light"] .bg-\[\#08090a\]\/70 { background-color: rgba(247, 248, 248, .82); }
+[data-theme="light"] .bg-\[\#0f1011\] { background-color: #ffffff; }
+[data-theme="light"] .bg-\[\#161718\] { background-color: #f1f2f4; }
+[data-theme="light"] .bg-\[\#0c1612\] { background-color: #ffffff; }
+[data-theme="light"] .bg-\[\#e4f222\]\/5 { background-color: rgba(107, 116, 0, .06); }
+[data-theme="light"] .bg-\[\#e4f222\]\/15 { background-color: rgba(107, 116, 0, .10); }
+[data-theme="light"] .bg-\[\#e4f222\]\/10 { background-color: rgba(107, 116, 0, .09); }
+
+/* Teks marketing */
+[data-theme="light"] .text-\[\#f7f8f8\] { color: #08090a; }
+[data-theme="light"] .text-\[\#d0d6e0\] { color: #2f343b; }
+[data-theme="light"] .text-\[\#a6aab1\] { color: #42474f; }
+[data-theme="light"] .text-\[\#8a8f98\] { color: #565c65; }
+[data-theme="light"] .text-\[\#62666d\] { color: #6b717a; }
+[data-theme="light"] .text-\[\#c7cb93\] { color: #576015; }
+[data-theme="light"] .text-\[\#e4f222\] { color: #697300; }
+[data-theme="light"] .text-\[\#5fd486\] { color: #177a42; }
+[data-theme="light"] .text-\[\#f2c14e\] { color: #8a6100; }
+[data-theme="light"] .text-cyan-300 { color: #0e7490; }
+[data-theme="light"] .text-sky-400 { color: #0369a1; }
+[data-theme="light"] .text-sky-300,
+[data-theme="light"] .hover\:text-sky-300:hover { color: #075985; }
+[data-theme="light"] .text-emerald-300 { color: #047857; }
+[data-theme="light"] .bg-emerald-500\/10 { background-color: rgba(4, 120, 87, .10); }
+[data-theme="light"] .text-pink-200 { color: #9d174d; }
+[data-theme="light"] .text-amber-300 { color: #8a6100; }
+[data-theme="light"] .text-white { color: #08090a; }
+/* Panel simulasi viewer tetap gelap walaupun halaman terang. */
+[data-theme="light"] .bg-black\/70.text-white,
+[data-theme="light"] .bg-black\/75.text-white,
+[data-theme="light"] .bg-black\/60.text-white,
+[data-theme="light"] .bg-black\/50.text-white { color: #ffffff; }
+[data-theme="light"] .bg-sky-500.text-white,
+[data-theme="light"] .bg-sky-600.text-white,
+[data-theme="light"] .bg-\[\#d1005c\].text-white,
+[data-theme="light"] .bg-black.text-white { color: #ffffff; }
+
+/* Border & surface transparan */
+[data-theme="light"] .border-white\/\[0\.06\] { border-color: rgba(8, 9, 10, .10); }
+[data-theme="light"] .border-white\/10 { border-color: rgba(8, 9, 10, .15); }
+[data-theme="light"] .border-white\/25 { border-color: rgba(8, 9, 10, .35); }
+[data-theme="light"] .border-white\/30 { border-color: rgba(8, 9, 10, .40); }
+[data-theme="light"] .bg-white\/\[0\.02\] { background-color: rgba(8, 9, 10, .025); }
+[data-theme="light"] .bg-white\/5 { background-color: rgba(8, 9, 10, .04); }
+[data-theme="light"] .bg-white\/10 { background-color: rgba(8, 9, 10, .06); }
+[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(8, 9, 10, .05); }
+[data-theme="light"] .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(8, 9, 10, .05); }
+[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(8, 9, 10, .07); }
+[data-theme="light"] .hover\:border-white\/25:hover { border-color: rgba(8, 9, 10, .35); }
+[data-theme="light"] .hover\:border-white\/30:hover { border-color: rgba(8, 9, 10, .40); }
+[data-theme="light"] .hover\:text-white:hover { color: #08090a; }
+
+/* Efek dekoratif yang sebelumnya dikalibrasi untuk latar gelap */
+[data-theme="light"] .hero-floor {
+  background: radial-gradient(ellipse 70% 48% at 50% 62%, rgba(8, 9, 10, .07) 0%, rgba(8, 9, 10, .025) 45%, transparent 78%);
+}
+[data-theme="light"] .stage-wrapper::after {
+  background: linear-gradient(90deg, rgba(247, 248, 248, 0) 0%, rgba(247, 248, 248, .92) 100%);
+}
+[data-theme="light"] .dot-grid span { background: #33383f; }
+[data-theme="light"] .product-stage,
+[data-theme="light"] .product-stage-flip { filter: drop-shadow(0 24px 48px rgba(8, 9, 10, .18)); }
+[data-theme="light"] ::selection { background: #697300; color: #ffffff; }
+[data-theme="light"] .thin-scrollbar { scrollbar-color: #c9ced5 transparent; }
