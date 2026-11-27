@@ -45,7 +45,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 | [16-perbaikan-portfolio-dashboard-studio.md](16-perbaikan-portfolio-dashboard-studio.md) | Perbaikan logo, username/URL, CTA, status project, slug, responsivitas |
 | [17-halaman-marketing.md](17-halaman-marketing.md) | Rute Product, Pricing, Customers, Resources, Contact; dropdown & feed |
 | [18-qa-workflow-lanjutan.md](18-qa-workflow-lanjutan.md) | QA satu per satu: nav, docs, feed publish, collapse, clipboard, logout, blob URL |
-| [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md) | 13 perbaikan UI/UX terbaru + screenshot/visual QA 26 viewport (dark/light, desktop/mobile) |
+| [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md) | 15 perbaikan UI/UX terbaru + screenshot/visual QA 26 viewport (dark/light, desktop/mobile) |
 
 ## D.状态 terakhir & operasional
 | Dokumen | Isi |
@@ -61,4 +61,4 @@ Studio: scene CRUD, grup + rename/delete + weblog, 9 tipe hotspot, Design modal,
 
 Testing: 46/46 automated test lolos, typecheck & build hijau. Screenshot QA terbaru: 26 screenshot, 0 flag (lihat [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md)).
 
-Update UI/UX terbaru: Resources/dokumentasi/terms diperbagus, animasi workflow + contoh hotspot, kartu dashboard hanya memilih project, link publish wajib lewat modal Publish, menu Customers → **Explore** dengan filter nama/tanggal, toggle dark/light di header marketing/dashboard/studio, slug portofolio bisa diganti/diklik, daftar project portofolio hanya berisi project, serta statistik Posts/Tours/Views/Likes berasal dari data publish nyata.
+Update UI/UX terbaru: Resources/dokumentasi/terms diperbagus, animasi workflow + contoh hotspot, kartu dashboard hanya memilih project, link publish wajib lewat modal Publish, menu Customers → **Explore** dengan filter nama/tanggal, toggle dark/light di header marketing/dashboard/studio, slug portofolio bisa diganti/diklik, daftar project portofolio hanya berisi project, statistik Posts/Tours/Views/Likes berasal dari data publish nyata, pengaturan akun tersedia di menu avatar Dashboard, dan panel Location Studio terhubung ke Google Maps (nama tempat atau koordinat `lat,lng` + geolocation).

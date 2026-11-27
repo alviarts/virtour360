@@ -26,6 +26,29 @@ import { defaultEffects, effectPresets, type SceneEffects } from "../../lib/effe
 
 type Tab = "scene" | "hotspot" | "location"
 
+/** Lokasi bisa berupa nama tempat atau pasangan koordinat lat,lng. */
+function parseCoordinates(value: string): { lat: number; lng: number } | null {
+  const match = value.trim().match(/^(-?\d+(?:\.\d+)?)\s*[, ]\s*(-?\d+(?:\.\d+)?)$/)
+  if (!match) return null
+  const lat = Number(match[1])
+  const lng = Number(match[2])
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null
+  return { lat, lng }
+}
+
+function mapsQuery(location: string): string {
+  const coords = parseCoordinates(location)
+  return coords ? `${coords.lat},${coords.lng}` : location.trim() || "Jakarta, Indonesia"
+}
+
+function googleMapsUrl(location: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery(location))}`
+}
+
+function googleMapsEmbedUrl(location: string): string {
+  return `https://www.google.com/maps?q=${encodeURIComponent(mapsQuery(location))}&z=13&output=embed`
+}
+
 interface RightPanelProps {
   scene: Scene
   scenes: Scene[]
@@ -142,6 +165,21 @@ export function RightPanel({
   const { effectsByScene, setSceneEffects, resetSceneEffects, notify, imageQuality, setImageQuality, user, studioConfig, updateStudioConfig } = useApp()
   const effects = effectsByScene[scene.id] ?? defaultEffects
   const patchEffects = (patch: Partial<SceneEffects>) => setSceneEffects(scene.id, patch)
+
+  const locationValue = studioConfig.setting.location || profile.location
+  const locationCoords = parseCoordinates(locationValue)
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return notify("Browser ini tidak mendukung lokasi perangkat.")
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: gps }) => {
+        const value = `${gps.latitude.toFixed(5)},${gps.longitude.toFixed(5)}`
+        updateStudioConfig({ setting: { ...studioConfig.setting, location: value } })
+        notify(`Koordinat dipakai: ${value}`)
+      },
+      () => notify("Izin lokasi ditolak. Isi koordinat manual, mis. -6.2088,106.8456."),
+      { enableHighAccuracy: true, timeout: 10000 },
+    )
+  }
 
   const [tab, setTab] = useState<Tab>("scene")
   const [title, setTitle] = useState("")
@@ -704,34 +742,59 @@ export function RightPanel({
             </div>
 
             <div className="overflow-hidden rounded-xl border border-zinc-800 bg-black/40">
-              <div className="relative h-28 bg-[radial-gradient(circle_at_50%_40%,rgba(14,165,233,0.18),transparent_60%),linear-gradient(#18181b,#09090b)]">
-                <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(#3f3f46_1px,transparent_1px),linear-gradient(90deg,#3f3f46_1px,transparent_1px)] [background-size:24px_24px]" />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <MapPin size={22} className="text-sky-400 drop-shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
+              <a
+                href={googleMapsUrl(locationValue)}
+                target="_blank"
+                rel="noreferrer"
+                title="Buka lokasi ini di Google Maps"
+                className="relative block h-28 overflow-hidden bg-[radial-gradient(circle_at_50%_40%,rgba(14,165,233,0.18),transparent_60%),linear-gradient(#18181b,#09090b)]"
+              >
+                <iframe
+                  title="Pratinjau lokasi di Google Maps"
+                  src={googleMapsEmbedUrl(locationValue)}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="pointer-events-none absolute inset-0 h-full w-full border-0 opacity-90 saturate-50"
+                />
+                <span className="absolute bottom-2 right-2 rounded-full bg-black/75 px-2 py-1 text-[9px] text-zinc-100">
+                  Buka di Google Maps ↗
                 </span>
-              </div>
+              </a>
               <div className="p-3">
                 <label className="block text-[10px] font-semibold uppercase tracking-wide text-zinc-600">Lokasi</label>
                 <input
-                  value={studioConfig.setting.location || profile.location}
+                  value={locationValue}
                   onChange={(e) => updateStudioConfig({ setting: { ...studioConfig.setting, location: e.target.value } })}
-                  placeholder="Kota, Negara"
+                  placeholder="Kota, Negara atau -6.2088,106.8456"
                   className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-200 outline-none placeholder:text-zinc-600"
                 />
+                <p className="mt-1.5 text-[10px] text-zinc-500">
+                  {locationCoords
+                    ? `Koordinat aktif · ${locationCoords.lat.toFixed(5)}, ${locationCoords.lng.toFixed(5)}`
+                    : "Nama tempat — isi koordinat (lat,lng) untuk presisi."}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <button onClick={useMyLocation} className="flex h-7 items-center gap-1.5 rounded-full border border-zinc-700 px-2.5 text-[10px] text-zinc-300 hover:bg-white/5">
+                    <MapPin size={11} /> Pakai lokasi saya
+                  </button>
+                  <a href={googleMapsUrl(locationValue)} target="_blank" rel="noreferrer" className="flex h-7 items-center gap-1.5 rounded-full border border-sky-500/40 px-2.5 text-[10px] text-sky-300 hover:bg-sky-500/10">
+                    <ExternalLink size={11} /> Google Maps
+                  </a>
+                </div>
               </div>
             </div>
 
             <div className="flex flex-col gap-2 rounded-xl border border-zinc-800 bg-black/40 p-3 text-[11px] text-zinc-400">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-zinc-600">Kontak publik</span>
               <a href={`mailto:${user?.email ?? profile.email}`} className="flex items-center gap-2 hover:text-zinc-100">
                 <Mail size={13} /> {user?.email ?? profile.email}
               </a>
-              <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-zinc-100">
-                <ExternalLink size={13} /> {profile.website}
+              <a href={studioConfig.setting.copyrightLink || profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-zinc-100">
+                <ExternalLink size={13} /> {studioConfig.setting.copyrightLink || profile.website}
               </a>
             </div>
             <p className="text-[10px] leading-relaxed text-zinc-600">
-              Nama &amp; email mengikuti akun database. Lokasi bisa diubah di sini (atau panel Setting) dan ikut saat publish.
-              Tidak ada geotagging nyata pada panorama.
+              Nama &amp; email mengikuti akun database. Lokasi menerima nama tempat atau koordinat `lat,lng`, terbuka di Google Maps, dan ikut saat publish.
             </p>
           </div>
         )}

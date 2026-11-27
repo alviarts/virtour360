@@ -8,12 +8,14 @@ import {
   Pencil,
   Plus,
   Search,
+  Settings,
   Sparkles,
   Trash2,
   X,
 } from "lucide-react"
 import { useApp } from "../context/useApp"
 import { NewProjectModal } from "../components/auth/NewProjectModal"
+import { ProfileModal } from "../components/auth/ProfileModal"
 import { Logo360 } from "../components/ui/Logo360"
 import { ThemeToggle } from "../components/ui/ThemeToggle"
 import { customProfileSlug, effectiveProfileSlug, navigate, navigateProfile, setCustomProfileSlug } from "../lib/navigation"
@@ -124,6 +126,7 @@ export function DashboardView() {
   const [source, setSource] = useState<"all" | "uploaded" | "static">("all")
   const [category, setCategory] = useState<"all" | "360" | "tour">("all")
   const [accountOpen, setAccountOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [newProjectOpen, setNewProjectOpen] = useState(false)
   const [preview, setPreview] = useState<{ title: string; scenes: Scene[]; uid?: string } | null>(null)
   const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites, projects, activeProject, createProject, setActiveProject, removeProject, setProjectStatus, getProjectScenes } = useApp()
@@ -278,9 +281,14 @@ export function DashboardView() {
                 <div className="absolute right-0 top-10 z-30 w-44 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl text-left">
                   <p className="truncate border-b border-zinc-800 px-2 pb-2 text-[11px] text-white">{user?.name ?? "Publik"}</p>
                   {user ? (
-                    <button onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar."); navigate("home") }} className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10">
+                    <>
+                    <button onClick={() => { setProfileOpen(true); setAccountOpen(false) }} className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-zinc-200 hover:bg-white/5">
+                      <Settings size={12} /> Pengaturan akun
+                    </button>
+                    <button onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar."); navigate("home") }} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10">
                       <LogOut size={12} /> Keluar
                     </button>
+                    </>
                   ) : (
                     <button onClick={() => { setAccountOpen(false); setAuthOpen(true) }} className="mt-1 w-full rounded-lg px-2 py-2 text-left text-[11px] text-sky-400 hover:bg-sky-500/10">
                       Masuk / Daftar
@@ -535,6 +543,8 @@ export function DashboardView() {
       {newProjectOpen && (
         <NewProjectModal onClose={() => setNewProjectOpen(false)} onCreate={handleCreateProject} />
       )}
+
+      {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
 
       {preview && (
         <div className="fixed inset-0 z-[120] grid place-items-center bg-black/80 p-3 backdrop-blur-sm sm:p-6" onClick={() => setPreview(null)}>

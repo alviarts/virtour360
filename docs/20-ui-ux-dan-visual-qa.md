@@ -1,6 +1,6 @@
 # UI/UX & Visual QA — permintaan terbaru
 
-Dokumen ini merangkum 13 permintaan perbaikan UI/UX dan hasil screenshot/visual QA yang dijalankan setelah implementasi.
+Dokumen ini merangkum 15 permintaan perbaikan UI/UX dan hasil screenshot/visual QA yang dijalankan setelah implementasi.
 
 ## 1. Daftar permintaan & implementasi
 
@@ -19,6 +19,8 @@ Dokumen ini merangkum 13 permintaan perbaikan UI/UX dan hasil screenshot/visual 
 | 11 | URL portofolio dashboard: “tidak berubah url portofolio user” | Path `/u/<slug>` sekarang bisa diklik untuk membuka portofolio, dan tombol pensil membuka input slug kustom. Slug disimpan per UID (`virtour360.customSlug:<uid>`) dan dipakai `navigateProfile()`/`effectiveProfileSlug()`. | `src/lib/navigation.ts`, `src/views/DashboardView.tsx` |
 | 12 | Folder portofolio: “project folder masih mencapur dengan scene harus nya project aja” | Bagian “Project” sekarang hanya kartu project hasil publish (cover, jumlah scene, views, suka). Klik kartu membuka tour `#/p/<uid>`; scene tidak lagi dicampurkan sebagai Kartu di daftar project. | `src/views/PublicPortfolioView.tsx`, `src/lib/publicStore.ts` |
 | 13 | Statistik portofolio: “ini di buat real jangan fake” | `1313 Views` dihapus. Posts = scene publish, Tours = project publish, Views = hitungan nyata saat `#/p/<uid>` dibuka, Likes = suka nyata dari tombol hati. Hitungan lokal langsung tampil, lalu digabung dengan baris `virtour:views:*` / `virtour:likes:*` di Supabase. Portofolio publik juga mengambil tour dari feed publish bila pengunjung tidak punya project lokal. | `src/lib/publicStore.ts`, `src/views/PublicTourView.tsx`, `src/views/PublicPortfolioView.tsx` |
+| 14 | Avatar dashboard: “disini juga ada pengaturan akun” | Menu dropdown avatar menambah “Pengaturan akun” yang membuka `ProfileModal` (ubah nama/email & password), langsung dari Dashboard tanpa harus ke halaman lain. | `src/views/DashboardView.tsx`, `src/components/auth/ProfileModal.tsx` |
+| 15 | Panel Studio → Location: “fix location biar aktif via google maps atau koordinat” | Pratinjau Google Maps embed mengikuti nilai lokasi. Input menerima nama tempat **atau** koordinat `lat,lng`; tautan “Google Maps” dan tombol “Pakai lokasi saya” (geolocation) aktif. Koordinat divalidasi, ditampilkan sebagai “Koordinat aktif”, dan ikut ke profil saat publish. | `src/components/layout/RightPanel.tsx`, `src/components/auth/PublishModal.tsx` |
 
 ## 2. Perbaikan kontras yang ditemukan saat visual QA
 
@@ -49,6 +51,8 @@ Hasil akhir: **0 flag**. Tidak ada overflow horizontal, gambar rusak, error kons
 Perilaku interaktif juga diverifikasi: animasi workflow berganti langkah, hotspot demo berganti popup dan merespons klik, toggle tema berpindah dark↔light dan persist setelah reload, filter Explore mengurangi kartu sesuai query, klik kartu dashboard tidak berpindah rute, CTA publish-status membuka modal Publish di Studio.
 
 QA portofolio (browser nyata): klik `/u/<slug>` mengubah hash ke portofolio; input slug kustom tersimpan per UID dan langsung dipakai URL; daftar project hanya berisi kartu project (bukan scene); membuka `#/p/<uid>` menaikkan Views dari 0 → 1; tombol hati menaikkan Likes dari 0 → 1; keduanya tampil di header statistik dan kartu project setelah sinkronisasi Supabase.
+
+QA akun & lokasi (browser nyata): klik avatar Dashboard membuka menu dengan “Pengaturan akun”; menu tersebut membuka modal `ProfileModal`. Di Studio, tab Location merender iframe Google Maps; mengisi `-6.2088,106.8456` langsung mengubah embed dan tautan ke `?query=-6.2088%2C106.8456` serta menampilkan “Koordinat aktif”. Tidak ada error konsol.
 
 ## 4. Test otomatis
 
