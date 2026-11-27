@@ -53,10 +53,17 @@ Verifikasi: Studio demo hanya menampilkan Atrium/Studio/Terrace — tidak ada la
 ## Publish per-project & QA (putaran terakhir)
 - `Project.publishedUid` menyimpan alamat publish unik **per project**. Publish ulang memakai UID project itu, project lain tidak bisa menimpa.
 - Slug default PublishModal sekarang `username/nama-scene-kode-acak` (6 karakter) supaya beda project tidak saling menimpa.
-- Dashboard: klik kartu project membuka **pratinjau 360°** milik project itu (modal viewer) — tidak langsung masuk Studio. Tombol **Buka Studio** tetap ada; tombol publish muncul bila project sudah dipublish. Badge status memakai status asli (Draft / Dalam review / Dipublikasi).
+- Dashboard: klik kartu project **memindahkan project aktif ke Studio** (sesuai permintaan terakhir). Pratinjau 360° tetap tersedia lewat tombol mata eksplisit; tombol **Buka Studio**, publish, dan hapus tetap ada. Badge status memakai status asli (Draft / Dalam review / Dipublikasi).
 - `getProjectScenes(projectId)` di AppContext mengambil scene project mana pun tanpa mengubah `activeProject`.
 - Thumbnail upload disimpan sebagai **data URL** (`StoredPanorama.thumbnail`) supaya tetap tampil setelah refresh; scene lama yang hanya punya `blob:` tetap dapat fallback.
 - Portofolio user memuat **hanya payload project yang benar-benar dipublish** milik user (bukan payload global terakhir), judul bagian memakai nama lengkap (`360° posts — <nama>`), bukan inisial.
 
 ## Verifikasi
-Typecheck, `npm test` (46/46), dan build lolos. Browser: logo putih, badge `@demo`, CTA `Hubungi` menuju `#portfolio-contact`, folder fallback termuat, kartu Dashboard membuka pratinjau 360°.
+Typecheck, `npm test` (46/46), dan build lolos. Browser: logo putih, badge `@demo`, CTA `Hubungi` menuju `#portfolio-contact`, folder fallback termuat. Putaran QA terakhir: klik kartu Dashboard pindah project, tombol mata membuka pratinjau, tidak ada error console pada modal pratinjau setelah perbaikan cache blob URL.
+
+## Perbaikan QA lanjutan
+- `urlCache` dikosongkan setelah `revokeObjectURL` pada cleanup AppContext. Tanpa ini, StrictMode/dev mount kedua memakai blob URL yang sudah dicabut → pratinjau dashboard gagal memuat tekstur (`ERR_FILE_NOT_FOUND`).
+- Sidebar Studio: collapse sekarang **per grup**. Menu cepat `Collapse`/`Expand` mengubah semua grup sekaligus; satu chevron hanya menutup grup itu.
+- Salin link/kode embed memakai `src/lib/clipboard.ts` dengan fallback `execCommand("copy")` + notifikasi; tidak lagi mengklaim "tersalin" saat clipboard ditolak browser.
+- Tombol kembali di `#/p/<uid>` mengarah ke `#/u/<slug>` pemilik tour (dengan suffix UID bila pemilik sedang login), bukan ke Home.
+- Setelah Keluar dari Header/Dashboard/Studio/account popover, aplikasi menuju `#/home`.

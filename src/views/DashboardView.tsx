@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import {
+  Eye,
   Grid2X2,
   List,
   LogOut,
@@ -162,7 +163,7 @@ export function DashboardView() {
     navigate("studio")
   }
 
-  /** Klik kartu = pratinjau 360 milik project itu, bukan langsung masuk Studio. */
+  /** Pratinjau dipanggil eksplisit lewat tombol mata; klik kartu = ganti project aktif. */
   const previewProject = (project: (typeof projects)[number]) => {
     const owned = getProjectScenes(project.id)
     setPreview({ title: project.name, scenes: owned, uid: project.publishedUid })
@@ -249,7 +250,7 @@ export function DashboardView() {
                 <div className="absolute right-0 top-10 z-30 w-44 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl text-left">
                   <p className="truncate border-b border-zinc-800 px-2 pb-2 text-[11px] text-white">{user?.name ?? "Publik"}</p>
                   {user ? (
-                    <button onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar.") }} className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10">
+                    <button onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar."); navigate("home") }} className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10">
                       <LogOut size={12} /> Keluar
                     </button>
                   ) : (
@@ -288,12 +289,12 @@ export function DashboardView() {
                 return (
                 <div
                   key={project.id}
-                  onClick={() => previewProject(project)}
+                  onClick={() => openProjectById(project.id)}
                   className={`group cursor-pointer overflow-hidden rounded-xl border transition-colors ${
                     activeProject?.id === project.id ? "border-[#d1005c] bg-[#d1005c]/5" : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-600"
                   }`}
                 >
-                  <button onClick={(e) => { e.stopPropagation(); previewProject(project) }} className="block h-[120px] w-full overflow-hidden bg-zinc-950 text-left">
+                  <button onClick={(e) => { e.stopPropagation(); openProjectById(project.id) }} className="block h-[120px] w-full overflow-hidden bg-zinc-950 text-left">
                     {cover ? (
                       <img src={cover} alt={`Pratinjau ${project.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                     ) : (
@@ -332,6 +333,9 @@ export function DashboardView() {
                     <div className="mt-3 flex gap-2">
                       <button onClick={(e) => { e.stopPropagation(); openProjectById(project.id) }} className="h-8 flex-1 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
                         Buka Studio
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); previewProject(project) }} title="Pratinjau 360° project ini" className="grid size-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-300 hover:border-white/30 hover:text-white">
+                        <Eye size={13} />
                       </button>
                       {project.publishedUid && (
                         <button

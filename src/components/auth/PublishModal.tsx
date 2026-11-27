@@ -4,6 +4,7 @@ import { Check, Copy, ExternalLink, Globe, Lock, QrCode, X } from "lucide-react"
 import { useApp } from "../../context/useApp"
 import type { Scene } from "../../types/tour"
 import { profile as defaultProfile } from "../../data/profile"
+import { copyText } from "../../lib/clipboard"
 import {
   buildPublicFolders,
   hashPassword,
@@ -27,7 +28,7 @@ interface PublishModalProps {
 type Access = "draft" | "public" | "password"
 
 export function PublishModal({ onClose, scenes, userName, userInitials, existingUid, onPublished }: PublishModalProps) {
-  const { studioConfig, user } = useApp()
+  const { studioConfig, user, notify } = useApp()
   const [access, setAccess] = useState<Access>("public")
   const [password, setPassword] = useState("")
   const [uid, setUid] = useState<string | null>(existingUid ?? null)
@@ -87,15 +88,20 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
       setUid(result.uid)
       setSlug(result.uid)
       onPublished?.(result.uid)
-      try { await navigator.clipboard.writeText(publicShareUrl(result.uid)) } catch { /* abaikan */ }
+      if (await copyText(publicShareUrl(result.uid))) notify("Link publish disalin ke clipboard.")
     } else {
       setError(result.error || "Publish gagal. Periksa koneksi/config server.")
     }
   }
 
   const copy = async (value: string, kind: "link" | "code") => {
-    try { await navigator.clipboard.writeText(value) } catch { /* abaikan */ }
+    const ok = await copyText(value)
+    if (!ok) {
+      notify("Gagal menyalin otomatis — pilih dan salin teksnya secara manual.")
+      return
+    }
     setCopied(kind)
+    notify(kind === "link" ? "Link disalin." : "Kode embed disalin.")
     window.setTimeout(() => setCopied(null), 1800)
   }
 

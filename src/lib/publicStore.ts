@@ -1,6 +1,6 @@
 import type { Scene } from "../types/tour"
 import type { StudioConfig } from "../types/studio"
-import { isServerMode } from "./supabase"
+import { isServerMode, supabase } from "./supabase"
 
 export interface PublicProfile {
   name: string
@@ -62,6 +62,8 @@ export interface PublicPayload {
 }
 
 const LOCAL_PUBLISH_KEY = "virtour360.published"
+/** Event same-tab supaya halaman Customers langsung segar setelah publish. */
+const PUBLISHED_EVENT = "virtour360:published"
 
 /** Hash ringan untuk gate password (bukan password mentah yang disimpan). */
 export function hashPassword(value: string): string {
@@ -206,6 +208,7 @@ export async function publishPublicPayload(
       }
       localStorage.setItem(localKey(finalUid), JSON.stringify(finalPayload))
       localStorage.setItem("virtour360.publishedUid", finalUid)
+      window.dispatchEvent(new CustomEvent(PUBLISHED_EVENT, { detail: { uid: finalUid } }))
       return { ok: true, uid: finalUid }
     } catch {
       return { ok: false, uid: finalUid, error: "Gagal menyimpan publish di browser." }
@@ -226,8 +229,73 @@ export async function publishPublicPayload(
         },
       }),
     })
+    if (response.ok) window.dispatchEvent(new CustomEvent(PUBLISHED_EVENT, { detail: { uid: finalUid } }))
     return { ok: response.ok, uid: finalUid }
   } catch {
     return { ok: false, uid: finalUid }
+  }
+}
+
+export interface PublishedItem {
+  uid: string
+  payload: PublicPayload
+}
+
+/** Semua tour yang dipublish — dipakai feed Customers. */
+export async function listPublishedPayloads(): Promise<PublishedItem[]> {
+  if (!isServerMode) {
+    const items: PublishedItem[] = []
+    const prefix = `${LOCAL_PUBLISH_KEY}:`
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (!key?.startsWith(prefix)) continue
+      try {
+        const raw = localStorage.getItem(key)
+        if (!raw) continue
+        const payload = JSON.parse(raw) as PublicPayload
+        if (payload.scenes?.length) items.push({ uid: payload.uid || key.slice(prefix.length), payload })
+      } catch { /* lewati payload rusak */ }
+    }
+    return items.sort((a, b) => (b.payload.updatedAt ?? "").localeCompare(a.payload.updatedAt ?? ""))
+  }
+
+  try {
+    const response = await fetch("/api/public?list=1", { cache: "no-store" })
+    if (!response.ok) return []
+    const json = (await response.json()) as { items?: PublishedItem[] }
+    return json.items ?? []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Feed "realtime": storage event (tab lain), custom event (publish di tab yang
+ * sama), dan subscription Supabase bila klien dikonfigurasi. Di mode server
+ * tanpa browser Supabase, lakukan polling ringan sebagai fallback.
+ */
+export function watchPublishedChanges(onChange: () => void): () => void {
+  const onStorage = (event: StorageEvent) => {
+    if (!event.key || event.key.startsWith(LOCAL_PUBLISH_KEY)) onChange()
+  }
+  const onPublished = () => onChange()
+  window.addEventListener("storage", onStorage)
+  window.addEventListener(PUBLISHED_EVENT, onPublished)
+
+  let channel: ReturnType<NonNullable<typeof supabase>["channel"]> | null = null
+  if (supabase) {
+    channel = supabase
+      .channel("virtour360-published-feed")
+      .on("postgres_changes", { event: "*", schema: "public", table: "virtour_state" }, onChange)
+      .subscribe()
+  }
+
+  const timer = window.setInterval(onChange, isServerMode ? 12000 : 4000)
+
+  return () => {
+    window.removeEventListener("storage", onStorage)
+    window.removeEventListener(PUBLISHED_EVENT, onPublished)
+    window.clearInterval(timer)
+    if (channel && supabase) void supabase.removeChannel(channel)
   }
 }

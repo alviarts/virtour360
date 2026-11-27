@@ -579,7 +579,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     return () => {
       assetUrls.current.forEach((url) => URL.revokeObjectURL(url))
+      assetUrls.current.clear()
       urlCache.forEach((url) => URL.revokeObjectURL(url))
+      // Kosongkan cache: StrictMode menjalankan cleanup saat mount pertama.
+      // Tanpa ini, mount kedua memakai blob URL yang sudah di-revoke.
+      urlCache.clear()
     }
   }, [])
 

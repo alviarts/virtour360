@@ -28,6 +28,25 @@ export default async function handler(req, res) {
   const supabase = createClient(url, key, { auth: { persistSession: false } })
 
   if (req.method === "GET") {
+    // Feed Customers: semua project yang dipublish (bukan state privat).
+    if (req.query?.list === "1") {
+      const { data, error } = await supabase
+        .from("virtour_state")
+        .select("id, data")
+        .like("id", "virtour:pub:%")
+        .order("updated_at", { ascending: false })
+        .limit(100)
+      if (error) return res.status(500).json({ error: error.message })
+      const items = (data ?? [])
+        .map((row) => {
+          const payload = row.data?.payload ?? row.data ?? null
+          if (!payload?.scenes?.length) return null
+          return { uid: payload.uid || row.id.slice("virtour:pub:".length), payload }
+        })
+        .filter(Boolean)
+      return res.status(200).json({ items })
+    }
+
     const uid = req.query?.id
     // Projeck dengan UID lebih dulu; kalau tidak ada, fallback ke state lama.
     const ids = uid ? [projectId(uid), PUBLIC_ID] : [PUBLIC_ID]

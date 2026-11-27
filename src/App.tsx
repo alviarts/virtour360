@@ -18,6 +18,7 @@ import { theme } from "./config/theme"
 import { profile } from "./data/profile"
 import { navigate, navigateProfile } from "./lib/navigation"
 import { publicShareUrl } from "./lib/publicStore"
+import { copyText } from "./lib/clipboard"
 import { defaultEffects } from "./lib/effects"
 import type { HotspotIcon, HotspotKind, HotspotType } from "./types/tour"
 import { defaultSceneId } from "./data/scenes"
@@ -355,8 +356,8 @@ export default function App() {
               {publishedUid && (
                 <button
                   onClick={async () => {
-                    try { await navigator.clipboard.writeText(publicShareUrl(publishedUid)); notify("Link publish disalin.") }
-                    catch { notify(publicShareUrl(publishedUid)) }
+                    const ok = await copyText(publicShareUrl(publishedUid))
+                    notify(ok ? "Link publish disalin." : `Salin manual: ${publicShareUrl(publishedUid)}`)
                     setAccountOpen(false)
                   }}
                   className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-emerald-400 hover:bg-emerald-500/10"
@@ -369,7 +370,7 @@ export default function App() {
               </button>
               {user ? (
                 <button
-                  onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar.") }}
+                  onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar."); navigate("home") }}
                   className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10"
                 >
                   Keluar

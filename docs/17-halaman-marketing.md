@@ -1,13 +1,13 @@
 # Halaman Marketing & Rute Baru
 
-Nav header Home sekarang membuka halaman penuh, bukan dropdown/scroll. Kelima halaman memakai shell gelap `#08090a`, header sticky 72px, tipografi Inter Variable 510, tracking `-0.022em`.
+Nav header Home dan halaman marketing membuka rute penuh; **Product dan Resources punya dropdown** dengan tautan ke rute nyata. Kelima halaman memakai shell gelap `#08090a`, header sticky 72px, tipografi Inter Variable 510, tracking `-0.022em`.
 
 | Rute | Halaman | Isi |
 |---|---|---|
 | `#/product` | ProductView | Hero "A 360° tour workspace for creators", `TourStage`, 4 kartu fitur (Scene, Hotspot, Publish, Explore) |
-| `#/pricing` | PricingView | **Free for all users** — kartu Free $0 (unlimited project, 3 GB, 7 hotspot, 32K, link sendiri, tanpa watermark), storage tambahan $0,15/GB, syarat & ketentuan |
-| `#/customers` | CustomersView | Explore tour kreator baru/lama — kartu profil dengan slug `/u/<username>-<uid>` |
-| `#/resources` | ResourcesView | Documentation, Quick start, Hotspot guide, Embed & share, Community, Changelog |
+| `#/pricing` | PricingView | **Free for all users** — kartu Free $0 (unlimited project, 3 GB, 9 hotspot, 32K, link sendiri, tanpa watermark), storage tambahan $0,15/GB, syarat & ketentuan |
+| `#/customers` | CustomersView | Feed publish dinamis: kartu `/p/<uid>` dari data publish nyata + kartu contoh `/u/<slug>`; badge Live dan tombol Segarkan |
+| `#/resources` | ResourcesView | 9 dokumen lengkap: Documentation, Quick start, Hotspot guide, Embed & share, Community, Changelog, Fitur & batasan, Syarat & ketentuan, Kebijakan privasi |
 | `#/contact` | ContactView | "How can we help?" + 3 kartu Sales / Support / Other inquiries ala `linear.app/contact` |
 
 Semua perpindahan rute memakai transisi **fade out 160 ms → fade in 240 ms** (`.page-fade` di `src/Root.tsx` + `src/styles/theme.css`); `prefers-reduced-motion` menonaktifkannya.
@@ -32,4 +32,11 @@ Implementasi: `src/views/MarketingViews.tsx`, `src/Root.tsx`, `src/lib/navigatio
 
 Catatan: `#/p/<uid>` tetap untuk project publish; `#/u/<slug>` untuk profil user; `#/portfolio` fallback lama.
 
-Belum tersentuh: perilaku select status yang diminta "jangan memunculkan uploadan studio sebelumnya" masih perlu klarifikasi alur yang dimaksud.
+## QA putaran lanjutan (setelah push `1d4a885`)
+- Dropdown Product/Resources akhirnya muncul di **semua** halaman marketing, tidak hanya Home. Entri dropdown menuju rute nyata (`#/studio`, `#/resources/...`, `#/pricing`).
+- Isi Resources sekarang dokumentasi lengkap, bukan satu paragraf: alur kerja, rute, penyimpanan, 9 jenis hotspot, embed/QR, komunitas, changelog, fitur & batasan, syarat & ketentuan, kebijakan privasi.
+- Customers tidak lagi memakai daftar creator statis sebagai satu-satunya sumber: kartu publish sungguhan diambil dari `listPublishedPayloads()` dan diperbarui via `watchPublishedChanges()` (storage event, custom event publish, Supabase realtime bila tersedia, polling ringan di mode server). Kartu bawaan tetap ada tapi diberi badge **Contoh**.
+- Status Supabase: belum terhubung karena tidak ada `.env` (hanya `.env.example`). Mode lokal aktif dan halo "Mode lokal aktif" ditampilkan di Customers. Cara menghubungkan ada di `docs/14-cara-menjalankan.md`.
+- Header marketing mengikuti state login: avatar + nama + tombol Keluar; **Keluar kini kembali ke `#/home`**, bukan meninggalkan halaman dengan pesan "Dashboard perlu login".
+
+Catatan: `#/p/<uid>` tetap untuk project publish; `#/u/<slug>` untuk profil user; `#/portfolio` fallback lama.

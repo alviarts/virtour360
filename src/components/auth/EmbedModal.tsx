@@ -1,20 +1,23 @@
 import { useState } from "react"
 import { Check, Copy, X } from "lucide-react"
+import { useApp } from "../../context/useApp"
+import { copyText } from "../../lib/clipboard"
 
 const BASE = typeof window !== "undefined" ? window.location.origin : ""
 
 export function EmbedModal({ onClose }: { onClose: () => void }) {
+  const { notify } = useApp()
   const [copied, setCopied] = useState(false)
   const code = `<iframe src="${BASE}/#/portfolio" width="100%" height="600" frameborder="0" allow="fullscreen; gyroscope; accelerometer" title="Virtour360 Virtual Tour"></iframe>`
 
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(code)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1800)
-    } catch {
-      setCopied(false)
+    if (!(await copyText(code))) {
+      notify("Gagal menyalin otomatis — pilih kode di atas lalu salin manual.")
+      return
     }
+    setCopied(true)
+    notify("Kode embed disalin.")
+    window.setTimeout(() => setCopied(false), 1800)
   }
 
   return (

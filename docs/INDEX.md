@@ -5,7 +5,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 ## Status saat ini
 - Visual mengikuti referensi **Linear** (`linear.app`): token asli, font asli, struktur landing, animasi scroll/dot-grid/marquee.
 - Sistem/fitur tetap **Virtour360** (turunan Panoee): Studio, 9 tipe hotspot, publish, groups, weblog, viewer 360°.
-- Perubahan **lokal, belum di-commit dan belum di-push** sesuai permintaan.
+- Perubahan terbaru sudah di-commit dan di-push ke `origin/main` (commit terakhir ada di `git log`).
 
 ## A. Riset fitur & sistem
 | Dokumen | Isi |
@@ -42,7 +42,8 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 | [12-visual-linear.md](12-visual-linear.md) | Implementasi visual Linear di Home & Studio |
 | [15-penerapan-linear-refren.md](15-penerapan-linear-refren.md) | Penerapan 12 dokumen `linear-refren` (status, chips, ⌘K, skip-link) |
 | [16-perbaikan-portfolio-dashboard-studio.md](16-perbaikan-portfolio-dashboard-studio.md) | Perbaikan logo, username/URL, CTA, status project, slug, responsivitas |
-| [17-halaman-marketing.md](17-halaman-marketing.md) | Rute Product, Pricing, Customers, Resources, Contact |
+| [17-halaman-marketing.md](17-halaman-marketing.md) | Rute Product, Pricing, Customers, Resources, Contact; dropdown & feed |
+| [18-qa-workflow-lanjutan.md](18-qa-workflow-lanjutan.md) | QA satu per satu: nav, docs, feed publish, collapse, clipboard, logout, blob URL |
 
 ## D.状态 terakhir & operasional
 | Dokumen | Isi |
@@ -51,7 +52,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 | [14-cara-menjalankan.md](14-cara-menjalankan.md) | Cara run, test, route, env, catatan deploy |
 
 ## Ringkasan fitur saat ini
-Home (landingLinear + stage Studio + demo session) · Public portfolio (`#/portfolio`) · Tour publik (`#/p/:uid`) · Dashboard project gateway (`#/dashboard`) · Studio (`#/studio`) · Login/Sign up full-page (`#/login`, `#/signup`).
+Home (landingLinear + stage Studio + demo session) · Marketing (`#/product`, `#/pricing`, `#/customers`, `#/resources` + 9 subpath, `#/contact`) · Public portfolio (`#/portfolio`, `#/u/:slug`) · Tour publik (`#/p/:uid`) · Dashboard project gateway (`#/dashboard`) · Studio (`#/studio`) · Login/Sign up full-page (`#/login`, `#/signup`).
 
 Studio: scene CRUD, grup + rename/delete + weblog, 9 tipe hotspot, Design modal, inspector efek, mini-map, HUD klik-kanan, upload, publish (slug/password/QR/embed), autosave + undo.
 

@@ -40,7 +40,8 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
   const [renameValue, setRenameValue] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const [collapsed, setCollapsed] = useState(false)
+  // Collapse disimpan per grup — menutup satu grup tidak menutup yang lain.
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
   const [groupMode, setGroupMode] = useState<GroupMode>("category")
   const [infoOpen, setInfoOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
@@ -79,6 +80,12 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
     return [...bucket.entries()]
   }, [filtered, groupMode, allGroups])
 
+  const allCollapsed = groupedScenes.length > 0 && groupedScenes.every(([label]) => collapsedGroups[label])
+  const toggleGroup = (label: string) =>
+    setCollapsedGroups((prev) => ({ ...prev, [label]: !prev[label] }))
+  const toggleAllGroups = () =>
+    setCollapsedGroups(Object.fromEntries(groupedScenes.map(([label]) => [label, !allCollapsed])))
+
   const hotspots = scenes.reduce((sum, s) => sum + s.hotspots.length, 0)
   const uploads = scenes.filter((s) => s.id.startsWith("pano-")).length
 
@@ -100,7 +107,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
 
   const quickActions = [
     { label: "Group", icon: Group, action: () => setGroupMode((m) => (m === "none" ? "source" : m === "source" ? "category" : "none")) },
-    { label: "Collapse", icon: Folder, action: () => setCollapsed((v) => !v) },
+    { label: allCollapsed ? "Expand" : "Collapse", icon: Folder, action: toggleAllGroups },
     { label: "Info", icon: Info, action: () => setInfoOpen((v) => !v) },
     { label: "Search", icon: Search, action: () => setSearchOpen((v) => !v) },
     { label: "More", icon: MoreHorizontal, action: () => setMoreOpen((v) => !v) },
@@ -195,7 +202,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
       {moreOpen && (
         <div className="animate-fade-up flex flex-col gap-0.5 rounded-lg border border-zinc-700 bg-black/40 p-1 text-[10px] text-zinc-300">
           <button onClick={() => { setQuery(""); setSearchOpen(false); notify("Filter pencarian dihapus.") }} className="rounded px-2 py-1.5 text-left hover:bg-white/5">Hapus pencarian</button>
-          <button onClick={() => { setView("grid"); setCollapsed(false); notify("Tampilan galeri dipulihkan.") }} className="rounded px-2 py-1.5 text-left hover:bg-white/5">Pulihkan tampilan</button>
+          <button onClick={() => { setView("grid"); setCollapsedGroups({}); notify("Tampilan galeri dipulihkan.") }} className="rounded px-2 py-1.5 text-left hover:bg-white/5">Pulihkan tampilan</button>
           <button onClick={() => { setMoreOpen(false); navigate("dashboard") }} className="rounded px-2 py-1.5 text-left hover:bg-white/5">Buka Dashboard</button>
         </div>
       )}
@@ -261,8 +268,8 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
                   className="h-7 min-w-0 flex-1 rounded border border-zinc-600 bg-zinc-950 px-2 text-xs text-zinc-100 outline-none"
                 />
               ) : (
-                <button onClick={() => setCollapsed((v) => !v)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
-                  {collapsed ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
+                <button onClick={() => toggleGroup(label)} title={`${collapsedGroups[label] ? "Buka" : "Tutup"} grup ${label}`} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                  {collapsedGroups[label] ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
                   <span className="truncate text-xs font-medium text-zinc-300">{label}</span>
                   <span className="text-[10px] text-zinc-600">{items.length}</span>
                 </button>
@@ -288,7 +295,7 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
               </button>
             </div>
 
-            {!collapsed && (
+            {!collapsedGroups[label] && (
               <div className="mb-2 flex flex-col gap-2 rounded-2xl border border-zinc-800 bg-black p-2">
                 <button
                   type="button"

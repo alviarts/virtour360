@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/useApp"
 import { hashPassword, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
-import { navigate } from "../lib/navigation"
+import { navigateProfile } from "../lib/navigation"
 
 /**
  * Halaman untuk link publish `#/p/<uid>`.
@@ -11,7 +11,7 @@ import { navigate } from "../lib/navigation"
  * bukan profil/portofolio kreator.
  */
 export function PublicTourView() {
-  const { scenes: localScenes } = useApp()
+  const { scenes: localScenes, user } = useApp()
   const uid = publicUidFromHash()
   const [payload, setPayload] = useState<PublicPayload | null>(null)
   const [ready, setReady] = useState(false)
@@ -52,6 +52,11 @@ export function PublicTourView() {
   const access = payload?.access ?? "public"
   const isLocked = access === "draft" || (access === "password" && !unlocked)
 
+  /** Tombol kembali mengarah ke portofolio pemilik tour, bukan Home. */
+  const ownerName = payload?.profile?.name ?? uid?.split("/")[0] ?? user?.name ?? "demo"
+  const ownerUid = user && user.name.toLowerCase() === ownerName.toLowerCase() ? user.uid : undefined
+  const goPortfolio = () => navigateProfile(ownerName, ownerUid)
+
   const unlock = () => {
     if (hashPassword(gatePassword) !== (payload?.passwordHash ?? "")) {
       setGateError("Password salah.")
@@ -90,7 +95,7 @@ export function PublicTourView() {
               <button onClick={unlock} className="h-10 rounded-lg bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600">Buka tour</button>
             </div>
           )}
-          <button onClick={() => navigate("home")} className="mt-4 text-[11px] text-slate-400 hover:underline">Kembali ke Home</button>
+          <button onClick={goPortfolio} className="mt-4 text-[11px] text-slate-400 hover:underline">Kembali ke portofolio pemilik</button>
         </div>
       </div>
     )
@@ -101,7 +106,7 @@ export function PublicTourView() {
       <div className="grid h-full w-full place-items-center bg-zinc-950 px-4 text-center text-sm text-zinc-300">
         <div>
           <p>Tour tidak ditemukan atau belum punya scene.</p>
-          <button onClick={() => navigate("home")} className="mt-4 rounded-full bg-white/10 px-4 py-2 text-xs hover:bg-white/20">Kembali ke Home</button>
+          <button onClick={goPortfolio} className="mt-4 rounded-full bg-white/10 px-4 py-2 text-xs hover:bg-white/20">Kembali ke portofolio pemilik</button>
         </div>
       </div>
     )
@@ -115,14 +120,14 @@ export function PublicTourView() {
         panorama={scenes[0].panorama}
         scenes={scenes}
         sceneId={payload?.studioConfig?.setting.initialScene}
-        onClose={() => navigate("home")}
+        onClose={goPortfolio}
       />
       <button
-        onClick={() => navigate("home")}
-        title="Kembali ke Home"
+        onClick={goPortfolio}
+        title="Kembali ke portofolio pemilik"
         className="absolute bottom-5 left-4 z-10 flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 text-[11px] font-medium text-white backdrop-blur hover:bg-black/80"
       >
-        <ArrowLeft size={14} /> Home
+        <ArrowLeft size={14} /> Portofolio
       </button>
     </div>
   )

@@ -153,7 +153,7 @@ export function PublicHomeView() {
             ) : null}
             {user && (
               <button
-                onClick={() => { logout(); notify("Anda telah keluar.") }}
+                onClick={() => { logout(); notify("Anda telah keluar."); navigate("home") }}
                 title="Keluar"
                 className="rounded-full border border-white/10 px-2 py-1.5 text-[11px] text-[#8a8f98] hover:text-white"
               >
