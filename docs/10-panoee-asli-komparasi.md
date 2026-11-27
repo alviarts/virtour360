@@ -1,5 +1,9 @@
 # Panoee Studio (Asli) vs Virtour360 (Replika Lokal) — Benchmark Fitur & Dokumentasi
 
+> **Status arsip:** tabel perbandingan di bawah memakai data 2026-11-23 dan status replika sudah
+> kedaluwarsa (slug, password gate, statistik, Storage, theme). Untuk analisis yang sudah diselaraskan
+> dengan kode commit `e5eae71` dan Panoee live Nov 2026, baca [23-analisis-ulang-panoee.md](23-analisis-ulang-panoee.md).
+
 > **Disusun:** 2026-11-23 · **Versi 2 — terintegrasi dengan verifikasi UI live pasca-login**  
 > **Ruang lingkup:** Benchmark Panoee Studio asli + inventaris fitur + perbandingan dengan replika lokal `C:\Users\visual works\Documents\rea\virtour360` (live: https://virtour360real.vercel.app/#/p/1x2m270p3j).  
 > **Metode (penting):** verifikasi **langsung** dilakukan oleh **parent session** memakai browser setelah **user login di Review pane**; agen penulis dokumen ini hanya mengintegrasikan temuan tersebut, membaca source replika, dan konten publik. **Tidak ada file source yang diubah.**

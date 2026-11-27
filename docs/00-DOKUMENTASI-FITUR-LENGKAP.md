@@ -1,5 +1,8 @@
 # Dokumentasi Fitur Lengkap — Virtour360 (Replika Panoee)
 
+> **Status arsip:** ringkasan fitur di dokumen ini mencerminkan kondisi 2026-11-23. Status terkini
+> ada di [23-analisis-ulang-panoee.md](23-analisis-ulang-panoee.md).
+
 | | |
 |---|---|
 | **Target utama** | https://virtour360real.vercel.app/#/p/1x2m270p3j |
