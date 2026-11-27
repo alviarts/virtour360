@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-27T14:57:31",
+  "generatedAt": "2026-11-27T15:10:56",
   "base": "http://localhost:5173",
   "screenshots": [
     {
@@ -23,7 +23,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 53.7,
         "edgeDensity": 13.61,
-        "uniqueColors": 53947
+        "uniqueColors": 54006
       },
       "consoleErrors": []
     },
@@ -73,7 +73,7 @@
         "lightPixelPct": 0.6,
         "lumaStdDev": 22.9,
         "edgeDensity": 7.91,
-        "uniqueColors": 4742
+        "uniqueColors": 4747
       },
       "consoleErrors": []
     },
@@ -123,7 +123,7 @@
         "lightPixelPct": 0.6,
         "lumaStdDev": 29.2,
         "edgeDensity": 9.54,
-        "uniqueColors": 35233
+        "uniqueColors": 35241
       },
       "consoleErrors": []
     },
@@ -148,7 +148,7 @@
         "lightPixelPct": 0.9,
         "lumaStdDev": 39.0,
         "edgeDensity": 11.38,
-        "uniqueColors": 80036
+        "uniqueColors": 80038
       },
       "consoleErrors": []
     },
@@ -173,7 +173,7 @@
         "lightPixelPct": 0.5,
         "lumaStdDev": 21.6,
         "edgeDensity": 5.25,
-        "uniqueColors": 6072
+        "uniqueColors": 6082
       },
       "consoleErrors": []
     },
@@ -198,7 +198,7 @@
         "lightPixelPct": 6.0,
         "lumaStdDev": 58.4,
         "edgeDensity": 17.17,
-        "uniqueColors": 107396
+        "uniqueColors": 107440
       },
       "consoleErrors": []
     },
@@ -223,7 +223,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 36.8,
         "edgeDensity": 3.23,
-        "uniqueColors": 2242
+        "uniqueColors": 2236
       },
       "consoleErrors": []
     },
@@ -248,7 +248,7 @@
         "lightPixelPct": 79.0,
         "lumaStdDev": 56.2,
         "edgeDensity": 19.62,
-        "uniqueColors": 54736
+        "uniqueColors": 54583
       },
       "consoleErrors": []
     },
@@ -311,19 +311,19 @@
         "theme": "light",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 32,
+        "textNodes": 133,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 1280,
         "height": 900,
-        "meanLuma": 244.5,
-        "darkPixelPct": 0.6,
-        "lightPixelPct": 98.2,
-        "lumaStdDev": 21.2,
-        "edgeDensity": 9.68,
-        "uniqueColors": 3323
+        "meanLuma": 220.7,
+        "darkPixelPct": 4.9,
+        "lightPixelPct": 85.0,
+        "lumaStdDev": 60.9,
+        "edgeDensity": 16.29,
+        "uniqueColors": 59538
       },
       "consoleErrors": []
     },
@@ -348,7 +348,7 @@
         "lightPixelPct": 97.9,
         "lumaStdDev": 17.8,
         "edgeDensity": 10.45,
-        "uniqueColors": 5255
+        "uniqueColors": 5254
       },
       "consoleErrors": []
     },
@@ -418,12 +418,12 @@
       "image": {
         "width": 1280,
         "height": 900,
-        "meanLuma": 221.3,
+        "meanLuma": 221.4,
         "darkPixelPct": 4.0,
         "lightPixelPct": 80.5,
-        "lumaStdDev": 63.0,
-        "edgeDensity": 23.58,
-        "uniqueColors": 107647
+        "lumaStdDev": 62.9,
+        "edgeDensity": 23.48,
+        "uniqueColors": 107571
       },
       "consoleErrors": []
     },
@@ -448,7 +448,7 @@
         "lightPixelPct": 99.7,
         "lumaStdDev": 9.9,
         "edgeDensity": 5.67,
-        "uniqueColors": 1469
+        "uniqueColors": 1468
       },
       "consoleErrors": []
     },
@@ -472,8 +472,8 @@
         "darkPixelPct": 82.2,
         "lightPixelPct": 4.0,
         "lumaStdDev": 51.5,
-        "edgeDensity": 19.06,
-        "uniqueColors": 20348
+        "edgeDensity": 19.05,
+        "uniqueColors": 20359
       },
       "consoleErrors": []
     },
@@ -498,7 +498,7 @@
         "lightPixelPct": 1.4,
         "lumaStdDev": 33.3,
         "edgeDensity": 12.01,
-        "uniqueColors": 3767
+        "uniqueColors": 3770
       },
       "consoleErrors": []
     },
@@ -523,7 +523,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 46.5,
         "edgeDensity": 16.14,
-        "uniqueColors": 28329
+        "uniqueColors": 28320
       },
       "consoleErrors": []
     },
@@ -536,19 +536,19 @@
         "theme": "dark",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 127,
+        "textNodes": 26,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 390,
         "height": 844,
-        "meanLuma": 30.2,
-        "darkPixelPct": 85.1,
-        "lightPixelPct": 2.8,
-        "lumaStdDev": 49.8,
-        "edgeDensity": 15.87,
-        "uniqueColors": 21925
+        "meanLuma": 17.7,
+        "darkPixelPct": 95.1,
+        "lightPixelPct": 2.0,
+        "lumaStdDev": 36.1,
+        "edgeDensity": 11.63,
+        "uniqueColors": 3244
       },
       "consoleErrors": []
     },
@@ -573,7 +573,7 @@
         "lightPixelPct": 86.2,
         "lumaStdDev": 46.3,
         "edgeDensity": 25.82,
-        "uniqueColors": 19360
+        "uniqueColors": 19331
       },
       "consoleErrors": []
     },

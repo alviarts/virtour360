@@ -1,6 +1,6 @@
 # Screenshot & Visual QA — virtour360
 
-Dibuat: 2026-11-27T14:57:31 · sumber: `http://localhost:5173` · 26 screenshot.
+Dibuat: 2026-11-27T15:10:56 · sumber: `http://localhost:5173` · 26 screenshot.
 
 Screenshot diambil dengan Chrome headless (Playwright) pada viewport desktop 1280×900 dan mobile 390×844.
 Setiap rute diukur untuk luminansi, kontras teks, overflow horizontal, gambar rusak, dan error konsol.
@@ -26,16 +26,16 @@ Setiap rute diukur untuk luminansi, kontras teks, overflow horizontal, gambar ru
 | `desktop-light-home.png` | light | Virtual tour software for teams and creators | 218.6 | 56.2 | 0 | 0px | 0 | 0 |
 | `desktop-light-resources.png` | light | Resources and documentation | 241.1 | 21.6 | 0 | 0px | 0 | 0 |
 | `desktop-light-resources-terms.png` | light | Syarat & ketentuan | 241.2 | 19.4 | 0 | 0px | 0 | 0 |
-| `desktop-light-customers.png` | light | Explore tours from the community | 244.5 | 21.2 | 0 | 0px | 0 | 0 |
+| `desktop-light-customers.png` | light | Explore tours from the community | 220.7 | 60.9 | 0 | 0px | 0 | 0 |
 | `desktop-light-documentation-workflow.png` | light | Documentation | 242.3 | 17.8 | 0 | 0px | 0 | 0 |
 | `desktop-light-hotspot-guide-demo.png` | light | Hotspot guide | 213.4 | 65.5 | 0 | 0px | 0 | 0 |
 | `desktop-light-dashboard.png` | light | — | 245.8 | 14.0 | 0 | 0px | 0 | 0 |
-| `desktop-light-profile.png` | light | awe | 221.3 | 63.0 | 0 | 0px | 0 | 0 |
+| `desktop-light-profile.png` | light | awe | 221.4 | 62.9 | 0 | 0px | 0 | 0 |
 | `desktop-light-publish-modal.png` | light | — | 246.3 | 9.9 | 0 | 0px | 0 | 0 |
 | `mobile-dark-home.png` | dark | Virtual tour software for teams and creators | 34.4 | 51.5 | 0 | 0px | 0 | 0 |
 | `mobile-dark-resources-documentation.png` | dark | Documentation | 20.3 | 33.3 | 0 | 0px | 0 | 0 |
 | `mobile-dark-resources-hotspot-guide.png` | dark | Hotspot guide | 32.5 | 46.5 | 0 | 0px | 0 | 0 |
-| `mobile-dark-customers.png` | dark | Explore tours from the community | 30.2 | 49.8 | 0 | 0px | 0 | 0 |
+| `mobile-dark-customers.png` | dark | Explore tours from the community | 17.7 | 36.1 | 0 | 0px | 0 | 0 |
 | `mobile-light-home.png` | light | Virtual tour software for teams and creators | 226.0 | 46.3 | 0 | 0px | 0 | 0 |
 | `mobile-light-resources-documentation.png` | light | Documentation | 239.5 | 25.3 | 0 | 0px | 0 | 0 |
 | `mobile-light-resources-hotspot-guide.png` | light | Hotspot guide | 208.4 | 70.3 | 0 | 0px | 0 | 0 |

@@ -85,7 +85,7 @@ npm test            ✅ 46/46
 npm run build       ✅
 ```
 
-Hasil verifikasi produksi setelah deploy (`338c064`, bundle `index-B2PKjRMC.js`):
+Hasil verifikasi produksi setelah deploy (`75c905c`, bundle `index-BmO99spc.js`):
 
 1. `GET /api/public?id=salimbangunproperty-my-id` → kedua scene memakai
    `panorama: data:image/jpeg;base64,...` (fallback thumbnail), bukan `blob:`.
@@ -93,8 +93,12 @@ Hasil verifikasi produksi setelah deploy (`338c064`, bundle `index-B2PKjRMC.js`)
 3. Browser bersih tanpa login membuka `#/p/salimbangunproperty-my-id`: canvas viewer
    tampil, judul `layout 2`, counter `1 / 2 scene`, 3 marker hotspot, 0 error konsol.
 4. Klik scene berikutnya → judul `kos`, counter `2 / 2 scene`, masih 0 error konsol.
-5. Screenshot QA ulang: 26 screenshot, 0 flag (dark/light, desktop/mobile).
+5. Login produksi → `POST /api/storage` untuk `kind: audio` dan `kind: image`:
+   path `awe_gmail_com/audio/<id>.wav` dan `awe_gmail_com/image/<id>.png`,
+   upload signed → `200`, URL publik → `200`.
+6. `DELETE /api/storage` dengan token yang sama → `200`; object uji langsung dihapus,
+   sehingga tidak menyisakan sampah di bucket.
+7. Screenshot QA ulang: 26 screenshot, 0 flag (dark/light, desktop/mobile).
 
-Alur upload aset untuk akun baru perlu diuji dengan login di Studio: `POST /api/storage`
-harus mengembalikan `path`, `token`, `publicUrl` untuk `kind` panorama/audio/image,
-lalu `uploadToSignedUrl()` menghasilkan URL `.../storage/v1/object/public/panoramas/...`.
+Dengan demikian semua aset yang diunggah — panorama 360°, audio scene, dan gambar
+pengganti — berada di satu bucket `panoramas` dan bisa dipakai dari perangkat mana pun.
