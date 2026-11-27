@@ -75,10 +75,17 @@ npm test            ✅ 46/46
 npm run build       ✅
 ```
 
-Setelah deploy, alur yang diuji di browser produksi:
+Hasil verifikasi produksi setelah deploy (`338c064`, bundle `index-B2PKjRMC.js`):
 
-1. Login → Studio → Publish.
-2. `POST /api/storage` mengembalikan `path`, `token`, `publicUrl` (bucket dibuat otomatis).
-3. Upload langsung ke Storage sukses; payload publish berisi
-   `panorama: https://.../storage/v1/object/public/panoramas/...`.
-4. Buka `#/p/<uid>` di browser/context lain (tanpa login) → panorama tampil.
+1. `GET /api/public?id=salimbangunproperty-my-id` → kedua scene sekarang memakai
+   `panorama: data:image/jpeg;base64,...` (fallback thumbnail), bukan `blob:`.
+2. `POST /api/storage` tanpa token → `401 {"error":"Masuk dulu untuk mengunggah panorama."}`
+   (endpoint aktif dan menolak pengunggah anonim).
+3. Browser bersih tanpa login membuka `#/p/salimbangunproperty-my-id`: canvas viewer
+   tampil, judul `layout 2`, counter `1 / 2 scene`, 3 marker hotspot, 0 error konsol.
+4. Klik scene berikutnya → judul `kos`, counter `2 / 2 scene`, masih 0 error konsol.
+5. Screenshot QA ulang: 26 screenshot, 0 flag (dark/light, desktop/mobile).
+
+Alur upload untuk akun baru perlu diuji dengan login di Studio: `POST /api/storage`
+harus mengembalikan `path`, `token`, `publicUrl`, lalu `uploadToSignedUrl()` menghasilkan
+`panorama: https://.../storage/v1/object/public/panoramas/...`.

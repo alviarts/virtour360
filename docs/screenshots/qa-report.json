@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-27T14:26:41",
+  "generatedAt": "2026-11-27T14:57:31",
   "base": "http://localhost:5173",
   "screenshots": [
     {
@@ -22,8 +22,8 @@
         "darkPixelPct": 79.2,
         "lightPixelPct": 2.1,
         "lumaStdDev": 53.7,
-        "edgeDensity": 13.6,
-        "uniqueColors": 54946
+        "edgeDensity": 13.61,
+        "uniqueColors": 53947
       },
       "consoleErrors": []
     },
@@ -48,7 +48,7 @@
         "lightPixelPct": 0.8,
         "lumaStdDev": 25.2,
         "edgeDensity": 7.82,
-        "uniqueColors": 3855
+        "uniqueColors": 3867
       },
       "consoleErrors": []
     },
@@ -73,7 +73,7 @@
         "lightPixelPct": 0.6,
         "lumaStdDev": 22.9,
         "edgeDensity": 7.91,
-        "uniqueColors": 4745
+        "uniqueColors": 4742
       },
       "consoleErrors": []
     },
@@ -98,7 +98,7 @@
         "lightPixelPct": 0.8,
         "lumaStdDev": 24.1,
         "edgeDensity": 5.29,
-        "uniqueColors": 3362
+        "uniqueColors": 3363
       },
       "consoleErrors": []
     },
@@ -122,8 +122,8 @@
         "darkPixelPct": 93.2,
         "lightPixelPct": 0.6,
         "lumaStdDev": 29.2,
-        "edgeDensity": 9.55,
-        "uniqueColors": 35153
+        "edgeDensity": 9.54,
+        "uniqueColors": 35233
       },
       "consoleErrors": []
     },
@@ -148,7 +148,7 @@
         "lightPixelPct": 0.9,
         "lumaStdDev": 39.0,
         "edgeDensity": 11.38,
-        "uniqueColors": 80040
+        "uniqueColors": 80036
       },
       "consoleErrors": []
     },
@@ -197,8 +197,8 @@
         "darkPixelPct": 78.4,
         "lightPixelPct": 6.0,
         "lumaStdDev": 58.4,
-        "edgeDensity": 17.16,
-        "uniqueColors": 107453
+        "edgeDensity": 17.17,
+        "uniqueColors": 107396
       },
       "consoleErrors": []
     },
@@ -223,7 +223,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 36.8,
         "edgeDensity": 3.23,
-        "uniqueColors": 2243
+        "uniqueColors": 2242
       },
       "consoleErrors": []
     },
@@ -248,7 +248,7 @@
         "lightPixelPct": 79.0,
         "lumaStdDev": 56.2,
         "edgeDensity": 19.62,
-        "uniqueColors": 54633
+        "uniqueColors": 54736
       },
       "consoleErrors": []
     },
@@ -323,7 +323,7 @@
         "lightPixelPct": 98.2,
         "lumaStdDev": 21.2,
         "edgeDensity": 9.68,
-        "uniqueColors": 3321
+        "uniqueColors": 3323
       },
       "consoleErrors": []
     },
@@ -348,7 +348,7 @@
         "lightPixelPct": 97.9,
         "lumaStdDev": 17.8,
         "edgeDensity": 10.45,
-        "uniqueColors": 5257
+        "uniqueColors": 5255
       },
       "consoleErrors": []
     },
@@ -418,12 +418,12 @@
       "image": {
         "width": 1280,
         "height": 900,
-        "meanLuma": 221.4,
+        "meanLuma": 221.3,
         "darkPixelPct": 4.0,
         "lightPixelPct": 80.5,
-        "lumaStdDev": 62.9,
-        "edgeDensity": 23.49,
-        "uniqueColors": 107616
+        "lumaStdDev": 63.0,
+        "edgeDensity": 23.58,
+        "uniqueColors": 107647
       },
       "consoleErrors": []
     },
@@ -447,8 +447,8 @@
         "darkPixelPct": 0.0,
         "lightPixelPct": 99.7,
         "lumaStdDev": 9.9,
-        "edgeDensity": 5.66,
-        "uniqueColors": 1466
+        "edgeDensity": 5.67,
+        "uniqueColors": 1469
       },
       "consoleErrors": []
     },
@@ -472,8 +472,8 @@
         "darkPixelPct": 82.2,
         "lightPixelPct": 4.0,
         "lumaStdDev": 51.5,
-        "edgeDensity": 19.05,
-        "uniqueColors": 20383
+        "edgeDensity": 19.06,
+        "uniqueColors": 20348
       },
       "consoleErrors": []
     },
@@ -498,7 +498,7 @@
         "lightPixelPct": 1.4,
         "lumaStdDev": 33.3,
         "edgeDensity": 12.01,
-        "uniqueColors": 3769
+        "uniqueColors": 3767
       },
       "consoleErrors": []
     },
@@ -523,7 +523,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 46.5,
         "edgeDensity": 16.14,
-        "uniqueColors": 28318
+        "uniqueColors": 28329
       },
       "consoleErrors": []
     },
@@ -536,19 +536,19 @@
         "theme": "dark",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 115,
+        "textNodes": 127,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 390,
         "height": 844,
-        "meanLuma": 18.1,
-        "darkPixelPct": 94.5,
-        "lightPixelPct": 2.0,
-        "lumaStdDev": 36.8,
-        "edgeDensity": 12.29,
-        "uniqueColors": 7042
+        "meanLuma": 30.2,
+        "darkPixelPct": 85.1,
+        "lightPixelPct": 2.8,
+        "lumaStdDev": 49.8,
+        "edgeDensity": 15.87,
+        "uniqueColors": 21925
       },
       "consoleErrors": []
     },
@@ -573,7 +573,7 @@
         "lightPixelPct": 86.2,
         "lumaStdDev": 46.3,
         "edgeDensity": 25.82,
-        "uniqueColors": 19366
+        "uniqueColors": 19360
       },
       "consoleErrors": []
     },
@@ -636,19 +636,19 @@
         "theme": "light",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 115,
+        "textNodes": 26,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 390,
         "height": 844,
-        "meanLuma": 213.3,
-        "darkPixelPct": 11.7,
-        "lightPixelPct": 84.5,
-        "lumaStdDev": 78.8,
-        "edgeDensity": 19.83,
-        "uniqueColors": 7051
+        "meanLuma": 240.7,
+        "darkPixelPct": 1.2,
+        "lightPixelPct": 95.9,
+        "lumaStdDev": 30.6,
+        "edgeDensity": 18.18,
+        "uniqueColors": 3239
       },
       "consoleErrors": []
     }
