@@ -603,12 +603,12 @@ export function PublicPortfolioView() {
               {publishedFolders.length} project dipublikasikan · klik kartu untuk membuka tour 360°
             </p>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-4">
-              {publishedFolders.map((folder) => {
+              {publishedFolders.map((folder, i) => {
                 const uid = folder.uid || publicData?.uid
                 const sceneCount = folder.sceneIds.filter((id) => sourceScenes.some((scene) => scene.id === id)).length || folder.sceneIds.length
                 return (
                   <button
-                    key={`${folder.uid ?? "local"}-${folder.id}`}
+                    key={`${folder.uid ?? "local"}-${folder.id}-${i}`}
                     onClick={() => uid && navigateHash(`#/p/${uid.split("/").map(encodeURIComponent).join("/")}`)}
                     disabled={!uid}
                     className="group overflow-hidden rounded-xl border border-[#23252a] bg-[#0f1011] text-left transition-colors hover:border-zinc-600 disabled:cursor-default"

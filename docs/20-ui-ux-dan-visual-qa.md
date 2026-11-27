@@ -33,7 +33,7 @@ Analisis screenshot otomatis menemukan dan memperbaiki masalah berikut:
 - Tombol “Published” di TopBar diganti `bg-sky-600` agar kontras teks putih memenuhi rasio ≥ 3:1.
 - Panel hotspot demo mempertahankan teks putih secara eksplisit karena memang berada di atas simulasi panorama gelap.
 - Putaran QA berikutnya menambah halaman profil dan menemukan header `bg-[#0f1011]/95`, nav bawah `bg-[#0f1011]/90`, teks `text-[#ffffff]`, `text-[#E2E8F0]`, dan `text-[#4CC9F0]` masih berwarna gelap-mode di light mode. Semua diberi override tema terang; chip di atas gambar tetap dikecualikan agar tetap putih.
-- Feed publish yang memuat banyak project membuat React-memberi peringatan kunci duplikat; kunci Kartu/project kini unik per UID publish. Badge “360°” diganti ke teks gelap di atas latar lime supaya kontras memenuhi standar.
+- Feed publish yang memuat banyak project membuat React-memberi peringatan kunci duplikat; kunci Kartu/project kini unik per UID publish + indeks (juga untuk folder yang nama projectnya sama). Badge “360°” diganti ke teks gelap di atas latar lime supaya kontras memenuhi standar.
 
 ## 3. Screenshot & visual QA
 
