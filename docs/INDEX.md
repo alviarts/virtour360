@@ -5,6 +5,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 ## Status saat ini
 - Visual mengikuti referensi **Linear** (`linear.app`): token asli, font asli, struktur landing, animasi scroll/dot-grid/marquee.
 - Sistem/fitur tetap **Virtour360** (turunan Panoee): Studio, 9 tipe hotspot, publish, groups, weblog, viewer 360°.
+- Supabase sudah terhubung di `.env` lokal (publishable key): state bersama, publish `virtour:pub:*`, dan feed Customers realtime/fallback. Langkah SQL bucket + publication ada di [19-koneksi-supabase.md](19-koneksi-supabase.md).
 - Perubahan terbaru sudah di-commit dan di-push ke `origin/main` (commit terakhir ada di `git log`).
 
 ## A. Riset fitur & sistem
@@ -50,6 +51,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 |---|---|
 | [13-demo-login-state.md](13-demo-login-state.md) | Mode demo per session, login full-page, state lokal |
 | [14-cara-menjalankan.md](14-cara-menjalankan.md) | Cara run, test, route, env, catatan deploy |
+| [19-koneksi-supabase.md](19-koneksi-supabase.md) | Kredensial publishable, state/publish remote, SQL bucket & realtime, QA koneksi |
 
 ## Ringkasan fitur saat ini
 Home (landingLinear + stage Studio + demo session) · Marketing (`#/product`, `#/pricing`, `#/customers`, `#/resources` + 9 subpath, `#/contact`) · Public portfolio (`#/portfolio`, `#/u/:slug`) · Tour publik (`#/p/:uid`) · Dashboard project gateway (`#/dashboard`) · Studio (`#/studio`) · Login/Sign up full-page (`#/login`, `#/signup`).

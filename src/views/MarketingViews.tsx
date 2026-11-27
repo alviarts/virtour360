@@ -207,6 +207,7 @@ type FeedCard = {
   uid: string
   slug: string
   demo: boolean
+  source?: "local" | "supabase"
 }
 
 export function CustomersView() {
@@ -225,7 +226,7 @@ export function CustomersView() {
     return stop
   }, [reload])
 
-  const realCards: FeedCard[] = feed.map(({ uid, payload }) => {
+  const realCards: FeedCard[] = feed.map(({ uid, payload, source }) => {
     const name = payload.profile?.name || "Kreator Virtour360"
     const thumbnail = payload.scenes[0]?.thumbnail
     return {
@@ -236,6 +237,7 @@ export function CustomersView() {
       uid,
       slug: uid.split("/")[0] || profileSlug(name),
       demo: false,
+      source,
     }
   })
 
@@ -250,6 +252,8 @@ export function CustomersView() {
   }))
 
   const cards = [...realCards, ...demoCards]
+  const supabaseCount = realCards.filter((card) => card.source === "supabase").length
+  const localCount = realCards.length - supabaseCount
 
   return (
     <Shell title="Explore tours from the community" lead="Karya kreator yang sudah dipublish, terkumpul di satu tempat dan diperbarui saat ada tour baru.">
@@ -257,15 +261,25 @@ export function CustomersView() {
         <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
           <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live · {realCards.length} tour dipublish
         </span>
+        <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#62666d]">
+          {supabaseCount} Supabase · {localCount} lokal
+        </span>
         <button onClick={() => void reload()} className="rounded-md border border-white/10 px-2.5 py-1 hover:border-white/25 hover:text-white">Segarkan</button>
       </div>
-      {!isRemote && (
-        <p className="mt-3 max-w-[720px] text-[11px] leading-relaxed text-[#62666d]">
-          Mode lokal aktif: feed diambil dari tour yang dipublish di browser ini dan langsung diperbarui saat publish.
-          Untuk sinkron antar perangkat, isi <code className="font-[family-name:var(--font-mono)] text-[#8a8f98]">VITE_SUPABASE_URL</code> dan{" "}
-          <code className="font-[family-name:var(--font-mono)] text-[#8a8f98]">VITE_SUPABASE_ANON_KEY</code> lalu jalankan ulang — lihat docs/14-cara-menjalankan.md.
-        </p>
-      )}
+      <p className="mt-3 max-w-[760px] text-[11px] leading-relaxed text-[#62666d]">
+        {isRemote ? (
+          <>
+            Terhubung ke Supabase: publish tersimpan di tabel <code className="font-[family-name:var(--font-mono)] text-[#8a8f98]">virtour_state</code> dan feed diperbarui lewat realtime.
+            Kartu berlabel <span className="text-[#8a8f98]">Lokal</span> berasal dari browser ini.
+          </>
+        ) : (
+          <>
+            Mode lokal aktif: feed diambil dari tour yang dipublish di browser ini dan langsung diperbarui saat publish.
+            Untuk sinkron antar perangkat, isi <code className="font-[family-name:var(--font-mono)] text-[#8a8f98]">VITE_SUPABASE_URL</code> dan{" "}
+            <code className="font-[family-name:var(--font-mono)] text-[#8a8f98]">VITE_SUPABASE_ANON_KEY</code> lalu jalankan ulang — lihat docs/14-cara-menjalankan.md.
+          </>
+        )}
+      </p>
       {loading ? (
         <p className="mt-12 text-[12px] text-[#62666d]">Memuat feed publish…</p>
       ) : (
@@ -287,7 +301,13 @@ export function CustomersView() {
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-2">
                   <p className="truncate font-[family-name:var(--font-mono)] text-[10px] text-[#e4f222]">{card.demo ? `/u/${card.slug}` : `/p/${card.uid}`}</p>
-                  {card.demo && <span className="shrink-0 rounded-full bg-white/5 px-2 py-0.5 text-[9px] text-[#8a8f98]">Contoh</span>}
+                  {card.demo ? (
+                    <span className="shrink-0 rounded-full bg-white/5 px-2 py-0.5 text-[9px] text-[#8a8f98]">Contoh</span>
+                  ) : (
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] ${card.source === "supabase" ? "bg-emerald-500/10 text-emerald-300" : "bg-white/5 text-[#8a8f98]"}`}>
+                      {card.source === "supabase" ? "Supabase" : "Lokal"}
+                    </span>
+                  )}
                 </div>
               </div>
             </button>

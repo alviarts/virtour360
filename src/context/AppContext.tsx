@@ -506,7 +506,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadRemoteState(identityKey)
       .then((remote) => {
         if (!alive || !remote) return
-        if (remote.users.length) localStorage.setItem(USERS_KEY, JSON.stringify(remote.users))
+        // Mode klien memakai akun localStorage. Jangan timpa dengan data remote
+        // (password lokal plaintext tidak pernah dikirim ke Supabase).
+        if (isServerMode && remote.users.length) localStorage.setItem(USERS_KEY, JSON.stringify(remote.users))
         setHotspotOverrides(remote.hotspots)
         persist(HOTSPOTS_KEY, remote.hotspots)
         setFavorites(remote.favorites)
@@ -551,7 +553,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!isRemote || !remoteReady) return
     const timer = window.setTimeout(() => {
       saveRemoteState(identityKey, {
-        users: readUsers(),
+        // Akun lokal tidak disinkron: readUsers() memuat password plaintext.
+        users: isServerMode ? readUsers() : [],
         hotspots: hotspotOverrides,
         favorites,
         media: persistableMedia(mediaOverrides),
@@ -561,16 +564,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         sceneOrder,
         imageQuality,
         studioConfig,
-        // Mode server tidak punya public URL Storage, jadi metadata panorama
-        // tidak ikut disinkron agar device lain tidak menampilkan gambar rusak.
-        panoramas: isServerMode
-          ? []
-          : panoramas.map<RemotePanorama>((p) => ({
-              id: p.id,
-              name: p.name,
-              url: p.url ?? "",
-              createdAt: p.createdAt,
-            })),
+        // Hanya sinkron panorama yang punya public URL. Blob URL lokal tidak
+        // berguna di perangkat lain dan akan menampilkan gambar rusak.
+        panoramas: panoramas
+          .filter((p) => Boolean(p.url))
+          .map<RemotePanorama>((p) => ({
+            id: p.id,
+            name: p.name,
+            url: p.url ?? "",
+            createdAt: p.createdAt,
+          })),
       }).catch(() => undefined)
     }, 800)
     return () => window.clearTimeout(timer)

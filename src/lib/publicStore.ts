@@ -65,6 +65,26 @@ const LOCAL_PUBLISH_KEY = "virtour360.published"
 /** Event same-tab supaya halaman Customers langsung segar setelah publish. */
 const PUBLISHED_EVENT = "virtour360:published"
 
+/** Baris publish di Supabase — format sama dengan api/public.js. */
+const REMOTE_PUBLISH_PREFIX = "virtour:pub:"
+const REMOTE_PUBLIC_ID = "virtour:public"
+
+function remotePublishId(uid: string): string {
+  const safe = uid.replace(/[^a-zA-Z0-9-_]/g, "").slice(0, 40)
+  return safe ? `${REMOTE_PUBLISH_PREFIX}${safe}` : REMOTE_PUBLIC_ID
+}
+
+function itemFromRow(row: { id: string; data: unknown }): PublishedItem | null {
+  const stored = row.data as { payload?: PublicPayload } | null
+  const payload = (stored?.payload ?? stored) as PublicPayload | null
+  if (!payload?.scenes?.length) return null
+  return {
+    uid: payload.uid || row.id.slice(REMOTE_PUBLISH_PREFIX.length) || "public",
+    payload,
+    source: "supabase",
+  }
+}
+
 /** Hash ringan untuk gate password (bukan password mentah yang disimpan). */
 export function hashPassword(value: string): string {
   let hash = 5381
@@ -97,6 +117,23 @@ export function makePublicUid(): string {
 }
 
 /** Link langsung yang bisa dibagikan. */
+async function loadPublishedFromSupabase(uid?: string | null): Promise<PublicPayload | null> {
+  if (!supabase) return null
+  const ids = uid ? [remotePublishId(uid), REMOTE_PUBLIC_ID] : [REMOTE_PUBLIC_ID]
+  for (const id of ids) {
+    const { data, error } = await supabase
+      .from("virtour_state")
+      .select("data")
+      .eq("id", id)
+      .maybeSingle()
+    if (error) return null
+    if (!data?.data) continue
+    const item = itemFromRow({ id, data: data.data })
+    if (item) return item.payload
+  }
+  return null
+}
+
 export function publicShareUrl(uid: string): string {
   const base = typeof window !== "undefined" ? window.location.origin : ""
   return `${base}/#/p/${uid.split("/").map(encodeURIComponent).join("/")}`
@@ -156,7 +193,10 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
       // Tanpa uid, baca project publish terakhir (local mode).
       const currentUid = uid ?? localStorage.getItem("virtour360.publishedUid")
       const raw = localStorage.getItem(localKey(currentUid))
-      if (!raw) return fromApi()
+      if (!raw) {
+        const remote = await loadPublishedFromSupabase(uid ?? currentUid)
+        return remote ?? fromApi()
+      }
       // Utamakan project lokal hasil publish milik user. Jangan jatuh ke data
       // default server hanya karena panorama lokal ber-blob: — itu mengganti
       // karya yang di-upload dengan contoh bawaan.
@@ -190,7 +230,7 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
 export async function publishPublicPayload(
   payload: PublicPayload,
   uid?: string,
-): Promise<{ ok: boolean; uid: string; error?: string }> {
+): Promise<{ ok: boolean; uid: string; error?: string; warning?: string }> {
   const finalUid = uid || payload.slug || payload.uid || makePublicUid()
   if (!isServerMode) {
     try {
@@ -209,7 +249,26 @@ export async function publishPublicPayload(
       localStorage.setItem(localKey(finalUid), JSON.stringify(finalPayload))
       localStorage.setItem("virtour360.publishedUid", finalUid)
       window.dispatchEvent(new CustomEvent(PUBLISHED_EVENT, { detail: { uid: finalUid } }))
-      return { ok: true, uid: finalUid }
+
+      let warning: string | undefined
+      let remoteError: string | undefined
+      if (supabase) {
+        if (finalPayload.scenes.some((scene) => (scene.panorama || "").startsWith("blob:"))) {
+          warning = "Panorama masih lokal. Buat bucket storage 'panoramas' agar tour bisa dibuka dari perangkat lain."
+        }
+        const { error } = await supabase.from("virtour_state").upsert({
+          id: remotePublishId(finalUid),
+          data: { payload: finalPayload, updated_at: finalPayload.updatedAt },
+          updated_at: finalPayload.updatedAt,
+        })
+        if (error) remoteError = error.message
+      }
+      return {
+        ok: !remoteError,
+        uid: finalUid,
+        error: remoteError ? `Tersimpan di browser, tapi gagal ke Supabase: ${remoteError}` : undefined,
+        warning,
+      }
     } catch {
       return { ok: false, uid: finalUid, error: "Gagal menyimpan publish di browser." }
     }
@@ -239,11 +298,13 @@ export async function publishPublicPayload(
 export interface PublishedItem {
   uid: string
   payload: PublicPayload
+  /** Sumber data feed: browser lokal atau tabel Supabase. */
+  source?: "local" | "supabase"
 }
 
 /** Semua tour yang dipublish — dipakai feed Customers. */
 export async function listPublishedPayloads(): Promise<PublishedItem[]> {
-  if (!isServerMode) {
+  const localItems = (): PublishedItem[] => {
     const items: PublishedItem[] = []
     const prefix = `${LOCAL_PUBLISH_KEY}:`
     for (let i = 0; i < localStorage.length; i++) {
@@ -253,20 +314,44 @@ export async function listPublishedPayloads(): Promise<PublishedItem[]> {
         const raw = localStorage.getItem(key)
         if (!raw) continue
         const payload = JSON.parse(raw) as PublicPayload
-        if (payload.scenes?.length) items.push({ uid: payload.uid || key.slice(prefix.length), payload })
+        if (payload.scenes?.length) {
+          items.push({ uid: payload.uid || key.slice(prefix.length), payload, source: "local" })
+        }
       } catch { /* lewati payload rusak */ }
     }
     return items.sort((a, b) => (b.payload.updatedAt ?? "").localeCompare(a.payload.updatedAt ?? ""))
   }
 
-  try {
-    const response = await fetch("/api/public?list=1", { cache: "no-store" })
-    if (!response.ok) return []
-    const json = (await response.json()) as { items?: PublishedItem[] }
-    return json.items ?? []
-  } catch {
-    return []
+  if (isServerMode) {
+    try {
+      const response = await fetch("/api/public?list=1", { cache: "no-store" })
+      if (!response.ok) return []
+      const json = (await response.json()) as { items?: PublishedItem[] }
+      return json.items ?? []
+    } catch {
+      return []
+    }
   }
+
+  const local = localItems()
+  if (!supabase) return local
+
+  const { data, error } = await supabase
+    .from("virtour_state")
+    .select("id, data")
+    .like("id", `${REMOTE_PUBLISH_PREFIX}%`)
+    .order("updated_at", { ascending: false })
+    .limit(100)
+  if (error) return local
+
+  const remote = (data ?? [])
+    .map((row) => itemFromRow(row))
+    .filter((item): item is PublishedItem => item !== null)
+  const remoteKeys = new Set(remote.flatMap((item) => [item.uid, remotePublishId(item.uid)]))
+  return [
+    ...remote,
+    ...local.filter((item) => !remoteKeys.has(item.uid) && !remoteKeys.has(remotePublishId(item.uid))),
+  ]
 }
 
 /**
@@ -290,7 +375,10 @@ export function watchPublishedChanges(onChange: () => void): () => void {
       .subscribe()
   }
 
-  const timer = window.setInterval(onChange, isServerMode ? 12000 : 4000)
+  // Realtime Postgres perlu tabel masuk publication; polling cepat tetap
+  // membuat feed terasa live bila subscription belum aktif.
+  const interval = isServerMode ? 12000 : supabase ? 2500 : 4000
+  const timer = window.setInterval(onChange, interval)
 
   return () => {
     window.removeEventListener("storage", onStorage)

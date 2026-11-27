@@ -16,13 +16,14 @@ Dokumen ini mencatat pengecekan satu per satu terhadap masukan browser dan perba
 
 ## 3. Customers realtime & status Supabase
 - **Masalah:** kartu berasal dari `LOCAL_CREATORS` statis; klik kartu menuju Home.
-- **Fakta:** Supabase **belum terhubung** — repository hanya punya `.env.example`, tanpa `.env`. Aplikasi berjalan lokal.
+- **Fakta awal:** repository hanya punya `.env.example`, tanpa `.env`. Setelah kredensial publishable diberikan, Supabase **sudah terhubung** (lihat bagian 10).
 - **Perbaikan:**
-  - `listPublishedPayloads()` membaca semua kunci `virtour360.published:*` (mode lokal) atau `/api/public?list=1` (mode server).
-  - `watchPublishedChanges()` mendengarkan `storage` event lintas tab, custom event `virtour360:published` saat publish, `postgres_changes` Supabase bila klien tersedia, plus polling 4 s (lokal) / 12 s (server).
+  - `listPublishedPayloads()` menggabungkan baris `virtour:pub:*` dari Supabase dengan kunci `virtour360.published:*` lokal, deduplikasi berdasarkan UID asli dan UID tersanitasi; mode server tetap memakai `/api/public?list=1`.
+  - `watchPublishedChanges()` mendengarkan `storage` event lintas tab, custom event `virtour360:published` saat publish, `postgres_changes` Supabase, serta polling 2,5 s (Supabase) / 4 s (lokal) / 12 s (server).
   - `api/public.js` kini mendukung `GET /api/public?list=1` hanya untuk baris `virtour:pub:%`.
-  - Kartu publish nyata menuju `#/p/<uid>`; kartu bawaan diberi badge **Contoh** dan menuju `#/u/<slug>`. Badge **Live · N tour dipublish** + tombol Segarkan.
-- **QA:** feed menampilkan 2 publish sungguhan (`/p/awe/ruang-qa-dua-010433`, `/p/awe/ruang-qa-utama-585i5i`) dan 5 kartu Contoh. Menambah payload + men-dispatch event menaikkan hitungan 2 → 3 dalam 700 ms. Klik kartu publish membuka viewer 360°.
+  - `loadPublicPayload()` mencari baris Supabase bila tidak ada salinan lokal; `publishPublicPayload()` menulis `virtour:pub:<uid>` dan memberi peringatan bila panorama masih berupa `blob:`.
+  - Kartu publish nyata menuju `#/p/<uid>` dengan badge **Supabase** atau **Lokal**; kartu bawaan diberi badge **Contoh**. Badge **Live · N tour dipublish** + tombol Segarkan.
+- **QA:** feed menampilkan 4 tour Supabase (`/p/kamar-kos`, `/p/0b5q6r150p`, `/p/1x2m270p3j`, `/p/3u30714v4p`) + 2 publish lokal + 5 kartu Contoh. Klik kartu publish membuka viewer 360°.
 
 ## 4. Klik kartu Dashboard
 - **Masalah:** setelah perubahan sebelumnya, klik kartu membuka pratinjau; user meminta klik kartu **pindah project**.
@@ -52,6 +53,14 @@ Dokumen ini mencatat pengecekan satu per satu terhadap masukan browser dan perba
 ## 9. Bug tambahan yang ketemu saat QA
 - Pratinjau Dashboard gagal memuat tekstur setelah reload (`ERR_FILE_NOT_FOUND` pada blob URL). Penyebab: cleanup effect AppContext me-revoke URL tetapi tidak mengosongkan `urlCache`, sehingga mount kedua (StrictMode) memakai URL mati. Perbaikan: `urlCache.clear()` dan `assetUrls.current.clear()` setelah revoke.
 - Publish project baru sempat mewarisi UID global project lama; sudah diperbaiki sebelumnya (`existingUid={activeProject ? activeProject.publishedUid ?? null : publishedUid}`) dan diverifikasi ulang: project baru "QA Tiga" mendapat slug unik `awe/tour-6x2459`, sedangkan publish ulang "Project QA Dua" tetap `awe/ruang-qa-dua-010433`.
+
+## 10. Koneksi Supabase dengan publishable key
+- **Input user:** URL project, publishable key `sb_publishable_...`, serta host/port/database/user Postgres. Hanya URL + publishable key yang dipakai browser; kredensial DB langsung tidak dipakai dan tidak disimpan.
+- **Perubahan:** `.env` lokal (di-`gitignore`) berisi `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`. `supabase.ts` menerima format `sb_publishable_` karena bukan `sb_secret_`/service-role.
+- **Perbaikan data:** `publishPublicPayload()` sekarang upsert ke `virtour_state` dengan id `virtour:pub:<uid>` (kompatibel dengan `api/public.js`); `loadPublicPayload()` bisa membaca baris itu; `listPublishedPayloads()` menggabungkan remote + lokal; feed menyebut sumbernya.
+- **Keamanan:** state remote sengaja menyimpan `users: []` di mode klien. QA mengonfirmasi row `user:awe@gmail.com` tidak mengandung password plaintext. Hanya panorama dengan public URL yang ikut disinkron.
+- **QA Supabase:** REST `virtour_state`/`virtour_users` → 200; `supabase-js` membaca 5 baris `virtour:pub:*`; publish uji `qa-browser-write-zzz9` → `ok: true`, muncul di feed, lalu dihapus; sisipan baris uji lewat REST menaikkan hitungan 6 → 7 dalam ≤5,5 detik via polling, penghapusan kembali ke 6; websocket Realtime terhubung (`wss://.../realtime/v1/websocket`) namun event belum masuk <1,8 detik karena tabel belum masuk publication.
+- **Belum selesai di sisi Dashboard Supabase:** bucket `panoramas` belum ada (`NoSuchBucket`) dan `virtour_state` perlu ditambahkan ke `supabase_realtime` publication. Query SQL ada di `docs/19-koneksi-supabase.md`. Sampai dijalankan, upload panorama memakai fallback lokal dan feed memakai polling 2,5 detik.
 
 ## Verifikasi akhir
 - `npm run typecheck` ✅

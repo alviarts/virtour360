@@ -88,6 +88,7 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
       setUid(result.uid)
       setSlug(result.uid)
       onPublished?.(result.uid)
+      if (result.warning) notify(result.warning)
       if (await copyText(publicShareUrl(result.uid))) notify("Link publish disalin ke clipboard.")
     } else {
       setError(result.error || "Publish gagal. Periksa koneksi/config server.")
