@@ -75,7 +75,7 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
     const result = await publishPublicPayload({
       profile: userProfile,
       scenes,
-      folders: buildPublicFolders(scenes),
+      folders: buildPublicFolders(scenes, cleanSlug || uid || undefined),
       creators: [],
       studioConfig,
       access,

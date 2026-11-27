@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-27T12:58:08",
+  "generatedAt": "2026-11-27T13:37:55",
   "base": "http://localhost:5173",
   "screenshots": [
     {
@@ -22,8 +22,8 @@
         "darkPixelPct": 79.2,
         "lightPixelPct": 2.1,
         "lumaStdDev": 53.7,
-        "edgeDensity": 13.62,
-        "uniqueColors": 53912
+        "edgeDensity": 13.61,
+        "uniqueColors": 53816
       },
       "consoleErrors": []
     },
@@ -73,7 +73,7 @@
         "lightPixelPct": 0.6,
         "lumaStdDev": 22.9,
         "edgeDensity": 7.91,
-        "uniqueColors": 4745
+        "uniqueColors": 4750
       },
       "consoleErrors": []
     },
@@ -86,19 +86,19 @@
         "theme": "dark",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 97,
+        "textNodes": 121,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 1280,
         "height": 900,
-        "meanLuma": 31.7,
-        "darkPixelPct": 83.9,
-        "lightPixelPct": 1.4,
-        "lumaStdDev": 48.9,
-        "edgeDensity": 12.71,
-        "uniqueColors": 69833
+        "meanLuma": 30.2,
+        "darkPixelPct": 86.3,
+        "lightPixelPct": 4.8,
+        "lumaStdDev": 51.6,
+        "edgeDensity": 13.48,
+        "uniqueColors": 67259
       },
       "consoleErrors": []
     },
@@ -119,11 +119,11 @@
         "width": 1280,
         "height": 900,
         "meanLuma": 19.0,
-        "darkPixelPct": 93.3,
+        "darkPixelPct": 93.2,
         "lightPixelPct": 0.6,
         "lumaStdDev": 29.2,
         "edgeDensity": 9.54,
-        "uniqueColors": 35325
+        "uniqueColors": 35234
       },
       "consoleErrors": []
     },
@@ -148,7 +148,7 @@
         "lightPixelPct": 0.9,
         "lumaStdDev": 39.0,
         "edgeDensity": 11.38,
-        "uniqueColors": 80043
+        "uniqueColors": 80037
       },
       "consoleErrors": []
     },
@@ -169,11 +169,36 @@
         "width": 1280,
         "height": 900,
         "meanLuma": 13.6,
-        "darkPixelPct": 97.4,
+        "darkPixelPct": 97.5,
         "lightPixelPct": 0.5,
-        "lumaStdDev": 21.7,
-        "edgeDensity": 5.26,
-        "uniqueColors": 6108
+        "lumaStdDev": 21.6,
+        "edgeDensity": 5.25,
+        "uniqueColors": 6070
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-dark-profile",
+      "file": "desktop-dark-profile.png",
+      "url": "http://localhost:5173/#/u/awe-ea8520",
+      "dom": {
+        "h1": "awe",
+        "theme": "dark",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 42,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 22.6,
+        "darkPixelPct": 91.7,
+        "lightPixelPct": 0.9,
+        "lumaStdDev": 29.8,
+        "edgeDensity": 5.0,
+        "uniqueColors": 5731
       },
       "consoleErrors": []
     },
@@ -198,7 +223,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 36.8,
         "edgeDensity": 3.23,
-        "uniqueColors": 2236
+        "uniqueColors": 2235
       },
       "consoleErrors": []
     },
@@ -223,7 +248,7 @@
         "lightPixelPct": 79.0,
         "lumaStdDev": 56.2,
         "edgeDensity": 19.62,
-        "uniqueColors": 54583
+        "uniqueColors": 54633
       },
       "consoleErrors": []
     },
@@ -286,19 +311,19 @@
         "theme": "light",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 97,
+        "textNodes": 32,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 1280,
         "height": 900,
-        "meanLuma": 225.0,
-        "darkPixelPct": 1.8,
-        "lightPixelPct": 83.9,
-        "lumaStdDev": 49.0,
-        "edgeDensity": 15.32,
-        "uniqueColors": 69940
+        "meanLuma": 244.5,
+        "darkPixelPct": 0.6,
+        "lightPixelPct": 98.2,
+        "lumaStdDev": 21.2,
+        "edgeDensity": 9.68,
+        "uniqueColors": 3323
       },
       "consoleErrors": []
     },
@@ -323,7 +348,7 @@
         "lightPixelPct": 97.9,
         "lumaStdDev": 17.8,
         "edgeDensity": 10.45,
-        "uniqueColors": 5249
+        "uniqueColors": 5235
       },
       "consoleErrors": []
     },
@@ -370,10 +395,35 @@
         "height": 900,
         "meanLuma": 245.8,
         "darkPixelPct": 0.0,
-        "lightPixelPct": 98.5,
-        "lumaStdDev": 14.1,
-        "edgeDensity": 8.55,
-        "uniqueColors": 5988
+        "lightPixelPct": 98.6,
+        "lumaStdDev": 14.0,
+        "edgeDensity": 8.54,
+        "uniqueColors": 5945
+      },
+      "consoleErrors": []
+    },
+    {
+      "name": "desktop-light-profile",
+      "file": "desktop-light-profile.png",
+      "url": "http://localhost:5173/#/u/awe-ea8520",
+      "dom": {
+        "h1": "awe",
+        "theme": "light",
+        "overflowX": 0,
+        "brokenImages": 0,
+        "textNodes": 42,
+        "lowContrast": [],
+        "lowContrastCount": 0
+      },
+      "image": {
+        "width": 1280,
+        "height": 900,
+        "meanLuma": 240.7,
+        "darkPixelPct": 0.3,
+        "lightPixelPct": 92.3,
+        "lumaStdDev": 42.7,
+        "edgeDensity": 8.97,
+        "uniqueColors": 5659
       },
       "consoleErrors": []
     },
@@ -397,8 +447,8 @@
         "darkPixelPct": 0.0,
         "lightPixelPct": 99.7,
         "lumaStdDev": 9.9,
-        "edgeDensity": 5.66,
-        "uniqueColors": 1474
+        "edgeDensity": 5.67,
+        "uniqueColors": 1467
       },
       "consoleErrors": []
     },
@@ -448,7 +498,7 @@
         "lightPixelPct": 1.4,
         "lumaStdDev": 33.3,
         "edgeDensity": 12.01,
-        "uniqueColors": 3770
+        "uniqueColors": 3781
       },
       "consoleErrors": []
     },
@@ -473,7 +523,7 @@
         "lightPixelPct": 2.1,
         "lumaStdDev": 46.5,
         "edgeDensity": 16.14,
-        "uniqueColors": 28336
+        "uniqueColors": 28319
       },
       "consoleErrors": []
     },
@@ -493,12 +543,12 @@
       "image": {
         "width": 390,
         "height": 844,
-        "meanLuma": 30.2,
-        "darkPixelPct": 85.1,
-        "lightPixelPct": 2.8,
-        "lumaStdDev": 49.7,
-        "edgeDensity": 15.8,
-        "uniqueColors": 21929
+        "meanLuma": 17.7,
+        "darkPixelPct": 95.1,
+        "lightPixelPct": 2.0,
+        "lumaStdDev": 36.1,
+        "edgeDensity": 11.63,
+        "uniqueColors": 3237
       },
       "consoleErrors": []
     },
@@ -523,7 +573,7 @@
         "lightPixelPct": 86.2,
         "lumaStdDev": 46.3,
         "edgeDensity": 25.82,
-        "uniqueColors": 19335
+        "uniqueColors": 19366
       },
       "consoleErrors": []
     },
@@ -586,19 +636,19 @@
         "theme": "light",
         "overflowX": 0,
         "brokenImages": 0,
-        "textNodes": 26,
+        "textNodes": 115,
         "lowContrast": [],
         "lowContrastCount": 0
       },
       "image": {
         "width": 390,
         "height": 844,
-        "meanLuma": 240.7,
-        "darkPixelPct": 1.2,
-        "lightPixelPct": 95.9,
-        "lumaStdDev": 30.6,
-        "edgeDensity": 18.18,
-        "uniqueColors": 3240
+        "meanLuma": 213.3,
+        "darkPixelPct": 11.7,
+        "lightPixelPct": 84.5,
+        "lumaStdDev": 78.8,
+        "edgeDensity": 19.83,
+        "uniqueColors": 7051
       },
       "consoleErrors": []
     }

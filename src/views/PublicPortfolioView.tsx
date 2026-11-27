@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import {
+  ArrowUpRight,
   Bell,
-  ChevronDown,
   Compass,
   Folder,
   Heart,
@@ -16,8 +16,16 @@ import {
 import { useApp } from "../context/useApp"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
-import { creatorFromHash, navigate, profileFromHash, profileSlug } from "../lib/navigation"
-import { buildPublicFolders, hashPassword, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
+import { creatorFromHash, effectiveProfileSlug, navigate, navigateHash, profileFromHash } from "../lib/navigation"
+import {
+  buildPublicFolders,
+  hashPassword,
+  loadPublicMetrics,
+  loadPublicPayload,
+  publicUidFromHash,
+  recordPublicLike,
+  type PublicPayload,
+} from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
 import { normalizeStudioConfig } from "../types/studio"
@@ -123,12 +131,12 @@ function Header({
   )
 }
 
-function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, showBadge = true }: { name: string; initials: string; postCount: number; tourCount: number; likes: number; badge?: string; showBadge?: boolean }) {
+function ProfileHeader({ name, initials, postCount, tourCount, viewCount, likes, badge, showBadge = true }: { name: string; initials: string; postCount: number; tourCount: number; viewCount: number; likes: number; badge?: string; showBadge?: boolean }) {
   const stats = [
-    { value: String(postCount), label: "Posts" },
-    { value: String(tourCount), label: "Tours" },
-    { value: "1313", label: "Views" },
-    { value: String(likes), label: "Likes" },
+    { value: postCount.toLocaleString("id-ID"), label: "Posts" },
+    { value: tourCount.toLocaleString("id-ID"), label: "Tours" },
+    { value: viewCount.toLocaleString("id-ID"), label: "Views" },
+    { value: likes.toLocaleString("id-ID"), label: "Likes" },
   ]
   return (
     <div className="flex flex-col items-center bg-[#0f1011] px-4 py-10" id="portfolio-author">
@@ -209,8 +217,8 @@ function Card({
   )
 }
 
-function DetailModal({ item, onClose, onExplore }: { item: CardItem; onClose: () => void; onExplore: () => void }) {
-  const { favorites, toggleFavorite } = useApp()
+function DetailModal({ item, onClose, onExplore, onToggleFavorite }: { item: CardItem; onClose: () => void; onExplore: () => void; onToggleFavorite: (item: CardItem) => void }) {
+  const { favorites } = useApp()
   const favorite = favorites.includes(item.id)
   return (
     <div className="fixed inset-0 z-[110] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose}>
@@ -227,7 +235,7 @@ function DetailModal({ item, onClose, onExplore }: { item: CardItem; onClose: ()
               Jelajahi 360°   →
             </button>
             <button
-              onClick={() => toggleFavorite(item.id)}
+              onClick={() => onToggleFavorite(item)}
               className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-medium ${favorite ? "border-rose-300 bg-rose-50 text-rose-600" : "border-[#23252a] text-[#d0d6e0]"}`}
             >
               <Heart size={13} fill={favorite ? "currentColor" : "none"} /> {favorite ? "Favorit" : "Simpan"}
@@ -276,7 +284,7 @@ export function PublicPortfolioView() {
   const [publicData, setPublicData] = useState<PublicPayload | null>(null)
   const [allPosts, setAllPosts] = useState(false)
   const [allTours, setAllTours] = useState(false)
-  const [openFolder, setOpenFolder] = useState<string | null>(null)
+  const [metrics, setMetrics] = useState<{ views: Record<string, number>; likes: Record<string, number> }>({ views: {}, likes: {} })
   const [creatorId, setCreatorId] = useState<string | null>(creatorFromHash())
   const [gatePassword, setGatePassword] = useState("")
   const [gateError, setGateError] = useState("")
@@ -342,6 +350,37 @@ export function PublicPortfolioView() {
   )
   const routeSlug = profileFromHash()
   const uploaded = sourceScenes.filter((s) => s.id.startsWith("pano-"))
+
+  // Metrik portofolio dihitung dari data publish nyata, bukan angka dekoratif.
+  const publishedFolders = useMemo(
+    () => (publicData?.folders ?? []).filter((folder) => folder.uid || publicData?.uid),
+    [publicData],
+  )
+  const publishedUids = useMemo(
+    () => [...new Set(publishedFolders.map((folder) => folder.uid || publicData?.uid!).filter(Boolean))],
+    [publishedFolders, publicData?.uid],
+  )
+  const refreshMetrics = useCallback(() => {
+    if (!publishedUids.length) {
+      setMetrics({ views: {}, likes: {} })
+      return
+    }
+    void loadPublicMetrics(publishedUids, setMetrics).then(setMetrics)
+  }, [publishedUids])
+  useEffect(refreshMetrics, [refreshMetrics])
+
+  const totalViews = publishedUids.reduce((sum, uid) => sum + (metrics.views[uid] ?? 0), 0)
+  const totalLikes = publishedUids.reduce((sum, uid) => sum + (metrics.likes[uid] ?? 0), 0)
+  const uidForScene = (sceneId?: string) => publishedFolders.find((folder) => folder.sceneIds.includes(sceneId ?? ""))?.uid || publicData?.uid
+  const handleFavorite = (item: CardItem) => {
+    const wasFavorite = favorites.includes(item.id)
+    toggleFavorite(item.id)
+    const uid = uidForScene(item.sceneId)
+    if (uid) {
+      recordPublicLike(uid, !wasFavorite)
+      refreshMetrics()
+    }
+  }
   const basePosts: CardItem[] = useMemo(
     () => [
       ...uploaded.map((s) => ({ id: s.id, title: s.name, image: s.thumbnail, panorama: s.panorama, count: 1, sceneId: s.id })),
@@ -364,7 +403,7 @@ export function PublicPortfolioView() {
 
   // Link publish (#/p/<uid>) membuka portofolio PER PROJECT, bukan profil user.
   const sharedUid = publicUidFromHash()
-  const isOwnProfile = !!user && routeSlug === profileSlug(user.name, user.uid)
+  const isOwnProfile = !!user && routeSlug === effectiveProfileSlug(user.name, user.uid)
   const projectName =
     publicData?.folders?.[0]?.name ??
     publicData?.scenes?.[0]?.project?.title ??
@@ -519,80 +558,55 @@ export function PublicPortfolioView() {
       <ProfileHeader
         name={displayName}
         initials={displayInitials}
-        postCount={posts.length}
-        tourCount={tours.length}
-        likes={favorites.length}
+        postCount={uploaded.length}
+        tourCount={publishedFolders.length || (routeSlug ? 0 : tours.length)}
+        viewCount={totalViews}
+        likes={totalLikes}
         badge={routeSlug ? `@${routeSlug}` : selected ? `@${selected.name}` : `@${(user?.name ?? "demo").toLowerCase().replace(/\s+/g, "")}`}
         showBadge={!design.theme.hideProjectTitle}
       />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
-        {/* Struktur folder hasil publish: Project   → Scenes */}
-        {!selected && !!publicData?.folders?.length && (
+        {/* Hanya project yang dipublikasikan — scene tetap berada di dalam tour. */}
+        {!selected && !!publishedFolders.length && (
           <section className="mt-4 rounded-2xl bg-[#0f1011] p-6" id="portfolio-folders">
-            <SectionTitle>Project &amp; folder</SectionTitle>
+            <SectionTitle>Project</SectionTitle>
             <p className="mb-4 text-xs text-[#8a8f98]">
-              {publicData.folders.length} folder dipublikasikan · klik untuk melihat scene di dalamnya
+              {publishedFolders.length} project dipublikasikan · klik kartu untuk membuka tour 360°
             </p>
-            <div className="flex flex-col gap-3">
-              {publicData.folders.map((folder) => {
-                const scenes = folder.sceneIds
-                  .map((id) => sourceScenes.find((scene) => scene.id === id))
-                  .filter((scene): scene is NonNullable<typeof scene> => !!scene)
-                const open = openFolder === folder.id
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-4">
+              {publishedFolders.map((folder) => {
+                const uid = folder.uid || publicData?.uid
+                const sceneCount = folder.sceneIds.filter((id) => sourceScenes.some((scene) => scene.id === id)).length || folder.sceneIds.length
                 return (
-                  <div key={folder.id} className="overflow-hidden rounded-xl border border-[#23252a] bg-[#0f1011]">
-                    <button
-                      onClick={() => setOpenFolder(open ? null : folder.id)}
-                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-[#161718]"
-                    >
-                      <img src={folder.cover && !folder.cover.startsWith("blob:") ? folder.cover : "/media/thumbnails/entrance_hall.jpg"} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-[#ffffff]">{folder.name}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[#8a8f98]">
-                          {folder.description}
-                        </span>
-                        <span className="mt-1 flex flex-wrap gap-1">
-                          {folder.tags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="rounded-full bg-[#1c1d1f] px-2 py-0.5 text-[9px] text-[#8a8f98]">{tag}</span>
-                          ))}
-                        </span>
+                  <button
+                    key={folder.id}
+                    onClick={() => uid && navigateHash(`#/p/${uid.split("/").map(encodeURIComponent).join("/")}`)}
+                    disabled={!uid}
+                    className="group overflow-hidden rounded-xl border border-[#23252a] bg-[#0f1011] text-left transition-colors hover:border-zinc-600 disabled:cursor-default"
+                  >
+                    <div className="relative h-32 overflow-hidden">
+                      <img
+                        src={folder.cover && !folder.cover.startsWith("blob:") ? folder.cover : "/media/thumbnails/entrance_hall.jpg"}
+                        alt=""
+                        className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <span className="absolute bottom-2 left-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] text-white">
+                        <Folder size={10} className="mr-1 inline" />{sceneCount} scene
                       </span>
-                      <span className="shrink-0 rounded-full bg-[#1c1d1f] px-2.5 py-1 text-[10px] font-semibold text-[#8a8f98]">
-                        <Folder size={10} className="mr-1 inline" />{scenes.length} scene
-                      </span>
-                      <ChevronDown size={15} className={`shrink-0 text-[#62666d] transition-transform ${open ? "rotate-180" : ""}`} />
-                    </button>
-                    {open && (
-                      <div className="animate-fade-up grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-4 border-t border-slate-100 p-4">
-                        {scenes.map((scene) => (
-                          <Card
-                            key={scene.id}
-                            item={{
-                              id: scene.id,
-                              title: scene.name,
-                              image: scene.thumbnail,
-                              panorama: scene.panorama,
-                              count: 1,
-                              sceneId: scene.id,
-                            }}
-                            favorite={favorites.includes(scene.id)}
-                            onToggleFavorite={() => toggleFavorite(scene.id)}
-                            onOpen={() =>
-                              setDetail({
-                                id: scene.id,
-                                title: scene.name,
-                                image: scene.thumbnail,
-                                panorama: scene.panorama,
-                                count: 1,
-                                sceneId: scene.id,
-                              })
-                            }
-                          />
-                        ))}
+                    </div>
+                    <div className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="line-clamp-1 text-sm font-semibold text-[#ffffff]">{folder.name}</span>
+                        <ArrowUpRight size={14} className="shrink-0 text-[#62666d]" />
                       </div>
-                    )}
-                  </div>
+                      <p className="mt-1 line-clamp-2 text-[11px] text-[#8a8f98]">{folder.description}</p>
+                      <div className="mt-3 flex items-center gap-3 text-[10px] text-[#8a8f98]">
+                        <span>{metrics.views[uid ?? ""] ?? 0} views</span>
+                        <span><Heart size={10} className="mr-1 inline" />{metrics.likes[uid ?? ""] ?? 0} suka</span>
+                      </div>
+                    </div>
+                  </button>
                 )
               })}
             </div>
@@ -613,7 +627,7 @@ export function PublicPortfolioView() {
                 key={item.id}
                 item={item}
                 favorite={favorites.includes(item.id)}
-                onToggleFavorite={() => toggleFavorite(item.id)}
+                onToggleFavorite={() => handleFavorite(item)}
                 onOpen={() => setDetail(item)}
               />
             ))}
@@ -653,7 +667,7 @@ export function PublicPortfolioView() {
                 key={item.id}
                 item={item}
                 favorite={favorites.includes(item.id)}
-                onToggleFavorite={() => toggleFavorite(item.id)}
+                onToggleFavorite={() => handleFavorite(item)}
                 onOpen={() => setDetail(item)}
               />
             ))}
@@ -726,6 +740,7 @@ export function PublicPortfolioView() {
         <DetailModal
           item={detail}
           onClose={() => setDetail(null)}
+          onToggleFavorite={handleFavorite}
           onExplore={() => {
             setExploring(detail)
             setDetail(null)

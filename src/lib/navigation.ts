@@ -6,6 +6,32 @@ export function profileSlug(name?: string, uid?: string): string {
   return uid ? `${base}-${uid.slice(0, 6)}` : base
 }
 
+const CUSTOM_SLUG_KEY = "virtour360.customSlug"
+
+/** Path portofolio yang dipilih sendiri oleh pemilik akun. */
+export function customProfileSlug(uid?: string): string {
+  try {
+    const scoped = uid ? localStorage.getItem(`${CUSTOM_SLUG_KEY}:${uid}`) : null
+    return scoped || localStorage.getItem(CUSTOM_SLUG_KEY) || ""
+  } catch {
+    return ""
+  }
+}
+
+export function setCustomProfileSlug(slug: string, uid?: string) {
+  const clean = slug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "")
+  try {
+    if (uid) localStorage.setItem(`${CUSTOM_SLUG_KEY}:${uid}`, clean)
+    localStorage.setItem(CUSTOM_SLUG_KEY, clean)
+  } catch { /* storage bisa diblokir */ }
+  return clean
+}
+
+/** Slug yang benar-benar dipakai rute `#/u/<slug>`. */
+export function effectiveProfileSlug(name?: string, uid?: string): string {
+  return customProfileSlug(uid) || profileSlug(name, uid)
+}
+
 export function currentView(): View {
   const hash = window.location.hash.replace(/^#\/?/, "")
   if (hash.startsWith("dashboard")) return "dashboard"
@@ -31,7 +57,7 @@ export function navigateHash(path: string) {
 
 /** Buka portofolio berdasarkan akun yang sedang login. */
 export function navigateProfile(name?: string, uid?: string) {
-  window.location.hash = `#/u/${profileSlug(name, uid)}`
+  window.location.hash = `#/u/${effectiveProfileSlug(name, uid)}`
 }
 
 /** Slug profil dari hash `#/u/<slug>`. */

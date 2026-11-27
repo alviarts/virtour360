@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Eye,
   Grid2X2,
   List,
   LogOut,
   MapPin,
+  Pencil,
   Plus,
   Search,
   Sparkles,
@@ -15,7 +16,7 @@ import { useApp } from "../context/useApp"
 import { NewProjectModal } from "../components/auth/NewProjectModal"
 import { Logo360 } from "../components/ui/Logo360"
 import { ThemeToggle } from "../components/ui/ThemeToggle"
-import { navigate, navigateProfile, profileSlug } from "../lib/navigation"
+import { customProfileSlug, effectiveProfileSlug, navigate, navigateProfile, setCustomProfileSlug } from "../lib/navigation"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import type { Scene } from "../types/tour"
 
@@ -116,7 +117,7 @@ export function DashboardView() {
   const [tab, setTab] = useState<"studio" | "live">("studio")
   const [showNotice, setShowNotice] = useState(true)
   const [editingSlug, setEditingSlug] = useState(false)
-  const [customSlug, setCustomSlug] = useState(() => localStorage.getItem("virtour360.customSlug") || "")
+  const [customSlug, setCustomSlug] = useState(() => customProfileSlug())
   const [changelogOpen, setChangelogOpen] = useState(false)
   const [view, setView] = useState<"grid" | "list">("grid")
   const [query, setQuery] = useState("")
@@ -126,7 +127,10 @@ export function DashboardView() {
   const [newProjectOpen, setNewProjectOpen] = useState(false)
   const [preview, setPreview] = useState<{ title: string; scenes: Scene[]; uid?: string } | null>(null)
   const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites, projects, activeProject, createProject, setActiveProject, removeProject, setProjectStatus, getProjectScenes } = useApp()
-  const userSlug = customSlug || profileSlug(user?.name, user?.uid)
+  const userSlug = effectiveProfileSlug(user?.name, user?.uid)
+
+  // Sinkronkan input slug dengan path milik akun yang sedang login.
+  useEffect(() => setCustomSlug(customProfileSlug(user?.uid)), [user?.uid])
 
   const filteredScenes = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -211,18 +215,30 @@ export function DashboardView() {
                 autoFocus
                 value={customSlug}
                 onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
-                onBlur={() => { localStorage.setItem("virtour360.customSlug", customSlug); setEditingSlug(false) }}
-                onKeyDown={(e) => { if (e.key === "Enter") { localStorage.setItem("virtour360.customSlug", customSlug); setEditingSlug(false) } }}
+                onBlur={() => { setCustomSlug(setCustomProfileSlug(customSlug, user?.uid)); setEditingSlug(false) }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { setCustomSlug(setCustomProfileSlug(customSlug, user?.uid)); setEditingSlug(false) }
+                  if (e.key === "Escape") { setCustomSlug(customProfileSlug(user?.uid)); setEditingSlug(false) }
+                }}
                 className="hidden h-6 w-40 rounded-full border border-zinc-600 bg-zinc-950 px-2.5 font-mono text-[10px] text-white outline-none md:block"
               />
             ) : (
-              <button
-                onClick={() => setEditingSlug(true)}
-                title="Klik untuk mengganti path portofolio"
-                className="hidden h-6 items-center rounded-full border border-zinc-700 bg-zinc-900 px-2.5 font-mono text-[10px] whitespace-nowrap text-zinc-200 hover:text-white md:flex"
-              >
-                /u/{userSlug}
-              </button>
+              <div className="hidden items-center gap-1 md:flex">
+                <button
+                  onClick={() => navigateProfile(user?.name, user?.uid)}
+                  title="Buka portofolio publik kamu"
+                  className="flex h-6 items-center rounded-full border border-zinc-700 bg-zinc-900 px-2.5 font-mono text-[10px] whitespace-nowrap text-zinc-200 hover:text-white"
+                >
+                  /u/{userSlug}
+                </button>
+                <button
+                  onClick={() => setEditingSlug(true)}
+                  title="Ganti path portofolio"
+                  className="grid size-6 place-items-center rounded-full border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+                >
+                  <Pencil size={10} />
+                </button>
+              </div>
             )}
             <ThemeToggle compact />
             <button onClick={() => setChangelogOpen((v) => !v)} className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-700 px-3 text-xs whitespace-nowrap text-zinc-200 hover:bg-white/5 lg:flex">

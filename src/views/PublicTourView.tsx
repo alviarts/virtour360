@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/useApp"
-import { hashPassword, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
+import { hashPassword, loadPublicPayload, publicUidFromHash, recordPublicView, type PublicPayload } from "../lib/publicStore"
 import { navigateProfile } from "../lib/navigation"
 
 /**
@@ -51,6 +51,11 @@ export function PublicTourView() {
 
   const access = payload?.access ?? "public"
   const isLocked = access === "draft" || (access === "password" && !unlocked)
+
+  // View dihitung hanya sekali per pembukaan tour yang benar-benar bisa dilihat.
+  useEffect(() => {
+    if (uid && payload && !isLocked) recordPublicView(uid)
+  }, [uid, payload, isLocked])
 
   /** Tombol kembali mengarah ke portofolio pemilik tour, bukan Home. */
   const ownerName = payload?.profile?.name ?? uid?.split("/")[0] ?? user?.name ?? "demo"

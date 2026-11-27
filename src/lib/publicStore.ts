@@ -20,6 +20,8 @@ export interface PublicFolder {
   sceneIds: string[]
   tags: string[]
   year: string
+  /** UID publish project — dipakai kartu project di portofolio. */
+  uid?: string
 }
 
 export interface PublicCreatorPost {
@@ -68,6 +70,124 @@ const PUBLISHED_EVENT = "virtour360:published"
 /** Baris publish di Supabase — format sama dengan api/public.js. */
 const REMOTE_PUBLISH_PREFIX = "virtour:pub:"
 const REMOTE_PUBLIC_ID = "virtour:public"
+const VIEWS_KEY = "virtour360.views"
+const REMOTE_VIEW_PREFIX = "virtour:views:"
+const LIKES_KEY = "virtour360.likes"
+const REMOTE_LIKE_PREFIX = "virtour:likes:"
+
+/** Hitungan view nyata per UID publish — bukan angka dekoratif. */
+export function readViewCounts(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(VIEWS_KEY)
+    const parsed = raw ? JSON.parse(raw) as Record<string, unknown> : {}
+    const out: Record<string, number> = {}
+    for (const [key, value] of Object.entries(parsed)) {
+      const n = Number(value)
+      if (Number.isFinite(n) && n >= 0) out[key] = n
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+/** Dipanggil sekali saat tour publik dibuka. */
+export function recordPublicView(uid: string) {
+  try {
+    const counts = readViewCounts()
+    counts[uid] = (counts[uid] ?? 0) + 1
+    localStorage.setItem(VIEWS_KEY, JSON.stringify(counts))
+    if (supabase) {
+      void supabase.from("virtour_state").upsert({
+        id: `${REMOTE_VIEW_PREFIX}${uid}`,
+        data: { count: counts[uid] },
+        updated_at: new Date().toISOString(),
+      })
+    }
+  } catch { /* storage privat: hitungan tetap berlaku untuk sesi ini */ }
+}
+
+/** Gabungkan hitungan lokal dengan hitungan Supabase bila tersedia. */
+export async function loadViewCounts(uids: string[]): Promise<Record<string, number>> {
+  const counts = readViewCounts()
+  if (!supabase || !uids.length) return counts
+  try {
+    const ids = uids.map((uid) => `${REMOTE_VIEW_PREFIX}${uid}`)
+    const { data } = await supabase.from("virtour_state").select("id,data").in("id", ids)
+    for (const row of data ?? []) {
+      const uid = String(row.id ?? "").slice(REMOTE_VIEW_PREFIX.length)
+      const stored = row.data as { count?: unknown } | null
+      const n = Number(stored?.count)
+      if (uid && Number.isFinite(n) && n >= 0) counts[uid] = Math.max(counts[uid] ?? 0, n)
+    }
+  } catch { /* pakai hitungan lokal */ }
+  return counts
+}
+
+/** Suka nyata per tour publish — angka portofolio tidak lagi dekoratif. */
+export function readLikeCounts(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(LIKES_KEY)
+    const parsed = raw ? JSON.parse(raw) as Record<string, unknown> : {}
+    const out: Record<string, number> = {}
+    for (const [key, value] of Object.entries(parsed)) {
+      const n = Number(value)
+      if (Number.isFinite(n) && n >= 0) out[key] = n
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
+/** Dipanggil saat pengunjung menyuka/batalkan suka tour publik. */
+export function recordPublicLike(uid: string, liked: boolean) {
+  try {
+    const counts = readLikeCounts()
+    const next = Math.max(0, (counts[uid] ?? 0) + (liked ? 1 : -1))
+    counts[uid] = next
+    localStorage.setItem(LIKES_KEY, JSON.stringify(counts))
+    if (supabase) {
+      void supabase.from("virtour_state").upsert({
+        id: `${REMOTE_LIKE_PREFIX}${uid}`,
+        data: { count: next },
+        updated_at: new Date().toISOString(),
+      })
+    }
+  } catch { /* storage privat: hitungan tetap berlaku untuk sesi ini */ }
+}
+
+export async function loadLikeCounts(uids: string[]): Promise<Record<string, number>> {
+  const counts = readLikeCounts()
+  if (!supabase || !uids.length) return counts
+  try {
+    const ids = uids.map((uid) => `${REMOTE_LIKE_PREFIX}${uid}`)
+    const { data } = await supabase.from("virtour_state").select("id,data").in("id", ids)
+    for (const row of data ?? []) {
+      const uid = String(row.id ?? "").slice(REMOTE_LIKE_PREFIX.length)
+      const stored = row.data as { count?: unknown } | null
+      const n = Number(stored?.count)
+      if (uid && Number.isFinite(n) && n >= 0) counts[uid] = Math.max(counts[uid] ?? 0, n)
+    }
+  } catch { /* pakai hitungan lokal */ }
+  return counts
+}
+
+export type PublicMetrics = { views: Record<string, number>; likes: Record<string, number> }
+
+/**
+ * Metrik publik. Hitungan lokal langsung dipakai supaya angka muncul seketika,
+ * lalu hasil Supabase menggantinya bila tersedia (onUpdate).
+ */
+export async function loadPublicMetrics(uids: string[], onUpdate?: (metrics: PublicMetrics) => void): Promise<PublicMetrics> {
+  const initial: PublicMetrics = { views: readViewCounts(), likes: readLikeCounts() }
+  if (supabase && uids.length) {
+    void Promise.all([loadViewCounts(uids), loadLikeCounts(uids)])
+      .then(([views, likes]) => onUpdate?.({ views, likes }))
+      .catch(() => { /* pakai hitungan lokal */ })
+  }
+  return initial
+}
 
 function remotePublishId(uid: string): string {
   const safe = uid.replace(/[^a-zA-Z0-9-_]/g, "").slice(0, 40)
@@ -145,7 +265,7 @@ export function publicUidFromHash(): string | null {
   return match ? decodeURIComponent(match[1]) : null
 }
 
-export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
+export function buildPublicFolders(scenes: Scene[], uid?: string): PublicFolder[] {
   const groups = new Map<string, Scene[]>()
 
   for (const scene of scenes) {
@@ -166,6 +286,7 @@ export function buildPublicFolders(scenes: Scene[]): PublicFolder[] {
       sceneIds: items.map((scene) => scene.id),
       tags: first.project?.tags ?? [],
       year: first.project?.year ?? "",
+      uid,
     }
   })
 }
@@ -181,10 +302,12 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
         if (!response.ok) return null
         const json = (await response.json()) as { payload?: PublicPayload }
         if (!json.payload?.scenes?.length) return null
-        return {
-          ...json.payload,
-          folders: json.payload.folders ?? buildPublicFolders(json.payload.scenes),
-        }
+        const folderUid = uid ?? json.payload.uid ?? undefined
+        const folders = (json.payload.folders?.length ? json.payload.folders : buildPublicFolders(json.payload.scenes, folderUid)).map((folder) => ({
+          ...folder,
+          uid: folder.uid ?? folderUid,
+        }))
+        return { ...json.payload, uid: json.payload.uid ?? folderUid, folders }
       } catch {
         return null
       }
@@ -203,8 +326,9 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
       const payload = JSON.parse(raw) as PublicPayload
       const scenes = payload.scenes ?? []
       const validIds = new Set(scenes.map((scene) => scene.id))
-      const folders = (payload.folders ?? buildPublicFolders(scenes)).map((folder) => ({
+      const folders = (payload.folders?.length ? payload.folders : buildPublicFolders(scenes, payload.uid ?? currentUid ?? undefined)).map((folder) => ({
         ...folder,
+        uid: folder.uid ?? payload.uid ?? currentUid ?? undefined,
         sceneIds: folder.sceneIds.filter((id) => validIds.has(id)),
       })).filter((folder) => folder.sceneIds.length > 0)
       return { ...payload, scenes, folders }
@@ -218,7 +342,12 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
     if (!response.ok) return null
     const json = (await response.json()) as { payload?: PublicPayload }
     if (!json.payload) return null
-    return { ...json.payload, folders: json.payload.folders ?? buildPublicFolders(json.payload.scenes ?? []) }
+    const folderUid = uid ?? json.payload.uid ?? undefined
+    const folders = (json.payload.folders?.length ? json.payload.folders : buildPublicFolders(json.payload.scenes ?? [], folderUid)).map((folder) => ({
+      ...folder,
+      uid: folder.uid ?? folderUid,
+    }))
+    return { ...json.payload, uid: json.payload.uid ?? folderUid, folders }
   } catch {
     return null
   }
@@ -244,7 +373,7 @@ export async function publishPublicPayload(
         uid: finalUid,
         slug: payload.slug || finalUid,
         creators: payload.creators?.length ? payload.creators : (previous?.creators ?? []),
-        folders: buildPublicFolders(payload.scenes),
+        folders: buildPublicFolders(payload.scenes, finalUid),
       }
       localStorage.setItem(localKey(finalUid), JSON.stringify(finalPayload))
       localStorage.setItem("virtour360.publishedUid", finalUid)
@@ -284,7 +413,7 @@ export async function publishPublicPayload(
           ...payload,
           uid: finalUid,
           creators: payload.creators?.length ? payload.creators : previous?.creators ?? [],
-          folders: buildPublicFolders(payload.scenes),
+          folders: buildPublicFolders(payload.scenes, finalUid),
         },
       }),
     })
