@@ -92,20 +92,27 @@ lebih awal saat `supabase` browser bernilai `null`, sehingga endpoint `/api/stor
 tidak pernah dipanggil. Sekarang mode server memakai `fetch(signedUrl, { method: "PUT" })`
 dan diuji di `tests/storage-upload.test.ts` dengan klien Supabase sengaja di-mock `null`.
 
-Hasil verifikasi produksi setelah deploy (`75c905c`, bundle `index-BmO99spc.js`):
+Hasil verifikasi produksi setelah deploy (`27a9f8a`, bundle `index-Bf1KRItI.js` /
+`navigation-BJiR-beT.js`):
 
 1. `GET /api/public?id=salimbangunproperty-my-id` → kedua scene memakai
    `panorama: data:image/jpeg;base64,...` (fallback thumbnail), bukan `blob:`.
-2. `POST /api/storage` tanpa token → `401 {"error":"Masuk dulu untuk mengunggah aset."}`.
-3. Browser bersih tanpa login membuka `#/p/salimbangunproperty-my-id`: canvas viewer
-   tampil, judul `layout 2`, counter `1 / 2 scene`, 3 marker hotspot, 0 error konsol.
-4. Klik scene berikutnya → judul `kos`, counter `2 / 2 scene`, masih 0 error konsol.
-5. Login produksi → `POST /api/storage` untuk `kind: audio` dan `kind: image`:
-   path `awe_gmail_com/audio/<id>.wav` dan `awe_gmail_com/image/<id>.png`,
-   upload signed → `200`, URL publik → `200`.
-6. `DELETE /api/storage` dengan token yang sama → `200`; object uji langsung dihapus,
-   sehingga tidak menyisakan sampah di bucket.
-7. Screenshot QA ulang: 26 screenshot, 0 flag (dark/light, desktop/mobile).
+2. Browser bersih tanpa login membuka `#/p/salimbangunproperty-my-id`: canvas viewer
+   tampil, judul `layout 2`, counter `1 / 2 scene`, 0 error konsol.
+3. `POST /api/storage` tanpa token → `401 {"error":"Masuk dulu untuk mengunggah aset."}`.
+4. Login produksi sebagai akun QA, buka `#/studio`, unggah panorama uji lewat UI:
+   - `POST /api/storage` → `200` dengan `kind: "panorama"`,
+   - `PUT` ke signed URL Supabase → `200`,
+   - `GET` URL publik → `200`, scene muncul di Studio tanpa error konsol.
+5. Unggah audio `.wav` lewat panel scene:
+   - `POST /api/storage` → `200` dengan `kind: "audio"`,
+   - path `awe_gmail_com/audio/<id>.wav`,
+   - `PUT` signed → `200`, `GET` URL publik → `206`, 0 error konsol.
+6. Hapus scene uji lewat UI → dua `DELETE /api/storage` → `200` (panorama + audio),
+   state bersih kembali dan object uji tidak bisa diakses.
+7. `kind: "image"` sudah diverifikasi terpisah lewat signed URL + URL publik `200`.
+8. Screenshot QA: 26 screenshot, 0 flag (dark/light, desktop/mobile).
 
 Dengan demikian semua aset yang diunggah — panorama 360°, audio scene, dan gambar
-pengganti — berada di satu bucket `panoramas` dan bisa dipakai dari perangkat mana pun.
+pengganti — berada di satu bucket `panoramas`, bisa dipakai dari perangkat mana pun,
+dan jalur hapusnya juga sudah teruji di produksi.
