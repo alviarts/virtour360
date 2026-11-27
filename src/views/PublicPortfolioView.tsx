@@ -19,13 +19,13 @@ import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { creatorFromHash, effectiveProfileSlug, navigate, navigateHash, profileFromHash } from "../lib/navigation"
 import {
   buildPublicFolders,
-  hashPassword,
   loadPublicMetrics,
   listPublishedPayloads,
   loadPublicPayload,
   normalizeSlug,
   publicUidFromHash,
   recordPublicLike,
+  unlockPublicPayload,
   type PublicPayload,
 } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
@@ -518,17 +518,22 @@ export function PublicPortfolioView() {
   useEffect(() => setUnlocked(sessionStorage.getItem(gateKey) === "1"), [gateKey])
 
   const access = publicData?.access ?? "public"
-  const isLocked = access === "draft" || (access === "password" && !unlocked)
+  const isLocked = publicData?.locked === true || access === "draft" || (access === "password" && !unlocked)
 
-  const unlock = () => {
-    const expected = publicData?.passwordHash ?? ""
-    if (hashPassword(gatePassword) !== expected) {
+  const unlock = async () => {
+    const ok = await unlockPublicPayload(
+      shareUid ?? publicData?.uid ?? "public",
+      gatePassword,
+    )
+    if (!ok) {
       setGateError("Password salah.")
       return
     }
     sessionStorage.setItem(gateKey, "1")
     setUnlocked(true)
     setGateError("")
+    const refreshed = await loadPublicPayload(shareUid ?? publicData?.uid ?? undefined)
+    if (refreshed) setPublicData(refreshed)
   }
 
   if (isLocked) {

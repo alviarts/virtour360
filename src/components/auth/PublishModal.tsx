@@ -7,7 +7,6 @@ import { profile as defaultProfile } from "../../data/profile"
 import { copyText } from "../../lib/clipboard"
 import {
   buildPublicFolders,
-  hashPassword,
   makePublicUid,
   normalizeSlug,
   publicShareUrl,
@@ -86,10 +85,9 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
       creators: [],
       studioConfig,
       access,
-      ...(access === "password" ? { passwordHash: hashPassword(password.trim()) } : {}),
       ...(cleanSlug ? { slug: cleanSlug } : {}),
       updatedAt: new Date().toISOString(),
-    }, cleanSlug || uid || undefined)
+    }, cleanSlug || uid || undefined, access === "password" ? { password: password.trim() } : undefined)
     setBusy(false)
     if (result.ok) {
       setUid(result.uid)

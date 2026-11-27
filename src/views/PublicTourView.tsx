@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import { useApp } from "../context/useApp"
-import { hashPassword, loadPublicPayload, publicUidFromHash, recordPublicView, type PublicPayload } from "../lib/publicStore"
+import { loadPublicPayload, publicUidFromHash, recordPublicView, unlockPublicPayload, type PublicPayload } from "../lib/publicStore"
 import { navigateProfile } from "../lib/navigation"
 
 /**
@@ -37,13 +37,14 @@ export function PublicTourView() {
   const scenes = useMemo(
     () => (payload?.scenes ?? []).map((scene) => {
       const local = localScenes.find((item) => item.id === scene.id)
-      return scene.panorama.startsWith("blob:") && local
+      const panorama = typeof scene.panorama === "string" ? scene.panorama : ""
+      return panorama.startsWith("blob:") && local
         ? { ...scene, panorama: local.panorama, thumbnail: local.thumbnail }
         : scene
     }),
     [payload, localScenes],
   )
-  const stalePanorama = scenes.some((scene) => (scene.panorama || "").startsWith("blob:"))
+  const stalePanorama = scenes.some((scene) => typeof scene.panorama === "string" && scene.panorama.startsWith("blob:"))
   const title =
     payload?.folders?.[0]?.name ??
     payload?.scenes?.[0]?.project?.title ??
@@ -51,7 +52,7 @@ export function PublicTourView() {
     "Virtual Tour 360°"
 
   const access = payload?.access ?? "public"
-  const isLocked = access === "draft" || (access === "password" && !unlocked)
+  const isLocked = payload?.locked === true || access === "draft" || (access === "password" && !unlocked)
 
   // View dihitung hanya sekali per pembukaan tour yang benar-benar bisa dilihat.
   useEffect(() => {
@@ -63,14 +64,17 @@ export function PublicTourView() {
   const ownerUid = user && user.name.toLowerCase() === ownerName.toLowerCase() ? user.uid : undefined
   const goPortfolio = () => navigateProfile(ownerName, ownerUid)
 
-  const unlock = () => {
-    if (hashPassword(gatePassword) !== (payload?.passwordHash ?? "")) {
+  const unlock = async () => {
+    const ok = await unlockPublicPayload(uid ?? payload?.uid ?? "public", gatePassword)
+    if (!ok) {
       setGateError("Password salah.")
       return
     }
     sessionStorage.setItem(gateKey, "1")
     setUnlocked(true)
     setGateError("")
+    const refreshed = await loadPublicPayload(uid ?? payload?.uid ?? undefined)
+    if (refreshed) setPayload(refreshed)
   }
 
   if (!ready) {

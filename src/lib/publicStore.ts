@@ -1,6 +1,7 @@
 import type { Scene } from "../types/tour"
 import type { StudioConfig } from "../types/studio"
 import { isServerMode, supabase } from "./supabase"
+import { getAuthToken } from "./authToken"
 
 export interface PublicProfile {
   name: string
@@ -56,8 +57,10 @@ export interface PublicPayload {
   studioConfig?: StudioConfig
   /** Kontrol akses publish — benar-benar diterapkan di halaman publik. */
   access?: "draft" | "public" | "password"
-  /** Hash password (bukan password mentah) untuk access=password. */
+  /** Legacy: hash djb2 pada payload lama. Publish baru memakai gate di server. */
   passwordHash?: string
+  /** Server menyembunyikan scene sampai password benar. */
+  locked?: boolean
   /** Slug ramah URL; dipakai sebagai UID saat publish. */
   slug?: string
   updatedAt: string
@@ -359,6 +362,7 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
 export async function publishPublicPayload(
   payload: PublicPayload,
   uid?: string,
+  options?: { password?: string },
 ): Promise<{ ok: boolean; uid: string; error?: string; warning?: string }> {
   const finalUid = uid || payload.slug || payload.uid || makePublicUid()
   if (!isServerMode) {
@@ -368,12 +372,15 @@ export async function publishPublicPayload(
         const raw = localStorage.getItem(localKey(finalUid))
         if (raw) previous = JSON.parse(raw) as PublicPayload
       } catch { /* abaikan */ }
+      const legacyHash = payload.access === "password" && options?.password ? hashPassword(options.password) : undefined
       const finalPayload: PublicPayload = {
         ...payload,
         uid: finalUid,
         slug: payload.slug || finalUid,
         creators: payload.creators?.length ? payload.creators : (previous?.creators ?? []),
         folders: buildPublicFolders(payload.scenes, finalUid),
+        // Local mode is demo-only: the hash never leaves this browser.
+        ...(legacyHash ? { passwordHash: legacyHash } : { passwordHash: undefined }),
       }
       localStorage.setItem(localKey(finalUid), JSON.stringify(finalPayload))
       localStorage.setItem("virtour360.publishedUid", finalUid)
@@ -404,13 +411,18 @@ export async function publishPublicPayload(
   }
   try {
     const previous = await loadPublicPayload()
+    const cleanPayload: PublicPayload = { ...payload, passwordHash: undefined }
     const response = await fetch("/api/public", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
       body: JSON.stringify({
         uid: finalUid,
+        password: payload.access === "password" ? options?.password : undefined,
         payload: {
-          ...payload,
+          ...cleanPayload,
           uid: finalUid,
           creators: payload.creators?.length ? payload.creators : previous?.creators ?? [],
           folders: buildPublicFolders(payload.scenes, finalUid),
@@ -418,9 +430,28 @@ export async function publishPublicPayload(
       }),
     })
     if (response.ok) window.dispatchEvent(new CustomEvent(PUBLISHED_EVENT, { detail: { uid: finalUid } }))
-    return { ok: response.ok, uid: finalUid }
+    const json = (await response.json().catch(() => ({}))) as { error?: string }
+    return { ok: response.ok, uid: finalUid, error: response.ok ? undefined : json.error }
   } catch {
     return { ok: false, uid: finalUid }
+  }
+}
+
+/**
+ * Buka tour berpassword. Server memverifikasi password dan mengirim cookie
+ * httpOnly; client tidak pernah menyimpan hash password produksi.
+ */
+export async function unlockPublicPayload(uid: string, password: string): Promise<boolean> {
+  if (!isServerMode) return true // mode lokal memakai hash di browser saja
+  try {
+    const response = await fetch("/api/public", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "unlock", uid, password }),
+    })
+    return response.ok
+  } catch {
+    return false
   }
 }
 

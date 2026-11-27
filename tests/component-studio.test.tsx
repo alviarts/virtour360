@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   notify: vi.fn(),
   publishPublicPayload: vi.fn(),
   loadPublicPayload: vi.fn(),
+  unlockPublicPayload: vi.fn(),
   ensurePublicScenes: vi.fn(),
 }))
 
@@ -36,6 +37,7 @@ vi.mock("../src/lib/publicStore", async (importOriginal) => {
     ...actual,
     publishPublicPayload: mocks.publishPublicPayload,
     loadPublicPayload: mocks.loadPublicPayload,
+    unlockPublicPayload: mocks.unlockPublicPayload,
   }
 })
 
@@ -113,6 +115,15 @@ describe("component — PublicPortfolioView gate akses", () => {
     render(<PublicPortfolioView />)
     await waitFor(() => expect(screen.getByText(/Tour dilindungi password/)).toBeTruthy())
     expect(screen.getByRole("button", { name: "Buka tour" })).toBeTruthy()
+  })
+
+  it("password gate diverifikasi server, bukan hash di browser", async () => {
+    mocks.unlockPublicPayload.mockResolvedValue(true)
+    render(<PublicPortfolioView />)
+    await waitFor(() => expect(screen.getByText(/Tour dilindungi password/)).toBeTruthy())
+    await userEvent.type(screen.getByPlaceholderText("Password tour"), "rahasia")
+    await userEvent.click(screen.getByRole("button", { name: "Buka tour" }))
+    await waitFor(() => expect(mocks.unlockPublicPayload).toHaveBeenCalledWith("tour-private", "rahasia"))
   })
 
   it("draft menampilkan pesan draft", async () => {

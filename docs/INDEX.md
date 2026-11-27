@@ -47,6 +47,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 | [18-qa-workflow-lanjutan.md](18-qa-workflow-lanjutan.md) | QA satu per satu: nav, docs, feed publish, collapse, clipboard, logout, blob URL |
 | [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md) | 15 perbaikan UI/UX terbaru + screenshot/visual QA 26 viewport (dark/light, desktop/mobile) |
 | [21-panorama-cloud-upload.md](21-panorama-cloud-upload.md) | Root cause link publish rusak (blob:) + semua aset (360°, audio, gambar) ke Supabase Storage & fallback tour lama |
+| [22-publish-security.md](22-publish-security.md) | Auth endpoint publish/state, password gate server-side, cookie httpOnly, normalisasi payload |
 
 ## D.状态 terakhir & operasional
 | Dokumen | Isi |
@@ -60,6 +61,6 @@ Home (landingLinear + stage Studio + demo session) · Marketing (`#/product`, `#
 
 Studio: scene CRUD, grup + rename/delete + weblog, 9 tipe hotspot, Design modal, inspector efek, mini-map, HUD klik-kanan, upload, publish (slug/password/QR/embed), autosave + undo.
 
-Testing: 46/46 automated test lolos, typecheck & build hijau. Screenshot QA terbaru: 26 screenshot, 0 flag (lihat [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md)).
+Testing: 54/54 automated test lolos, typecheck & build hijau. Screenshot QA terbaru: 26 screenshot, 0 flag (lihat [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md)).
 
 Update UI/UX terbaru: Resources/dokumentasi/terms diperbagus, animasi workflow + contoh hotspot, kartu dashboard hanya memilih project, link publish wajib lewat modal Publish, menu Customers → **Explore** dengan filter nama/tanggal, toggle dark/light di header marketing/dashboard/studio, slug portofolio bisa diganti/diklik, daftar project portofolio hanya berisi project, statistik Posts/Tours/Views/Likes berasal dari data publish nyata, pengaturan akun tersedia di menu avatar Dashboard, dan panel Location Studio terhubung ke Google Maps (nama tempat atau koordinat `lat,lng` + geolocation). Link publish yang masih berisi `blob:` kini otomatis memakai thumbnail base64 agar tetap bisa dibuka, dan semua upload baru (panorama 360°, audio scene, gambar pengganti) tersimpan permanen di Supabase Storage lewat `/api/storage`; audio juga bisa diputar di viewer publik.

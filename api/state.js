@@ -1,13 +1,14 @@
 import { createClient } from "@supabase/supabase-js"
 import { verifySession } from "./_auth.js"
 
-const DEFAULT_ID = "virtour360-shared"
-
-/** Id state aman: hanya karakter tertentu, maksimal 80 karakter. */
-function safeId(input) {
-  if (typeof input !== "string") return DEFAULT_ID
+/**
+ * Tamu hanya boleh memakai prefix `guest:`. Tanpa pembatasan ini, siapa pun
+ * bisa membaca/menimpa `virtour:pub:*` lewat endpoint state.
+ */
+function guestId(input) {
+  if (typeof input !== "string") return ""
   const value = input.trim()
-  return /^[A-Za-z0-9:._-]{1,80}$/.test(value) ? value : DEFAULT_ID
+  return /^guest:[A-Za-z0-9_-]{1,72}$/.test(value) ? value : ""
 }
 
 /**
@@ -35,9 +36,11 @@ export default async function handler(req, res) {
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
   const session = verifySession(token)
   // User login selalu memakai state privat sendiri — tidak bisa membaca state orang lain.
+  // Tamu hanya boleh memakai prefix guest:; kunci publish/privat ditolak.
   const stateId = session
     ? `user:${session.email}`
-    : safeId(req.query?.key ?? req.body?.key ?? req.headers?.["x-virtour-key"])
+    : guestId(req.query?.key ?? req.body?.key ?? req.headers?.["x-virtour-key"])
+  if (!stateId) return res.status(403).json({ error: "Kunci state tidak diizinkan" })
   const supabase = createClient(url, key, { auth: { persistSession: false } })
 
   if (req.method === "GET") {
