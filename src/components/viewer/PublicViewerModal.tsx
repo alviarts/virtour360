@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { Viewer } from "@photo-sphere-viewer/core"
 import { VirtualTourPlugin } from "@photo-sphere-viewer/virtual-tour-plugin"
 import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Volume2, VolumeX, X } from "lucide-react"
 import { tourConfig } from "../../config/tour.config"
 import { contentHotspots, navigationTarget, sceneLinks } from "../../lib/sceneGraph"
 import type { Hotspot, Scene } from "../../types/tour"
@@ -23,8 +23,13 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId, i
   const containerRef = useRef<HTMLDivElement | null>(null)
   const tourRef = useRef<VirtualTourPlugin | null>(null)
   const [currentTitle, setCurrentTitle] = useState(title)
-  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const index = scenes?.findIndex((scene) => scene.id === sceneId) ?? -1
+    return index >= 0 ? index : 0
+  })
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
+  const [playing, setPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const lastActivationRef = useRef<{ id: string; at: number } | null>(null)
 
   // VirtualTourPlugin butuh minimal 2 node; satu scene cukup pakai Viewer biasa.
@@ -156,6 +161,28 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId, i
     setCurrentIndex((currentIndex + delta + list.length) % list.length)
   }
 
+  const currentAudio = (scenes ?? [])[currentIndex]?.audio
+
+  useEffect(() => {
+    setPlaying(false)
+    const audio = audioRef.current
+    if (audio) {
+      audio.pause()
+      audio.currentTime = 0
+    }
+  }, [currentAudio])
+
+  const toggleAudio = () => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audio.paused) {
+      void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false))
+    } else {
+      audio.pause()
+      setPlaying(false)
+    }
+  }
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose()
@@ -188,6 +215,20 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId, i
           <X size={17} />
         </button>
       </div>
+
+      {currentAudio && (
+        <div className="absolute bottom-16 left-4 z-10 flex items-center gap-2 rounded-full bg-black/60 px-2 py-1.5 text-white backdrop-blur">
+          <button
+            onClick={toggleAudio}
+            title={playing ? "Jeda audio" : "Putar audio"}
+            className="grid size-8 place-items-center rounded-full bg-white/10 hover:bg-white/20"
+          >
+            {playing ? <VolumeX size={15} /> : <Volume2 size={15} />}
+          </button>
+          <span className="pr-2 text-[11px] text-white/80">{playing ? "Memutar audio" : "Audio scene"}</span>
+          <audio ref={audioRef} src={currentAudio} onEnded={() => setPlaying(false)} />
+        </div>
+      )}
 
       {hasTour && scenes!.length > 1 && (
         <div className="absolute bottom-16 right-4 z-10 flex items-center gap-2">

@@ -36,9 +36,9 @@ import { makePublicUid } from "../lib/publicStore"
 import { normalizeEffects, type SceneEffects } from "../lib/effects"
 import {
   loadRemoteState,
-  removePanoramaFile,
+  removeStorageFile,
   saveRemoteState,
-  uploadPanoramaFile,
+  uploadAssetFile,
   type RemotePanorama,
 } from "../lib/remoteStore"
 
@@ -516,7 +516,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const audio: Record<string, SceneAudio> = {}
         const media: Record<string, SceneMedia> = {}
         assets.forEach((asset) => {
-          const url = URL.createObjectURL(asset.blob)
+          // Aset remote sudah punya URL Storage permanen; yang lokal dibuat ulang
+          // dari Blob memakai object URL.
+          const url = asset.url && !asset.url.startsWith("blob:") ? asset.url : URL.createObjectURL(asset.blob)
           assetUrls.current.set(asset.id, url)
           if (asset.kind === "audio") audio[asset.sceneId] = { url, name: asset.name }
           else media[asset.sceneId] = { panorama: url, thumbnail: url }
@@ -611,7 +613,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return () => {
-      assetUrls.current.forEach((url) => URL.revokeObjectURL(url))
+      assetUrls.current.forEach((url) => { if (url.startsWith("blob:")) URL.revokeObjectURL(url) })
       assetUrls.current.clear()
       urlCache.forEach((url) => URL.revokeObjectURL(url))
       // Kosongkan cache: StrictMode menjalankan cleanup saat mount pertama.
@@ -871,7 +873,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (isRemote) {
         try {
-          const url = await uploadPanoramaFile(item.id, file)
+          const url = await uploadAssetFile(item.id, file, "panorama")
           if (url) item.url = url
         } catch {
           notify("Upload cloud gagal — panorama tetap tersimpan di browser ini.")
@@ -895,32 +897,84 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (input: Scene[]) => {
       if (!isRemote) return { scenes: input }
       const output: Scene[] = []
+      const uploaded = new Map<string, string>()
       let failed = false
-      for (const scene of input) {
-        let panorama = scene.panorama
-        if (panorama.startsWith("blob:")) {
+
+      /** Naikkan satu blob: ke Storage, lalu simpan URL publiknya ke state aset. */
+      const toPublicUrl = async (value: string | undefined, kind: "panorama" | "audio" | "image", sceneId: string) => {
+        if (!value || !value.startsWith("blob:")) return value
+        const cached = uploaded.get(value)
+        if (cached) return cached
+
+        if (kind === "panorama") {
           const local = panoramas.find(
-            (item) => item.url === panorama || urlCache.get(item.id) === panorama || item.id === scene.id,
+            (item) => item.url === value || urlCache.get(item.id) === value || item.id === sceneId,
           )
-          if (local && local.blob.size > 0) {
-            try {
-              const url = await uploadPanoramaFile(local.id, local.blob)
-              if (url) {
-                panorama = url
-                await savePanorama({ ...local, url })
-                setPanoramas((prev) => prev.map((item) => (item.id === local.id ? { ...item, url } : item)))
-              } else failed = true
-            } catch {
+          if (!local || local.blob.size === 0) {
+            failed = true
+            return value
+          }
+          try {
+            const url = await uploadAssetFile(local.id, local.blob, "panorama")
+            if (!url) {
               failed = true
+              return value
             }
-          } else failed = true
+            uploaded.set(value, url)
+            await savePanorama({ ...local, url })
+            setPanoramas((prev) => prev.map((item) => (item.id === local.id ? { ...item, url } : item)))
+            return url
+          } catch {
+            failed = true
+            return value
+          }
         }
-        output.push({ ...scene, panorama })
+
+        const asset = assetsRef.current.find(
+          (item) =>
+            item.kind === kind &&
+            (item.sceneId === sceneId || assetUrls.current.get(item.id) === value || item.url === value),
+        )
+        if (!asset || asset.blob.size === 0) {
+          failed = true
+          return value
+        }
+        try {
+          const url = await uploadAssetFile(asset.id, asset.blob, kind)
+          if (!url) {
+            failed = true
+            return value
+          }
+          uploaded.set(value, url)
+          assetsRef.current = assetsRef.current.map((item) => (item.id === asset.id ? { ...item, url } : item))
+          assetUrls.current.set(asset.id, url)
+          await saveAsset({ ...asset, url })
+          if (kind === "audio") {
+            setAudioByScene((prev) => ({ ...prev, [sceneId]: { url, name: asset.name } }))
+          } else {
+            setAssetMedia((prev) => ({ ...prev, [sceneId]: { panorama: url, thumbnail: url } }))
+          }
+          return url
+        } catch {
+          failed = true
+          return value
+        }
+      }
+
+      for (const scene of input) {
+        const originalPanorama = scene.panorama
+        const panorama = (await toPublicUrl(originalPanorama, "panorama", scene.id)) ?? ""
+        const thumbnail =
+          scene.thumbnail === originalPanorama && panorama !== originalPanorama
+            ? panorama
+            : ((await toPublicUrl(scene.thumbnail, "image", scene.id)) ?? scene.thumbnail ?? "")
+        const audio = await toPublicUrl(scene.audio, "audio", scene.id)
+        output.push({ ...scene, panorama, thumbnail, audio })
       }
       return {
         scenes: output,
         error: failed
-          ? "Sebagian panorama masih lokal. Periksa koneksi lalu publish ulang agar tour bisa dibuka di perangkat lain."
+          ? "Sebagian aset masih tersimpan lokal. Periksa koneksi lalu publish ulang agar tour bisa dibuka di perangkat lain."
           : undefined,
       }
     },
@@ -930,37 +984,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removePanorama = useCallback(
     async (id: string) => {
       const target = panoramas.find((p) => p.id === id)
-      if (target?.url) await removePanoramaFile(target.url).catch(() => undefined)
+      if (target?.url) await removeStorageFile(target.url).catch(() => undefined)
+      const assets = assetsRef.current.filter((a) => a.sceneId === id)
+      await Promise.all(assets.map((a) => removeStorageFile(a.url).catch(() => undefined)))
       await deletePanorama(id)
-    await deleteAssetsForScene(id)
-    assetsRef.current
-      .filter((a) => a.sceneId === id)
-      .forEach((a) => {
+      await deleteAssetsForScene(id)
+      assets.forEach((a) => {
         const url = assetUrls.current.get(a.id)
-        if (url) URL.revokeObjectURL(url)
+        if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
         assetUrls.current.delete(a.id)
       })
-    assetsRef.current = assetsRef.current.filter((a) => a.sceneId !== id)
-    const url = urlCache.get(id)
-    if (url) URL.revokeObjectURL(url)
-    urlCache.delete(id)
-    setPanoramas((prev) => prev.filter((p) => p.id !== id))
-    setAudioByScene((prev) => {
-      const next = { ...prev }
-      delete next[id]
-      return next
-    })
-    setAssetMedia((prev) => {
-      const next = { ...prev }
-      delete next[id]
-      return next
-    })
-    setMediaOverrides((prev) => {
-      const next = { ...prev }
-      delete next[id]
-      persist(MEDIA_KEY, persistableMedia(next))
-      return next
-    })
+      assetsRef.current = assetsRef.current.filter((a) => a.sceneId !== id)
+      const url = urlCache.get(id)
+      if (url) URL.revokeObjectURL(url)
+      urlCache.delete(id)
+      setPanoramas((prev) => prev.filter((p) => p.id !== id))
+      setAudioByScene((prev) => {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
+      setAssetMedia((prev) => {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
+      setMediaOverrides((prev) => {
+        const next = { ...prev }
+        delete next[id]
+        persist(MEDIA_KEY, persistableMedia(next))
+        return next
+      })
     },
     [panoramas],
   )
@@ -1050,8 +1104,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const asset = assetsRef.current.find((a) => a.sceneId === sceneId && a.kind === "image")
     if (!asset) return
     const url = assetUrls.current.get(asset.id)
-    if (url) URL.revokeObjectURL(url)
+    if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
     assetUrls.current.delete(asset.id)
+    void removeStorageFile(asset.url).catch(() => undefined)
     void deleteAsset(asset.id).catch(() => undefined)
     assetsRef.current = assetsRef.current.filter((a) => a.id !== asset.id)
     setAssetMedia((prev) => {
@@ -1063,13 +1118,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const replaceSceneImage = useCallback(
     async (sceneId: string, file: File) => {
-      const previousAudio = assetsRef.current.find((a) => a.sceneId === sceneId && a.kind === "image")
-      if (previousAudio) {
-        const url = assetUrls.current.get(previousAudio.id)
-        if (url) URL.revokeObjectURL(url)
-        assetUrls.current.delete(previousAudio.id)
-        await deleteAsset(previousAudio.id)
-        assetsRef.current = assetsRef.current.filter((a) => a.id !== previousAudio.id)
+      const previous = assetsRef.current.find((a) => a.sceneId === sceneId && a.kind === "image")
+      if (previous) {
+        const url = assetUrls.current.get(previous.id)
+        if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
+        assetUrls.current.delete(previous.id)
+        await removeStorageFile(previous.url).catch(() => undefined)
+        await deleteAsset(previous.id)
+        assetsRef.current = assetsRef.current.filter((a) => a.id !== previous.id)
       }
       const asset: StoredAsset = {
         id: uid("asset"),
@@ -1080,10 +1136,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: Date.now(),
         projectId: activeProject?.id,
       }
+      if (isRemote) {
+        try {
+          const url = await uploadAssetFile(asset.id, file, "image")
+          if (url) asset.url = url
+        } catch {
+          notify("Upload gambar ke cloud gagal — publish akan mencoba lagi.")
+        }
+      }
       await saveAsset(asset)
+      const url = asset.url ?? URL.createObjectURL(asset.blob)
       assetsRef.current = [asset, ...assetsRef.current]
-      assetUrls.current.set(asset.id, URL.createObjectURL(asset.blob))
-      setAssetMedia((prev) => ({ ...prev, [sceneId]: { panorama: assetUrls.current.get(asset.id), thumbnail: assetUrls.current.get(asset.id) } }))
+      assetUrls.current.set(asset.id, url)
+      setAssetMedia((prev) => ({ ...prev, [sceneId]: { panorama: url, thumbnail: url } }))
       setMediaOverrides((prev) => {
         const next = { ...prev }
         delete next[sceneId]
@@ -1091,15 +1156,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return next
       })
     },
-    [activeProject],
+    [activeProject, notify],
   )
 
   const setSceneAudio = useCallback(async (sceneId: string, file: File) => {
     const previous = assetsRef.current.find((a) => a.sceneId === sceneId && a.kind === "audio")
     if (previous) {
       const url = assetUrls.current.get(previous.id)
-      if (url) URL.revokeObjectURL(url)
+      if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
       assetUrls.current.delete(previous.id)
+      await removeStorageFile(previous.url).catch(() => undefined)
       await deleteAsset(previous.id)
       assetsRef.current = assetsRef.current.filter((a) => a.id !== previous.id)
     }
@@ -1112,19 +1178,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createdAt: Date.now(),
       projectId: activeProject?.id,
     }
+    if (isRemote) {
+      try {
+        const url = await uploadAssetFile(asset.id, file, "audio")
+        if (url) asset.url = url
+      } catch {
+        notify("Upload audio ke cloud gagal — publish akan mencoba lagi.")
+      }
+    }
     await saveAsset(asset)
+    const url = asset.url ?? URL.createObjectURL(asset.blob)
     assetsRef.current = [asset, ...assetsRef.current]
-    const url = URL.createObjectURL(asset.blob)
     assetUrls.current.set(asset.id, url)
     setAudioByScene((prev) => ({ ...prev, [sceneId]: { url, name: asset.name } }))
-  }, [activeProject])
+  }, [activeProject, notify])
 
   const removeSceneAudio = useCallback(async (sceneId: string) => {
     const asset = assetsRef.current.find((a) => a.sceneId === sceneId && a.kind === "audio")
     if (asset) {
       const url = assetUrls.current.get(asset.id)
-      if (url) URL.revokeObjectURL(url)
+      if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
       assetUrls.current.delete(asset.id)
+      await removeStorageFile(asset.url).catch(() => undefined)
       await deleteAsset(asset.id)
       assetsRef.current = assetsRef.current.filter((a) => a.id !== asset.id)
     }

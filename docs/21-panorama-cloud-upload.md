@@ -1,4 +1,4 @@
-# Panorama cloud upload — link publish bisa dibuka di perangkat lain
+# Semua aset ke Supabase Storage — link publish bisa dibuka di perangkat lain
 
 ## Masalah
 
@@ -13,9 +13,9 @@ Penyebabnya terlihat pada payload `GET /api/public?id=salimbangunproperty-my-id`
 ```
 
 `blob:` adalah URL object yang hanya hidup di tab/browser yang membuatnya. Begitu
-tab ditutup atau link dibuka di perangkat lain, URL itu basi. Payload publish
-memang menyimpan thumbnail sebagai data URL (base64), tetapi file panorama aslinya
-tidak pernah berpindah ke penyimpanan permanen.
+tab ditutup atau link dibuka di perangkat lain, URL itu basi. Hal yang sama juga
+berlaku untuk **audio scene** dan **gambar pengganti** yang diunggah lewat panel
+Studio: keduanya dulu disimpan sebagai Blob + object URL di IndexedDB.
 
 Akar teknisnya:
 
@@ -24,6 +24,7 @@ Akar teknisnya:
 - Fungsi itu meng-upload memakai **anon/public key** ke bucket `panoramas`.
 - Bucket `panoramas` belum ada (publishable key tidak boleh membuat bucket), jadi
   upload gagal dan aplikasi fallback ke `blob:` dengan notifikasi “Upload cloud gagal”.
+- Aset audio/gambar tidak punya jalur upload sama sekali — selalu object URL lokal.
 - Saat publish, `PublishModal` mengirim scene dengan `panorama: blob:...` apa adanya.
 
 ## Perbaikan
@@ -32,27 +33,34 @@ Akar teknisnya:
    - memverifikasi token sesi (`verifySession`),
    - membuat bucket publik `panoramas` otomatis bila belum ada (dan memperbarui
      bucket lama menjadi publik),
-   - mengembalikan **signed upload URL** + `publicUrl` untuk path
-     `<email>/<id>.<ext>`.
+   - menerima `kind: "panorama" | "audio" | "image"`,
+   - mengembalikan **signed upload URL** + `publicUrl`.
+   - Path panorama lama tetap `<owner>/<id>.<ext>` agar URL lama tidak rusak;
+     audio/gambar memakai `<owner>/<kind>/<id>.<ext>`.
 2. `src/lib/remoteStore.ts`:
-   - mode server meminta signed URL ke `/api/storage`, lalu browser meng-upload
+   - `uploadAssetFile(id, file, kind)` dipakai untuk ketiga jenis aset.
+   - Mode server meminta signed URL ke `/api/storage`, lalu browser meng-upload
      langsung ke Supabase Storage dengan `uploadToSignedUrl()`.
    - Ini menghindari batas body 4,5 MB Vercel Function sekaligus tidak
      memerlukan kebijakan RLS anon untuk insert.
-3. `src/context/AppContext.tsx` → `ensurePublicScenes()`:
-   - dicatat saat publish, mencari Blob asli di IndexedDB untuk scene yang masih
-     ber-`blob:`,
-   - meng-uploadnya, menyimpan `url` publik ke IndexedDB/state remote, lalu
-     mengganti `scene.panorama` sebelum payload dikirim.
-   - Jika masih gagal, publish **ditolak** dengan pesan jelas agar tidak
+   - `removeStorageFile(url)` dipakai saat aset dihapus/diganti.
+3. `src/lib/db.ts` → `StoredAsset.url` menyimpan URL Storage permanen. Saat state
+   dimuat, URL itu dipakai langsung; object URL hanya dibuat untuk aset lokal lama.
+4. `src/context/AppContext.tsx` → `ensurePublicScenes()`:
+   - saat publish, semua `blob:` pada `panorama`, `thumbnail`, dan `audio` di-upload
+     ke Storage memakai `kind` yang tepat,
+   - URL publik disimpan ke IndexedDB/state remote, lalu dipakai di payload,
+   - jika masih gagal, publish **ditolak** dengan pesan jelas agar tidak
      menghasilkan link rusak baru.
-4. `src/components/auth/PublishModal.tsx` memakai `ensurePublicScenes()` sebelum
-   `publishPublicPayload()`. Publish ulang dengan UID yang sama sekarang menyembuhkan
-   tour lama: panorama di-upload ulang lalu link yang sama menjadi valid.
-5. `api/public.js` (GET): payload lama yang masih berisi `blob:` langsung dinormalisasi
-   memakai `thumbnail` base64 yang sudah tersimpan. Jadi tour yang sudah terlanjur
-   dipublish **langsung bisa dilihat** (resolusi rendah) tanpa menunggu pemilik
-   meng-upload ulang. `PublicTourView` hanya menampilkan banner bila thumbnail pun tidak ada.
+   - `replaceSceneImage()` dan `setSceneAudio()` juga meng-upload langsung saat
+     file dipilih; hapus/ganti aset ikut menghapus object Storage.
+5. `src/components/auth/PublishModal.tsx` memakai `ensurePublicScenes()` sebelum
+   `publishPublicPayload()`. Publish ulang dengan UID yang sama menyembuhkan tour lama.
+6. `api/public.js` (GET): payload lama yang masih berisi `blob:` langsung dinormalisasi
+   memakai `thumbnail` base64. Audio `blob:` dibuang daripada dikirim ke pengunjung.
+   Jadi tour lama **langsung bisa dilihat** (resolusi rendah) tanpa menunggu publish ulang.
+7. `src/components/viewer/PublicViewerModal.tsx`: pengunjung sekarang mendapat tombol
+   play/pause audio scene bila scene yang aktif punya audio dari Storage.
 
 ## Pemulihan tour yang sudah terlanjur dipublish
 
@@ -64,8 +72,9 @@ payload akan otomatis berisi URL Storage beresolusi penuh.
 ## Yang perlu dilakukan pemilik tour lama
 
 Buka `#/studio` dengan akun pemilik → **Publish & bagikan** → **Publish ulang**
-(nama/slug tetap `salimbangunproperty-my-id`). Panorama sebagai blob di browser pemilik
-akan otomatis di-upload ke cloud, lalu link yang sama langsung bisa dibuka siapa pun.
+(nama/slug tetap `salimbangunproperty-my-id`). Semua aset yang masih ber-`blob:`
+di browser pemilik akan otomatis di-upload ke cloud, lalu link yang sama langsung
+bisa dibuka siapa pun dengan panorama penuh dan audio.
 
 ## Verifikasi
 
@@ -77,15 +86,14 @@ npm run build       ✅
 
 Hasil verifikasi produksi setelah deploy (`338c064`, bundle `index-B2PKjRMC.js`):
 
-1. `GET /api/public?id=salimbangunproperty-my-id` → kedua scene sekarang memakai
+1. `GET /api/public?id=salimbangunproperty-my-id` → kedua scene memakai
    `panorama: data:image/jpeg;base64,...` (fallback thumbnail), bukan `blob:`.
-2. `POST /api/storage` tanpa token → `401 {"error":"Masuk dulu untuk mengunggah panorama."}`
-   (endpoint aktif dan menolak pengunggah anonim).
+2. `POST /api/storage` tanpa token → `401 {"error":"Masuk dulu untuk mengunggah aset."}`.
 3. Browser bersih tanpa login membuka `#/p/salimbangunproperty-my-id`: canvas viewer
    tampil, judul `layout 2`, counter `1 / 2 scene`, 3 marker hotspot, 0 error konsol.
 4. Klik scene berikutnya → judul `kos`, counter `2 / 2 scene`, masih 0 error konsol.
 5. Screenshot QA ulang: 26 screenshot, 0 flag (dark/light, desktop/mobile).
 
-Alur upload untuk akun baru perlu diuji dengan login di Studio: `POST /api/storage`
-harus mengembalikan `path`, `token`, `publicUrl`, lalu `uploadToSignedUrl()` menghasilkan
-`panorama: https://.../storage/v1/object/public/panoramas/...`.
+Alur upload aset untuk akun baru perlu diuji dengan login di Studio: `POST /api/storage`
+harus mengembalikan `path`, `token`, `publicUrl` untuk `kind` panorama/audio/image,
+lalu `uploadToSignedUrl()` menghasilkan URL `.../storage/v1/object/public/panoramas/...`.

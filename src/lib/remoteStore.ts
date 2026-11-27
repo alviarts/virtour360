@@ -87,46 +87,81 @@ export async function saveRemoteState(stateId: string, state: RemoteState): Prom
   if (error) throw error
 }
 
-export async function uploadPanoramaFile(id: string, file: File | Blob): Promise<string | null> {
+export type UploadKind = "panorama" | "audio" | "image"
+
+/** Semua aset (360°, audio, gambar) memakai satu bucket publik `panoramas`. */
+export const STORAGE_BUCKET = "panoramas"
+
+function extensionFor(contentType: string, kind: UploadKind): string {
+  const mime = contentType.toLowerCase()
+  if (kind === "audio") {
+    if (mime.includes("ogg")) return "ogg"
+    if (mime.includes("wav")) return "wav"
+    if (mime.includes("webm")) return "webm"
+    if (mime.includes("mp4") || mime.includes("m4a")) return "m4a"
+    return "mp3"
+  }
+  if (mime.includes("png")) return "png"
+  if (mime.includes("webp")) return "webp"
+  if (mime.includes("avif")) return "avif"
+  return "jpg"
+}
+
+/**
+ * Upload satu aset ke Supabase Storage. Mode server memakai signed URL dari
+ * `/api/storage` (service key hanya di server); mode client memakai publishable key.
+ */
+export async function uploadAssetFile(
+  id: string,
+  file: File | Blob,
+  kind: UploadKind = "panorama",
+): Promise<string | null> {
   if (!supabase) return null
-  const contentType = file.type || "image/jpeg"
-  const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : contentType.includes("avif") ? "avif" : "jpg"
+  const contentType = file.type || (kind === "audio" ? "audio/mpeg" : "image/jpeg")
+  const ext = extensionFor(contentType, kind)
 
   if (isServerMode) {
-    // Server membuat bucket + URL upload bertanda tangan memakai service key.
-    // Browser lalu upload langsung ke Storage (tanpa batas body Vercel).
     const response = await fetch("/api/storage", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${getAuthToken()}`,
       },
-      body: JSON.stringify({ id, contentType }),
+      body: JSON.stringify({ id, contentType, kind }),
     })
     const json = (await response.json()) as { path?: string; token?: string; publicUrl?: string; error?: string }
     if (!response.ok || !json.path || !json.token || !json.publicUrl) {
-      throw new Error(json.error || "Gagal menyiapkan upload panorama.")
+      throw new Error(json.error || "Gagal menyiapkan upload aset.")
     }
     const { error } = await supabase.storage
-      .from("panoramas")
+      .from(STORAGE_BUCKET)
       .uploadToSignedUrl(json.path, json.token, file, { contentType, upsert: true })
     if (error) throw error
     return json.publicUrl
   }
 
-  const path = `${id}.${ext}`
+  const path = kind === "panorama" ? `${id}.${ext}` : `${kind}/${id}.${ext}`
   const { error } = await supabase.storage
-    .from("panoramas")
+    .from(STORAGE_BUCKET)
     .upload(path, file, { upsert: true, contentType })
   if (error) throw error
-  return supabase.storage.from("panoramas").getPublicUrl(path).data.publicUrl
+  return supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path).data.publicUrl
 }
 
-export async function removePanoramaFile(url: string | undefined): Promise<void> {
+/** Kompatibilitas dengan pemanggil lama. */
+export async function uploadPanoramaFile(id: string, file: File | Blob): Promise<string | null> {
+  return uploadAssetFile(id, file, "panorama")
+}
+
+/** Hapus object Storage dari URL publik (berlaku untuk semua jenis aset). */
+export async function removeStorageFile(url: string | undefined): Promise<void> {
   if (!supabase || !url) return
-  const marker = "/panoramas/"
+  const marker = `/${STORAGE_BUCKET}/`
   const index = url.indexOf(marker)
   if (index < 0) return
   const path = decodeURIComponent(url.slice(index + marker.length).split("?")[0])
-  await supabase.storage.from("panoramas").remove([path])
+  await supabase.storage.from(STORAGE_BUCKET).remove([path])
 }
+
+/** Kompatibilitas dengan pemanggil lama. */
+export const removePanoramaFile = removeStorageFile

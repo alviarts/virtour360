@@ -63,7 +63,7 @@ begin
 end $$;
 ```
 
-Status terbaru: bucket `panoramas` dibuat otomatis oleh `POST /api/storage` memakai service key (server-side), jadi SQL di atas tidak wajib lagi untuk mode server. Query tersebut tetap berguna kalau aplikasi dipakai dalam mode client Supabase langsung. Events realtime masih memakai polling 2,5 detik sebagai fallback; baris baru ikut masuk setelah tabel ditambahkan ke publikasi `supabase_realtime`.
+Status terbaru: bucket `panoramas` dibuat otomatis oleh `POST /api/storage` memakai service key (server-side), jadi SQL di atas tidak wajib lagi untuk mode server. Bucket yang sama menyimpan semua aset: panorama (`<owner>/<id>.<ext>`), audio (`<owner>/audio/<id>.<ext>`), dan gambar (`<owner>/image/<id>.<ext>`). Query di atas tetap berguna kalau aplikasi dipakai dalam mode client Supabase langsung. Events realtime masih memakai polling 2,5 detik sebagai fallback; baris baru ikut masuk setelah tabel ditambahkan ke publikasi `supabase_realtime`.
 
 ## QA yang sudah dilakukan
 

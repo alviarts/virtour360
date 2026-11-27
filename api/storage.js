@@ -2,13 +2,29 @@ import { createClient } from "@supabase/supabase-js"
 import { verifySession } from "./_auth.js"
 
 const BUCKET = "panoramas"
+const KINDS = ["panorama", "audio", "image"]
+
+function extensionFor(mime, kind) {
+  const value = String(mime || "").toLowerCase()
+  if (kind === "audio") {
+    if (value.includes("ogg")) return "ogg"
+    if (value.includes("wav")) return "wav"
+    if (value.includes("webm")) return "webm"
+    if (value.includes("mp4") || value.includes("m4a")) return "m4a"
+    return "mp3"
+  }
+  if (value.includes("png")) return "png"
+  if (value.includes("webp")) return "webp"
+  if (value.includes("avif")) return "avif"
+  return "jpg"
+}
 
 /**
- * Beri URL upload bertanda tangan untuk panorama. Kredensial service-key hanya
- * ada di server; browser meng-upload langsung ke Supabase Storage memakai token
- * ini, jadi tidak kena batas body 4,5 MB Vercel Function.
+ * Beri URL upload bertanda tangan untuk aset (panorama 360°, audio, gambar).
+ * Kredensial service-key hanya ada di server; browser meng-upload langsung ke
+ * Supabase Storage memakai token ini, jadi tidak kena batas body 4,5 MB Vercel.
  *
- * POST { id, contentType } → { path, token, publicUrl }
+ * POST { id, contentType, kind } → { path, token, publicUrl }
  */
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store")
@@ -20,19 +36,24 @@ export default async function handler(req, res) {
 
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
   const session = verifySession(token)
-  if (!session) return res.status(401).json({ error: "Masuk dulu untuk mengunggah panorama." })
+  if (!session) return res.status(401).json({ error: "Masuk dulu untuk mengunggah aset." })
 
   const id = String(req.body?.id || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80)
   if (!id) return res.status(400).json({ error: "Missing asset id" })
-  const mime = String(req.body?.contentType || "image/jpeg")
-  const ext = mime.includes("png") ? "png" : mime.includes("webp") ? "webp" : mime.includes("avif") ? "avif" : "jpg"
+
+  const kindRaw = String(req.body?.kind || "panorama")
+  const kind = KINDS.includes(kindRaw) ? kindRaw : "panorama"
+  const mime = String(req.body?.contentType || (kind === "audio" ? "audio/mpeg" : "image/jpeg"))
+  const ext = extensionFor(mime, kind)
   const owner = session.email.toLowerCase().replace(/[^a-z0-9]/g, "_").slice(0, 60) || "user"
-  const path = `${owner}/${id}.${ext}`
+  // Panorama lama memakai path <owner>/<id>.<ext>; jangan diubah agar URL lama tetap valid.
+  const folder = kind === "panorama" ? "" : `${kind}/`
+  const path = `${owner}/${folder}${id}.${ext}`
 
   const supabase = createClient(url, key, { auth: { persistSession: false } })
 
   // Pastikan bucket publik tersedia. Bucket dibuat otomatis memakai service key
-  // supaya tour bisa dibuka dari perangkat mana pun tanpa SQL manual.
+  // supaya aset bisa dibuka dari perangkat mana pun tanpa SQL manual.
   const { data: bucket, error: bucketError } = await supabase.storage.getBucket(BUCKET)
   if (bucketError) {
     const { error: createError } = await supabase.storage.createBucket(BUCKET, {

@@ -16,12 +16,20 @@ function projectId(uid) {
  * equirectangular, hanya resolusinya lebih rendah.
  */
 function readableScene(scene) {
-  if (!scene || typeof scene.panorama !== "string" || !scene.panorama.startsWith("blob:")) return scene
-  const thumbnail = scene.thumbnail
-  if (typeof thumbnail === "string" && thumbnail.startsWith("data:image/")) {
-    return { ...scene, panorama: thumbnail, panoramaFallback: true }
+  if (!scene) return scene
+  const next = { ...scene }
+  const panorama = next.panorama
+  if (typeof panorama === "string" && panorama.startsWith("blob:")) {
+    const thumbnail = next.thumbnail
+    if (typeof thumbnail === "string" && thumbnail.startsWith("data:image/")) {
+      next.panorama = thumbnail
+      next.panoramaFallback = true
+    }
   }
-  return scene
+  // blob: audio hanya hidup di browser pemilik; jangan kirim ke pengunjung.
+  if (typeof next.audio === "string" && next.audio.startsWith("blob:")) delete next.audio
+  if (typeof next.thumbnail === "string" && next.thumbnail.startsWith("blob:")) delete next.thumbnail
+  return next
 }
 
 function readablePayload(payload) {

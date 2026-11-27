@@ -21,6 +21,8 @@ export interface StoredAsset {
   blob: Blob
   createdAt: number
   projectId?: string
+  /** URL publik Supabase Storage. Lokal memakai object URL dari Blob. */
+  url?: string
 }
 
 const DB_NAME = "virtour360"
