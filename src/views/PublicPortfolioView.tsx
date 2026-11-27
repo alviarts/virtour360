@@ -21,7 +21,9 @@ import {
   buildPublicFolders,
   hashPassword,
   loadPublicMetrics,
+  listPublishedPayloads,
   loadPublicPayload,
+  normalizeSlug,
   publicUidFromHash,
   recordPublicLike,
   type PublicPayload,
@@ -202,7 +204,7 @@ function Card({
         >
           <Heart size={13} fill={favorite ? "currentColor" : "none"} />
         </button>
-        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-[#e4f222] px-1.5 text-[10px] font-bold text-white">360°</span>
+        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-[#e4f222] px-1.5 text-[10px] font-bold text-[#08090a]">360°</span>
         {item.count !== undefined && (
           <span className="pointer-events-none absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">{item.count} ▣</span>
         )}
@@ -334,6 +336,32 @@ export function PublicPortfolioView() {
           })
           return
         }
+      }
+      // Pengunjung/portofolio publik tidak punya project lokal. Ambil tour
+      // milik pemilik profil dari feed publish (Supabase/localhost proxy).
+      const route = profileFromHash()
+      const owner = normalizeSlug(route ?? user?.name ?? "").replace(/-[a-z0-9]{6}$/, "")
+      const feed = await listPublishedPayloads()
+      const matched = feed.filter((item) => {
+        const name = normalizeSlug(item.payload.profile?.name ?? "")
+        return !!name && !!owner && (name === owner || owner.startsWith(name))
+      })
+      if (matched.length) {
+        const payloads = matched.map((item) => ({
+          ...item.payload,
+          uid: item.payload.uid ?? item.uid,
+          folders: (item.payload.folders?.length
+            ? item.payload.folders
+            : buildPublicFolders(item.payload.scenes, item.uid)
+          ).map((folder) => ({ ...folder, uid: folder.uid ?? item.uid })),
+        }))
+        if (alive) setPublicData({
+          ...payloads[0],
+          scenes: payloads.flatMap((x) => x.scenes),
+          folders: payloads.flatMap((x) => x.folders),
+          updatedAt: payloads[0].updatedAt,
+        })
+        return
       }
       if (alive) setPublicData(fallback)
     }
@@ -580,7 +608,7 @@ export function PublicPortfolioView() {
                 const sceneCount = folder.sceneIds.filter((id) => sourceScenes.some((scene) => scene.id === id)).length || folder.sceneIds.length
                 return (
                   <button
-                    key={folder.id}
+                    key={`${folder.uid ?? "local"}-${folder.id}`}
                     onClick={() => uid && navigateHash(`#/p/${uid.split("/").map(encodeURIComponent).join("/")}`)}
                     disabled={!uid}
                     className="group overflow-hidden rounded-xl border border-[#23252a] bg-[#0f1011] text-left transition-colors hover:border-zinc-600 disabled:cursor-default"
@@ -622,9 +650,9 @@ export function PublicPortfolioView() {
         <section className="mt-4 rounded-2xl bg-[#0f1011] p-6" id="portfolio-explore">
           <SectionTitle>360° posts — {displayName}</SectionTitle>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-6">
-            {shownPosts.map((item) => (
+            {shownPosts.map((item, i) => (
               <Card
-                key={item.id}
+                key={`post-${item.id}-${i}`}
                 item={item}
                 favorite={favorites.includes(item.id)}
                 onToggleFavorite={() => handleFavorite(item)}
@@ -662,9 +690,9 @@ export function PublicPortfolioView() {
             <button onClick={() => navigate("customers")} className="mb-4 text-[11px] text-[#4CC9F0] hover:text-white">Explore komunitas →</button>
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
-            {shownTours.map((item) => (
+            {shownTours.map((item, i) => (
               <Card
-                key={item.id}
+                key={`tour-${item.id}-${i}`}
                 item={item}
                 favorite={favorites.includes(item.id)}
                 onToggleFavorite={() => handleFavorite(item)}

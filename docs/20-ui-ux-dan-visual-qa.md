@@ -18,7 +18,7 @@ Dokumen ini merangkum 13 permintaan perbaikan UI/UX dan hasil screenshot/visual 
 | 10 | Marketing header: “tambah dark mode sama lightmode” | `ThemeToggle` (Sun/Moon) di header marketing, dashboard, dan Studio. Tema tersimpan di `localStorage["virtour360.theme"]`, diterapkan sebelum render via `main.tsx`, dan disinkronkan lintas header lewat event `virtour360:theme`. | `src/lib/theme.ts`, `src/components/ui/ThemeToggle.tsx`, `src/styles/light.css` |
 | 11 | URL portofolio dashboard: “tidak berubah url portofolio user” | Path `/u/<slug>` sekarang bisa diklik untuk membuka portofolio, dan tombol pensil membuka input slug kustom. Slug disimpan per UID (`virtour360.customSlug:<uid>`) dan dipakai `navigateProfile()`/`effectiveProfileSlug()`. | `src/lib/navigation.ts`, `src/views/DashboardView.tsx` |
 | 12 | Folder portofolio: “project folder masih mencapur dengan scene harus nya project aja” | Bagian “Project” sekarang hanya kartu project hasil publish (cover, jumlah scene, views, suka). Klik kartu membuka tour `#/p/<uid>`; scene tidak lagi dicampurkan sebagai Kartu di daftar project. | `src/views/PublicPortfolioView.tsx`, `src/lib/publicStore.ts` |
-| 13 | Statistik portofolio: “ini di buat real jangan fake” | `1313 Views` dihapus. Posts = scene publish, Tours = project publish, Views = hitungan nyata saat `#/p/<uid>` dibuka, Likes = suka nyata dari tombol hati. Hitungan lokal langsung tampil, lalu digabung dengan baris `virtour:views:*` / `virtour:likes:*` di Supabase. | `src/lib/publicStore.ts`, `src/views/PublicTourView.tsx`, `src/views/PublicPortfolioView.tsx` |
+| 13 | Statistik portofolio: “ini di buat real jangan fake” | `1313 Views` dihapus. Posts = scene publish, Tours = project publish, Views = hitungan nyata saat `#/p/<uid>` dibuka, Likes = suka nyata dari tombol hati. Hitungan lokal langsung tampil, lalu digabung dengan baris `virtour:views:*` / `virtour:likes:*` di Supabase. Portofolio publik juga mengambil tour dari feed publish bila pengunjung tidak punya project lokal. | `src/lib/publicStore.ts`, `src/views/PublicTourView.tsx`, `src/views/PublicPortfolioView.tsx` |
 
 ## 2. Perbaikan kontras yang ditemukan saat visual QA
 
@@ -31,6 +31,7 @@ Analisis screenshot otomatis menemukan dan memperbaiki masalah berikut:
 - Tombol “Published” di TopBar diganti `bg-sky-600` agar kontras teks putih memenuhi rasio ≥ 3:1.
 - Panel hotspot demo mempertahankan teks putih secara eksplisit karena memang berada di atas simulasi panorama gelap.
 - Putaran QA berikutnya menambah halaman profil dan menemukan header `bg-[#0f1011]/95`, nav bawah `bg-[#0f1011]/90`, teks `text-[#ffffff]`, `text-[#E2E8F0]`, dan `text-[#4CC9F0]` masih berwarna gelap-mode di light mode. Semua diberi override tema terang; chip di atas gambar tetap dikecualikan agar tetap putih.
+- Feed publish yang memuat banyak project membuat React-memberi peringatan kunci duplikat; kunci Kartu/project kini unik per UID publish. Badge “360°” diganti ke teks gelap di atas latar lime supaya kontras memenuhi standar.
 
 ## 3. Screenshot & visual QA
 
