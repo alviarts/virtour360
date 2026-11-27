@@ -14,6 +14,7 @@ import { studioThemeStyle } from "../src/lib/viewerTheme"
 import { defaultStudioConfig, normalizeStudioConfig } from "../src/types/studio"
 import { defaultHotspotStyle, hotspotKindLabels, hotspotKinds, type Hotspot, type Scene } from "../src/types/tour"
 import { hashPassword, makePublicUid } from "../src/lib/publicStore"
+import { NAV_LINKS, NAV_MENUS, NAV_ROUTE } from "../src/lib/navMenus"
 
 const makeSpot = (over: Partial<Hotspot> = {}): Hotspot => ({
   id: "h1", type: "info", yaw: 45, pitch: -10, title: "Spot", style: defaultHotspotStyle, ...over,
@@ -135,5 +136,26 @@ describe("unit — studio config & publicStore", () => {
   it("makePublicUid aman untuk URL", () => {
     const uid = makePublicUid()
     expect(uid).toMatch(/^[a-z0-9]{10}$/)
+  })
+})
+
+describe("unit — menu navigasi publik", () => {
+  it("setiap menu tingkat atas punya rute", () => {
+    for (const link of NAV_LINKS) expect(NAV_ROUTE[link]).toBeTruthy()
+    expect(NAV_ROUTE.Explore).toBe("customers")
+  })
+
+  it("semua submenu Product/Resources membuka rute nyata", () => {
+    const entries = [...(NAV_MENUS.Product ?? []), ...(NAV_MENUS.Resources ?? [])]
+    expect(entries.length).toBeGreaterThan(0)
+    for (const entry of entries) {
+      expect(entry.title).toBeTruthy()
+      expect(entry.detail).toBeTruthy()
+      expect(entry.route).toMatch(/^#\/[a-z0-9/-]+$/)
+    }
+    expect(NAV_MENUS.Product?.map((entry) => entry.title)).toEqual([
+      "Studio", "Scene & hotspot", "Publish & embed", "Pricing",
+    ])
+    expect(NAV_MENUS.Resources?.some((entry) => entry.route === "#/resources/changelog")).toBe(true)
   })
 })

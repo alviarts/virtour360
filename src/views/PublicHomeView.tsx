@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { ArrowRight, ChevronRight } from "lucide-react"
+import { ArrowRight, ChevronDown, ChevronRight, Menu, X } from "lucide-react"
 import { Logo360 } from "../components/ui/Logo360"
 import { ThemeToggle } from "../components/ui/ThemeToggle"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
@@ -10,33 +10,7 @@ import { FeatureVisual } from "../components/ui/FeatureVisual"
 import { Reveal } from "../components/ui/Reveal"
 import { useApp } from "../context/useApp"
 import { navigate, navigateHash, navigateProfile } from "../lib/navigation"
-
-const NAV = ["Home", "Product", "Resources", "Explore", "Pricing", "Contact"] as const
-
-const NAV_ROUTE: Record<(typeof NAV)[number], "home" | "product" | "resources" | "customers" | "pricing" | "contact"> = {
-  Home: "home",
-  Product: "product",
-  Resources: "resources",
-  Explore: "customers",
-  Pricing: "pricing",
-  Contact: "contact",
-}
-
-const MENUS: Record<string, { title: string; detail: string }[]> = {
-  Product: [
-    { title: "Issues", detail: "Lacak hotspot, bug, dan progres tiap scene" },
-    { title: "Projects", detail: "Kumpulkan tour dan scene dalam satu project" },
-    { title: "Roadmap", detail: "Rencanakan apa yang akan dirilis berikutnya" },
-    { title: "Cycles", detail: "Kerja dalam putaran yang fokus dan terukur" },
-    { title: "Insights", detail: "Lihat view dan interaksi pengunjung per scene" },
-  ],
-  Resources: [
-    { title: "Documentation", detail: "Panduan lengkap upload, hotspot, dan publish" },
-    { title: "Guides", detail: "Resep singkat untuk tour properti, museum, dan kelas" },
-    { title: "Changelog", detail: "Catatan fitur yang baru saja kami kirim" },
-    { title: "Community", detail: "Lihat karya kreator lain dan bagikan milikmu" },
-  ],
-}
+import { NAV_LINKS as NAV, NAV_MENUS as MENUS, NAV_ROUTE } from "../lib/navMenus"
 
 const FEATURES = [
   {
@@ -96,6 +70,7 @@ function ScrollTyped({ text, className }: { text: string; className?: string }) 
 export function PublicHomeView() {
   const { user, setDemoMode, logout, notify } = useApp()
   const [menu, setMenu] = useState("")
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const goCreate = () => navigate(user ? "dashboard" : "signup")
   const goSignUp = () => navigate("signup")
@@ -121,40 +96,64 @@ export function PublicHomeView() {
             <Logo360 tone="white" size={22} />
           </button>
           <nav className="ml-auto hidden items-center gap-4 text-[12px] text-[#d0d6e0] md:flex">
-            {NAV.map((item) => (
-              <div key={item} className="relative">
-                <button
-                  onMouseEnter={() => setMenu(item)}
-                  onClick={() => navigate(NAV_ROUTE[item])}
-                  className={`transition-colors hover:text-white ${menu === item ? "text-white" : ""}`}
+            {NAV.map((item) => {
+              const submenu = MENUS[item]
+              return (
+                <div
+                  key={item}
+                  className="relative"
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setMenu("")
+                  }}
                 >
-                  {item}
-                </button>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setMenu(item)}
+                    onFocus={() => setMenu(item)}
+                    onClick={() => navigate(NAV_ROUTE[item])}
+                    aria-haspopup={submenu ? "menu" : undefined}
+                    aria-expanded={submenu ? menu === item : undefined}
+                    className={`flex items-center gap-1 transition-colors hover:text-white ${menu === item ? "text-white" : ""}`}
+                  >
+                    {item}
+                    {submenu && <ChevronDown size={11} className="text-[#62666d]" />}
+                  </button>
 
-                {MENUS[item] && menu === item && (
-                  <div className="absolute left-0 top-full z-50 mt-3 w-[300px] rounded-lg border border-white/10 bg-[#0f1011] p-2 shadow-[0_16px_50px_-24px_rgba(0,0,0,.9)]">
-                    <p className="px-2 pb-2 pt-1 font-[family-name:var(--font-mono)] text-[10px] text-[#62666d]">{item.toLowerCase()}</p>
-                    {MENUS[item].map((entry) => (
-                      <button
-                        key={entry.title}
-                        onClick={() => {
-                          setMenu("")
-                          if (entry.title === "Changelog") document.getElementById("changelog")?.scrollIntoView({ behavior: "smooth" })
-                          else document.getElementById("product")?.scrollIntoView({ behavior: "smooth" })
-                        }}
-                        className="flex w-full flex-col rounded-md px-2 py-2 text-left hover:bg-white/[0.05]"
-                      >
-                        <span className="text-[12px] text-[#f7f8f8]">{entry.title}</span>
-                        <span className="mt-0.5 text-[10px] text-[#8a8f98]">{entry.detail}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+                  {submenu && menu === item && (
+                    <div role="menu" className="absolute left-0 top-full z-50 mt-3 w-[300px] rounded-lg border border-white/10 bg-[#0f1011] p-2 shadow-[0_16px_50px_-24px_rgba(0,0,0,.9)]">
+                      <p className="px-2 pb-2 pt-1 font-[family-name:var(--font-mono)] text-[10px] text-[#62666d]">{item.toLowerCase()}</p>
+                      {submenu.map((entry) => (
+                        <button
+                          key={entry.title}
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setMenu("")
+                            navigateHash(entry.route)
+                          }}
+                          className="flex w-full flex-col rounded-md px-2 py-2 text-left hover:bg-white/[0.05]"
+                        >
+                          <span className="text-[12px] text-[#f7f8f8]">{entry.title}</span>
+                          <span className="mt-0.5 text-[10px] text-[#8a8f98]">{entry.detail}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </nav>
 
           <div className="ml-2 flex items-center gap-2 text-[12px] md:ml-10">
+            <button
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+              aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
+              aria-expanded={mobileOpen}
+              className="grid size-8 place-items-center rounded-full border border-white/10 text-[#d0d6e0] md:hidden"
+            >
+              {mobileOpen ? <X size={15} /> : <Menu size={15} />}
+            </button>
             <ThemeToggle />
             {user ? (
               <button onClick={() => navigate("dashboard")} className="flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1.5 hover:bg-white/5">
@@ -179,6 +178,39 @@ export function PublicHomeView() {
             )}
           </div>
         </div>
+
+        {mobileOpen && (
+          <div className="absolute inset-x-0 top-full z-50 border-b border-white/10 bg-[#0f1011]/98 px-6 py-4 shadow-[0_16px_50px_-24px_rgba(0,0,0,.9)] md:hidden">
+            <div className="mx-auto max-w-[1200px]">
+              {NAV.map((item) => (
+                <div key={item} className="border-b border-white/5 py-2 last:border-0">
+                  <button
+                    type="button"
+                    onClick={() => { setMobileOpen(false); navigate(NAV_ROUTE[item]) }}
+                    className="flex w-full items-center justify-between text-left text-[13px] text-[#f7f8f8]"
+                  >
+                    {item}
+                    <ChevronRight size={13} className="text-[#62666d]" />
+                  </button>
+                  {MENUS[item] && (
+                    <div className="mt-1 grid gap-0.5 pl-3">
+                      {MENUS[item].map((entry) => (
+                        <button
+                          key={entry.title}
+                          type="button"
+                          onClick={() => { setMobileOpen(false); navigateHash(entry.route) }}
+                          className="rounded-md px-2 py-1.5 text-left text-[12px] text-[#8a8f98] hover:bg-white/[0.05] hover:text-[#f7f8f8]"
+                        >
+                          {entry.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero */}

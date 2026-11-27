@@ -7,12 +7,14 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronRight,
   Clock3,
   FileText,
   Globe2,
   LifeBuoy,
   LogOut,
   Mail,
+  Menu,
   MapPin,
   MessageCircle,
   Play,
@@ -30,42 +32,14 @@ import { HotspotDemo } from "../components/ui/HotspotDemo"
 import { TourStage } from "../components/ui/TourStage"
 import { useApp } from "../context/useApp"
 import { navigate, navigateHash, profileSlug } from "../lib/navigation"
+import { NAV_LINKS as LINKS, NAV_MENUS as MENUS, NAV_ROUTE as LINK_ROUTE } from "../lib/navMenus"
 import { isRemote } from "../lib/supabase"
 import { listPublishedPayloads, watchPublishedChanges, type PublishedItem } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 
-const LINKS = ["Home", "Product", "Resources", "Explore", "Pricing", "Contact"] as const
-
-/** Label menu → rute internal ("Explore" tetap memakai view customers). */
-const LINK_ROUTE: Record<(typeof LINKS)[number], "home" | "product" | "resources" | "customers" | "pricing" | "contact"> = {
-  Home: "home",
-  Product: "product",
-  Resources: "resources",
-  Explore: "customers",
-  Pricing: "pricing",
-  Contact: "contact",
-}
-
-type MenuEntry = { title: string; detail: string; route: string }
-const MENUS: Record<string, MenuEntry[]> = {
-  Product: [
-    { title: "Studio", detail: "Editor scene, hotspot, dan desain tour", route: "#/studio" },
-    { title: "Scene & hotspot", detail: "Sembilan tipe hotspot yang bisa dipakai", route: "#/resources/hotspot-guide" },
-    { title: "Publish & embed", detail: "Slug unik, QR, password, iframe", route: "#/resources/embed-share" },
-    { title: "Pricing", detail: "Gratis untuk semua, bayar storage saja", route: "#/pricing" },
-  ],
-  Resources: [
-    { title: "Documentation", detail: "Panduan lengkap dari project sampai publish", route: "#/resources/documentation" },
-    { title: "Quick start", detail: "Tour pertama dalam tiga langkah", route: "#/resources/quick-start" },
-    { title: "Fitur & batasan", detail: "Daftar fitur dan batas paket gratis", route: "#/resources/features" },
-    { title: "Syarat & ketentuan", detail: "Aturan penggunaan layanan", route: "#/resources/terms" },
-    { title: "Kebijakan privasi", detail: "Data apa yang kami simpan", route: "#/resources/privacy" },
-    { title: "Changelog", detail: "Catatan pembaruan terbaru", route: "#/resources/changelog" },
-  ],
-}
-
 function Shell({ title, lead, children }: { title: string; lead: string; children: ReactNode }) {
   const [menu, setMenu] = useState("")
+  const [mobileOpen, setMobileOpen] = useState(false)
   const { user, logout, notify } = useApp()
 
   return (
@@ -105,6 +79,15 @@ function Shell({ title, lead, children }: { title: string; lead: string; childre
             ))}
           </nav>
           <div className="ml-5 flex items-center gap-2 text-[12px]">
+            <button
+              type="button"
+              onClick={() => setMobileOpen((open) => !open)}
+              aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
+              aria-expanded={mobileOpen}
+              className="grid size-8 place-items-center rounded-full border border-white/10 text-[#d0d6e0] md:hidden"
+            >
+              {mobileOpen ? <X size={15} /> : <Menu size={15} />}
+            </button>
             <ThemeToggle />
             {user ? (
               <>
@@ -128,6 +111,39 @@ function Shell({ title, lead, children }: { title: string; lead: string; childre
             )}
           </div>
         </div>
+
+        {mobileOpen && (
+          <div className="absolute inset-x-0 top-full z-50 border-b border-white/10 bg-[#0f1011]/98 px-6 py-4 shadow-[0_16px_50px_-24px_rgba(0,0,0,.9)] md:hidden">
+            <div className="mx-auto max-w-[1200px]">
+              {LINKS.map((link) => (
+                <div key={link} className="border-b border-white/5 py-2 last:border-0">
+                  <button
+                    type="button"
+                    onClick={() => { setMobileOpen(false); navigate(LINK_ROUTE[link]) }}
+                    className="flex w-full items-center justify-between text-left text-[13px] text-[#f7f8f8]"
+                  >
+                    {link}
+                    <ChevronRight size={13} className="text-[#62666d]" />
+                  </button>
+                  {MENUS[link] && (
+                    <div className="mt-1 grid gap-0.5 pl-3">
+                      {MENUS[link].map((entry) => (
+                        <button
+                          key={entry.title}
+                          type="button"
+                          onClick={() => { setMobileOpen(false); navigateHash(entry.route) }}
+                          className="rounded-md px-2 py-1.5 text-left text-[12px] text-[#8a8f98] hover:bg-white/[0.05] hover:text-[#f7f8f8]"
+                        >
+                          {entry.title}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
       <main className="mx-auto max-w-[1200px] px-6 pb-24">
         <div className="pt-20">
