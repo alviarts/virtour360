@@ -136,6 +136,24 @@ describe("component — PublicPortfolioView gate akses", () => {
   })
 })
 
+describe("component — PublicPortfolioView tombol login", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    window.location.hash = "#/u/creator"
+    mocks.loadPublicPayload.mockResolvedValue({
+      profile: { name: "Creator", initials: "C", location: "", email: "", website: "", bio: "" },
+      scenes: [], folders: [], access: "public", updatedAt: "2026-01-01",
+    })
+  })
+
+  it("Masuk membuka halaman login baru, bukan modal lama", async () => {
+    render(<PublicPortfolioView />)
+    await waitFor(() => expect(screen.getByRole("button", { name: "Masuk" })).toBeTruthy())
+    await userEvent.click(screen.getByRole("button", { name: "Masuk" }))
+    expect(window.location.hash).toBe("#/login")
+  })
+})
+
 describe("component — normalisasi config (equivalence helper)", () => {
   it("config kosong dan config partial sama-sama valid", () => {
     const empty = normalizeStudioConfig(null)

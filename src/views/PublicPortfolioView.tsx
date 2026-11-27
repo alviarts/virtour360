@@ -279,7 +279,7 @@ function FloatingNav() {
 }
 
 export function PublicPortfolioView() {
-  const { scenes, user, setAuthOpen, favorites, toggleFavorite, studioConfig, demoMode, projects } = useApp()
+  const { scenes, user, favorites, toggleFavorite, studioConfig, demoMode, projects } = useApp()
   const [query, setQuery] = useState("")
   const [detail, setDetail] = useState<CardItem | null>(null)
   const [exploring, setExploring] = useState<CardItem | null>(null)
@@ -580,8 +580,8 @@ export function PublicPortfolioView() {
   return (
     <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#08090a] text-[#ffffff]">
       <Header
-        onCreate={() => user ? navigate("dashboard") : setAuthOpen(true)}
-        onLogin={() => user ? navigate("dashboard") : setAuthOpen(true)}
+        onCreate={() => navigate(user ? "dashboard" : "signup")}
+        onLogin={() => navigate(user ? "dashboard" : "login")}
         userName={user?.name}
         query={query}
         onQuery={setQuery}
@@ -730,7 +730,7 @@ export function PublicPortfolioView() {
               Turn this dead-end into your next discovery by publishing your own panorama.
             </p>
           </div>
-          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#e4f222] px-4 text-xs font-semibold text-[#08090a] hover:bg-[#f0ff7a]">
+          <button onClick={() => navigate(user ? "dashboard" : "signup")} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#e4f222] px-4 text-xs font-semibold text-[#08090a] hover:bg-[#f0ff7a]">
             Upload your own 360   →
           </button>
         </div>
