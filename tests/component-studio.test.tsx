@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   notify: vi.fn(),
   publishPublicPayload: vi.fn(),
   loadPublicPayload: vi.fn(),
+  ensurePublicScenes: vi.fn(),
 }))
 
 vi.mock("../src/context/useApp", async () => {
@@ -19,6 +20,7 @@ vi.mock("../src/context/useApp", async () => {
     updateStudioConfig: mocks.updateStudioConfig,
     resetStudioConfig: mocks.resetStudioConfig,
     notify: mocks.notify,
+    ensurePublicScenes: mocks.ensurePublicScenes,
     user: null,
     scenes: [],
     favorites: [],
@@ -79,6 +81,7 @@ describe("component — PublishModal", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.publishPublicPayload.mockResolvedValue({ ok: true, uid: "tour-test" })
+    mocks.ensurePublicScenes.mockImplementation(async (scenes: unknown[]) => ({ scenes }))
   })
 
   it("menampilkan slug, 3 opsi akses, dan publish ulang memakai UID existing", async () => {

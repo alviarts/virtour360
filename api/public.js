@@ -10,6 +10,26 @@ function projectId(uid) {
 }
 
 /**
+ * Payload lama bisa berisi URL blob: yang hanya hidup di browser pemilik.
+ * Supaya tour lama tetap bisa dibuka, pakai thumbnail data URL (base64) sebagai
+ * panorama sementara. Thumbnail dibuat dengan rasio 2:1 sehingga valid sebagai
+ * equirectangular, hanya resolusinya lebih rendah.
+ */
+function readableScene(scene) {
+  if (!scene || typeof scene.panorama !== "string" || !scene.panorama.startsWith("blob:")) return scene
+  const thumbnail = scene.thumbnail
+  if (typeof thumbnail === "string" && thumbnail.startsWith("data:image/")) {
+    return { ...scene, panorama: thumbnail, panoramaFallback: true }
+  }
+  return scene
+}
+
+function readablePayload(payload) {
+  if (!payload || !Array.isArray(payload.scenes)) return payload
+  return { ...payload, scenes: payload.scenes.map(readableScene) }
+}
+
+/**
  * Endpoint publik — dibaca pengunjung tanpa login.
  * GET /api/public?id=<uid> → project tertentu
  * POST { uid, payload } → simpan project dengan UID unik
@@ -41,7 +61,7 @@ export default async function handler(req, res) {
         .map((row) => {
           const payload = row.data?.payload ?? row.data ?? null
           if (!payload?.scenes?.length) return null
-          return { uid: payload.uid || row.id.slice("virtour:pub:".length), payload }
+          return { uid: payload.uid || row.id.slice("virtour:pub:".length), payload: readablePayload(payload) }
         })
         .filter(Boolean)
       return res.status(200).json({ items })
@@ -54,7 +74,7 @@ export default async function handler(req, res) {
       const { data, error } = await supabase.from("virtour_state").select("data").eq("id", id).maybeSingle()
       if (error) return res.status(500).json({ error: error.message })
       const payload = data?.data?.payload ?? data?.data ?? null
-      if (payload) return res.status(200).json({ payload, uid: uid || payload.uid || null })
+      if (payload) return res.status(200).json({ payload: readablePayload(payload), uid: uid || payload.uid || null })
     }
     return res.status(200).json({ payload: null, uid: uid || null })
   }

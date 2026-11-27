@@ -28,7 +28,7 @@ interface PublishModalProps {
 type Access = "draft" | "public" | "password"
 
 export function PublishModal({ onClose, scenes, userName, userInitials, existingUid, onPublished }: PublishModalProps) {
-  const { studioConfig, user, notify } = useApp()
+  const { studioConfig, user, notify, ensurePublicScenes } = useApp()
   const [access, setAccess] = useState<Access>("public")
   const [password, setPassword] = useState("")
   const [uid, setUid] = useState<string | null>(existingUid ?? null)
@@ -72,10 +72,17 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
     }
     const parts = slug.split("/").map(normalizeSlug).filter(Boolean)
     const cleanSlug = parts.join("/") || `${owner}/${tourName}`
+    // Panorama hasil upload harus punya URL publik, bukan blob: milik browser ini.
+    const prepared = await ensurePublicScenes(scenes)
+    if (prepared.error) {
+      setBusy(false)
+      setError(prepared.error)
+      return
+    }
     const result = await publishPublicPayload({
       profile: userProfile,
-      scenes,
-      folders: buildPublicFolders(scenes, cleanSlug || uid || undefined),
+      scenes: prepared.scenes,
+      folders: buildPublicFolders(prepared.scenes, cleanSlug || uid || undefined),
       creators: [],
       studioConfig,
       access,

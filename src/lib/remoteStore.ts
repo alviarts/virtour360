@@ -87,13 +87,37 @@ export async function saveRemoteState(stateId: string, state: RemoteState): Prom
   if (error) throw error
 }
 
-export async function uploadPanoramaFile(id: string, file: File): Promise<string | null> {
+export async function uploadPanoramaFile(id: string, file: File | Blob): Promise<string | null> {
   if (!supabase) return null
-  const ext = file.name.split(".").pop() || "jpg"
+  const contentType = file.type || "image/jpeg"
+  const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : contentType.includes("avif") ? "avif" : "jpg"
+
+  if (isServerMode) {
+    // Server membuat bucket + URL upload bertanda tangan memakai service key.
+    // Browser lalu upload langsung ke Storage (tanpa batas body Vercel).
+    const response = await fetch("/api/storage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({ id, contentType }),
+    })
+    const json = (await response.json()) as { path?: string; token?: string; publicUrl?: string; error?: string }
+    if (!response.ok || !json.path || !json.token || !json.publicUrl) {
+      throw new Error(json.error || "Gagal menyiapkan upload panorama.")
+    }
+    const { error } = await supabase.storage
+      .from("panoramas")
+      .uploadToSignedUrl(json.path, json.token, file, { contentType, upsert: true })
+    if (error) throw error
+    return json.publicUrl
+  }
+
   const path = `${id}.${ext}`
   const { error } = await supabase.storage
     .from("panoramas")
-    .upload(path, file, { upsert: true, contentType: file.type || "image/jpeg" })
+    .upload(path, file, { upsert: true, contentType })
   if (error) throw error
   return supabase.storage.from("panoramas").getPublicUrl(path).data.publicUrl
 }

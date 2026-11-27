@@ -98,6 +98,8 @@ export interface AppContextValue {
   panoramas: StoredPanorama[]
   addPanorama: (name: string, file: File) => Promise<void>
   removePanorama: (id: string) => Promise<void>
+  /** Ganti panorama blob: lokal dengan URL publik sebelum publish. */
+  ensurePublicScenes: (scenes: Scene[]) => Promise<{ scenes: Scene[]; error?: string }>
 
   scenes: Scene[]
   /** Scene milik project tertentu — dipakai Dashboard & portofolio tanpa mengubah project aktif. */
@@ -889,6 +891,42 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [notify, pendingGroup, logActivity, activeProject],
   )
 
+  const ensurePublicScenes = useCallback(
+    async (input: Scene[]) => {
+      if (!isRemote) return { scenes: input }
+      const output: Scene[] = []
+      let failed = false
+      for (const scene of input) {
+        let panorama = scene.panorama
+        if (panorama.startsWith("blob:")) {
+          const local = panoramas.find(
+            (item) => item.url === panorama || urlCache.get(item.id) === panorama || item.id === scene.id,
+          )
+          if (local && local.blob.size > 0) {
+            try {
+              const url = await uploadPanoramaFile(local.id, local.blob)
+              if (url) {
+                panorama = url
+                await savePanorama({ ...local, url })
+                setPanoramas((prev) => prev.map((item) => (item.id === local.id ? { ...item, url } : item)))
+              } else failed = true
+            } catch {
+              failed = true
+            }
+          } else failed = true
+        }
+        output.push({ ...scene, panorama })
+      }
+      return {
+        scenes: output,
+        error: failed
+          ? "Sebagian panorama masih lokal. Periksa koneksi lalu publish ulang agar tour bisa dibuka di perangkat lain."
+          : undefined,
+      }
+    },
+    [panoramas],
+  )
+
   const removePanorama = useCallback(
     async (id: string) => {
       const target = panoramas.find((p) => p.id === id)
@@ -1275,6 +1313,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         panoramas,
         addPanorama,
         removePanorama,
+        ensurePublicScenes,
         scenes,
         activeSceneId,
         setActiveSceneId,

@@ -43,6 +43,7 @@ export function PublicTourView() {
     }),
     [payload, localScenes],
   )
+  const stalePanorama = scenes.some((scene) => (scene.panorama || "").startsWith("blob:"))
   const title =
     payload?.folders?.[0]?.name ??
     payload?.scenes?.[0]?.project?.title ??
@@ -119,6 +120,12 @@ export function PublicTourView() {
 
   return (
     <div className="relative h-full w-full">
+      {stalePanorama && (
+        <div className="absolute left-1/2 top-4 z-20 w-[min(92%,560px)] -translate-x-1/2 rounded-xl border border-amber-500/40 bg-amber-950/90 px-4 py-3 text-center text-[11px] leading-relaxed text-amber-100 backdrop-blur">
+          Panorama tour ini masih tersimpan di browser pemilik, jadi belum bisa dibuka di perangkat lain.
+          Minta pemilik membuka Studio → Publish ulang agar gambar tersimpan di cloud.
+        </div>
+      )}
       <PublicViewerModal
         inline
         title={title}

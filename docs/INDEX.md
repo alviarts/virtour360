@@ -46,6 +46,7 @@ Semua dokumentasi project ada di folder `virtour360/docs/`. File di `FEATURE_DOC
 | [17-halaman-marketing.md](17-halaman-marketing.md) | Rute Product, Pricing, Customers, Resources, Contact; dropdown & feed |
 | [18-qa-workflow-lanjutan.md](18-qa-workflow-lanjutan.md) | QA satu per satu: nav, docs, feed publish, collapse, clipboard, logout, blob URL |
 | [20-ui-ux-dan-visual-qa.md](20-ui-ux-dan-visual-qa.md) | 15 perbaikan UI/UX terbaru + screenshot/visual QA 26 viewport (dark/light, desktop/mobile) |
+| [21-panorama-cloud-upload.md](21-panorama-cloud-upload.md) | Root cause link publish rusak (blob:) + upload panorama ke Storage & fallback tour lama |
 
 ## D.状态 terakhir & operasional
 | Dokumen | Isi |

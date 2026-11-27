@@ -63,7 +63,7 @@ begin
 end $$;
 ```
 
-Status saat QA: bucket `panoramas` belum ada (API mengembalikan `NoSuchBucket`), dan events realtime belum teramati dalam 1,8 detik sehingga polling fallback yang terpakai. Setelah query dijalankan, upload panorama akan memakai public URL dan perubahan feed langsung masuk via websocket.
+Status terbaru: bucket `panoramas` dibuat otomatis oleh `POST /api/storage` memakai service key (server-side), jadi SQL di atas tidak wajib lagi untuk mode server. Query tersebut tetap berguna kalau aplikasi dipakai dalam mode client Supabase langsung. Events realtime masih memakai polling 2,5 detik sebagai fallback; baris baru ikut masuk setelah tabel ditambahkan ke publikasi `supabase_realtime`.
 
 ## QA yang sudah dilakukan
 
