@@ -27,7 +27,8 @@ export function PublicViewerModal({ title, panorama, onClose, scenes, sceneId, i
   const [activeHotspot, setActiveHotspot] = useState<Hotspot | null>(null)
   const lastActivationRef = useRef<{ id: string; at: number } | null>(null)
 
-  const hasTour = !!scenes?.length
+  // VirtualTourPlugin butuh minimal 2 node; satu scene cukup pakai Viewer biasa.
+  const hasTour = (scenes?.length ?? 0) > 1
 
   useEffect(() => {
     if (!containerRef.current) return

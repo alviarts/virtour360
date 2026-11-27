@@ -118,7 +118,10 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     ? findScene(scenes, currentSceneId)
     : {
         id: "empty", name: "Belum ada scene", description: "", group: "Uncategory",
-        panorama: "", thumbnail: "", initialView: { yaw: 0, pitch: 0, zoom: 70 },
+        // Jangan pakai string kosong: React/PSV akan warning src="".
+        panorama: "/media/panoramas/entrance_hall.jpg",
+        thumbnail: "/media/thumbnails/entrance_hall.jpg",
+        initialView: { yaw: 0, pitch: 0, zoom: 70 },
         hotspots: [], project: { title: "Project baru", role: "", client: "", year: "", tags: [] },
       }
 
@@ -153,8 +156,11 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
     setSelectedHotspot(spot)
   }, [])
 
+  // Scene dimuat async dari IndexedDB — init ulang saat scene pertama tersedia.
+  const hasScenes = scenes.length > 0
+
   useEffect(() => {
-    if (!containerRef.current || !scenes.length) return
+    if (!containerRef.current || !hasScenes) return
 
     const viewer = new Viewer({
       container: containerRef.current,
@@ -267,7 +273,7 @@ export function useTourViewer(scenes: Scene[], options: ViewerOptions) {
       gyroRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [hasScenes])
 
   /* HUD penempatan: reticle + koordinat mengikuti cursor (tanpa re-render React). */
   useEffect(() => {

@@ -20,9 +20,14 @@ const PublicTourView = lazy(() =>
 const PublicHomeView = lazy(() =>
   import("./views/PublicHomeView").then((m) => ({ default: m.PublicHomeView })),
 )
-const LabView = lazy(() =>
-  import("./views/LabView").then((m) => ({ default: m.LabView })),
+const LoginView = lazy(() =>
+  import("./views/LoginView").then((m) => ({ default: m.LoginView })),
 )
+const ProductView = lazy(() => import("./views/MarketingViews").then((m) => ({ default: m.ProductView })))
+const PricingView = lazy(() => import("./views/MarketingViews").then((m) => ({ default: m.PricingView })))
+const CustomersView = lazy(() => import("./views/MarketingViews").then((m) => ({ default: m.CustomersView })))
+const ResourcesView = lazy(() => import("./views/MarketingViews").then((m) => ({ default: m.ResourcesView })))
+const ContactView = lazy(() => import("./views/MarketingViews").then((m) => ({ default: m.ContactView })))
 
 function Loader() {
   return (
@@ -34,18 +39,35 @@ function Loader() {
 
 function Shell() {
   const [view, setView] = useState<View>(currentView())
-  const { toast, user } = useApp()
-  const isPrivate = view === "studio" || view === "dashboard"
+  const [hashKey, setHashKey] = useState(() => window.location.hash)
+  const [leaving, setLeaving] = useState(false)
+  const { toast, user, demoMode } = useApp()
+  const isPrivate = (view === "studio" || view === "dashboard") && !demoMode
   const isPublishedTour = view === "portfolio" && !!publicUidFromHash()
 
   useEffect(() => {
-    const onHash = () => setView(currentView())
+    let timer: number | undefined
+    const onHash = () => {
+      const next = currentView()
+      const nextHash = window.location.hash
+      if (next === view && nextHash === hashKey) return
+      setLeaving(true)
+      timer = window.setTimeout(() => {
+        setView(next)
+        setHashKey(nextHash)
+        setLeaving(false)
+      }, 160)
+    }
     window.addEventListener("hashchange", onHash)
-    return () => window.removeEventListener("hashchange", onHash)
-  }, [])
+    return () => {
+      window.removeEventListener("hashchange", onHash)
+      if (timer) window.clearTimeout(timer)
+    }
+  }, [view, hashKey])
 
   return (
     <>
+      <div key={hashKey} className={`page-fade h-full w-full ${leaving ? "is-leaving" : ""}`}>
       {isPrivate && !user ? (
         <LoginRequired area={view === "studio" ? "Studio" : "Dashboard"} />
       ) : view === "studio" ? (
@@ -56,15 +78,26 @@ function Shell() {
             <DashboardView />
           ) : isPublishedTour ? (
             <PublicTourView />
-          ) : view === "lab" ? (
-            <LabView />
-          ) : view === "portfolio" ? (
+          ) : view === "login" || view === "signup" ? (
+            <LoginView mode={view} />
+          ) : view === "product" ? (
+            <ProductView />
+          ) : view === "pricing" ? (
+            <PricingView />
+          ) : view === "customers" ? (
+            <CustomersView />
+          ) : view === "resources" ? (
+            <ResourcesView />
+          ) : view === "contact" ? (
+            <ContactView />
+          ) : view === "portfolio" || view === "profile" ? (
             <PublicPortfolioView />
           ) : (
             <PublicHomeView />
           )}
         </Suspense>
       )}
+      </div>
       <AuthModal />
       <UploadModal />
       {toast && (

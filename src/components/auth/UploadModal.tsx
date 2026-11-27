@@ -10,6 +10,7 @@ export function UploadModal() {
     setAuthOpen,
     addPanorama,
     panoramas,
+    activeProject,
     removePanorama,
     notify,
     scenes,
@@ -22,6 +23,7 @@ export function UploadModal() {
   const [preview, setPreview] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const replaceTarget = scenes.find((s) => s.id === replaceSceneId)
+  const visiblePanoramas = activeProject ? panoramas.filter((p) => p.projectId === activeProject.id) : panoramas
 
   useEffect(() => {
     if (!file) {
@@ -144,11 +146,11 @@ export function UploadModal() {
           </button>
         </form>
 
-        {!replaceSceneId && panoramas.length > 0 && (
+        {!replaceSceneId && visiblePanoramas.length > 0 && (
           <div className="mt-5 border-t border-zinc-800 pt-4">
-            <p className="mb-2 text-[11px] font-semibold text-zinc-300">Panorama Anda ({panoramas.length})</p>
+            <p className="mb-2 text-[11px] font-semibold text-zinc-300">Panorama project ini ({visiblePanoramas.length})</p>
             <div className="flex max-h-40 flex-col gap-2 overflow-y-auto">
-              {panoramas.map((p) => (
+              {visiblePanoramas.map((p) => (
                 <div key={p.id} className="flex items-center gap-2 rounded-lg border border-zinc-800 px-2 py-1.5">
                   <span className="min-w-0 flex-1 truncate text-[11px] text-zinc-300">{p.name}</span>
                   <button onClick={() => void removePanorama(p.id)} title="Hapus" className="text-zinc-500 hover:text-red-400">

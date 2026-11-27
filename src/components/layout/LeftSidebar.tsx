@@ -32,10 +32,12 @@ interface LeftSidebarProps {
 type GroupMode = "none" | "source" | "category"
 
 export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCreate, onRemoveScene }: LeftSidebarProps) {
-  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene, logActivity, activity, clearActivity, setPendingGroup } = useApp()
+  const { notify, groups: allGroups, createGroup, renameGroup, deleteGroup, setSceneGroup, moveScene, logActivity, activity, clearActivity, setPendingGroup, favorites } = useApp()
   const [view, setView] = useState<"grid" | "list">("grid")
   const [newGroup, setNewGroup] = useState(false)
   const [groupName, setGroupName] = useState("")
+  const [renaming, setRenaming] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [collapsed, setCollapsed] = useState(false)
@@ -43,14 +45,18 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
   const [infoOpen, setInfoOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
+  const [personal, setPersonal] = useState<"all" | "mine" | "fav">("all")
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return scenes
-    return scenes.filter((s) =>
+    const base = personal === "mine" ? scenes.filter((s) => s.id.startsWith("pano-"))
+      : personal === "fav" ? scenes.filter((s) => favorites.includes(s.id))
+        : scenes
+    if (!q) return base
+    return base.filter((s) =>
       [s.name, s.project.title, s.group, ...s.project.tags].some((field) => field.toLowerCase().includes(q)),
     )
-  }, [scenes, query])
+  }, [scenes, query, personal, favorites])
 
   const groupedScenes = useMemo(() => {
     // Tampilkan SEMUA grup (termasuk yang kosong) supaya grup baru terlihat
@@ -128,6 +134,23 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
             <List size={14} />
           </button>
         </div>
+      </div>
+
+      {/* Navigasi personal dulu — pola sidebar Linear */}
+      <div className="mb-1 flex flex-col gap-0.5 rounded-lg border border-zinc-800 bg-black/20 p-1">
+        {([
+          ["Pulse", "all"],
+          ["Scene saya", "mine"],
+          ["Favorit", "fav"],
+        ] as const).map(([label, value]) => (
+          <button
+            key={label}
+            onClick={() => setPersonal(value)}
+            className={`flex h-7 items-center rounded-md px-2 text-left text-[11px] ${personal === value ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-200"}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Aksi cepat */}
@@ -217,16 +240,35 @@ export function LeftSidebar({ scenes, currentSceneId, onSelect, onAddScene, onCr
         {groupedScenes.map(([label, items]) => (
           <div key={label}>
             <div className="flex h-8 items-center gap-1.5 px-1">
-              <button onClick={() => setCollapsed((v) => !v)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
-                {collapsed ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
-                <span className="truncate text-xs font-medium text-zinc-300">{label}</span>
-                <span className="text-[10px] text-zinc-600">{items.length}</span>
-              </button>
+              {renaming === label ? (
+                <input
+                  autoFocus
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const next = renameValue.trim()
+                      if (next && next !== label) {
+                        renameGroup(label, next)
+                        logActivity(`Grup "${label}" diganti menjadi "${next}"`)
+                        notify(`Grup diganti menjadi "${next}".`)
+                      }
+                      setRenaming(null)
+                    }
+                    if (e.key === "Escape") setRenaming(null)
+                  }}
+                  onBlur={() => setRenaming(null)}
+                  className="h-7 min-w-0 flex-1 rounded border border-zinc-600 bg-zinc-950 px-2 text-xs text-zinc-100 outline-none"
+                />
+              ) : (
+                <button onClick={() => setCollapsed((v) => !v)} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+                  {collapsed ? <ChevronUp size={12} className="text-zinc-500" /> : <ChevronDown size={12} className="text-zinc-500" />}
+                  <span className="truncate text-xs font-medium text-zinc-300">{label}</span>
+                  <span className="text-[10px] text-zinc-600">{items.length}</span>
+                </button>
+              )}
               <button
-                onClick={() => {
-                  const next = window.prompt("Nama grup baru", label)
-                  if (next && next.trim() && next.trim() !== label) { renameGroup(label, next.trim()); notify("Grup diganti nama.") }
-                }}
+                onClick={() => { setRenaming(label); setRenameValue(label) }}
                 title="Ganti nama grup"
                 className="grid size-6 place-items-center rounded text-zinc-600 hover:bg-white/5 hover:text-zinc-200"
               >

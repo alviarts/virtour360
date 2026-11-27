@@ -42,7 +42,7 @@ export function BottomToolbar({
           type="button"
           onClick={onToggleAutorotate}
           title={isAutorotate ? "Matikan putar otomatis — tetap di posisi ini" : "Putar otomatis dari posisi saat ini"}
-          className={`flex h-8 items-center gap-2 rounded-full px-3 font-mono text-xs transition-colors ${
+          className={`flex h-7 items-center gap-1.5 rounded-full px-2 font-mono text-[10px] transition-colors ${
             isAutorotate ? "bg-amber-400 text-black" : "text-zinc-300 hover:bg-white/10"
           }`}
         >

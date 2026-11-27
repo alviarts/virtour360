@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
+import { useApp } from "../context/useApp"
 import { hashPassword, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
 import { navigate } from "../lib/navigation"
 
@@ -10,6 +11,7 @@ import { navigate } from "../lib/navigation"
  * bukan profil/portofolio kreator.
  */
 export function PublicTourView() {
+  const { scenes: localScenes } = useApp()
   const uid = publicUidFromHash()
   const [payload, setPayload] = useState<PublicPayload | null>(null)
   const [ready, setReady] = useState(false)
@@ -30,8 +32,17 @@ export function PublicTourView() {
   const gateKey = `virtour360.unlocked:${uid ?? "default"}`
   useEffect(() => setUnlocked(sessionStorage.getItem(gateKey) === "1"), [gateKey])
 
-  // Tidak ada fallback ke scene template: tour publish harus murni dari payload.
-  const scenes = useMemo(() => payload?.scenes ?? [], [payload])
+  // Tidak ada fallback ke scene template. URL blob: dari payload lokal sudah
+  // basi setelah reload — ganti dengan object URL baru dari IndexedDB.
+  const scenes = useMemo(
+    () => (payload?.scenes ?? []).map((scene) => {
+      const local = localScenes.find((item) => item.id === scene.id)
+      return scene.panorama.startsWith("blob:") && local
+        ? { ...scene, panorama: local.panorama, thumbnail: local.thumbnail }
+        : scene
+    }),
+    [payload, localScenes],
+  )
   const title =
     payload?.folders?.[0]?.name ??
     payload?.scenes?.[0]?.project?.title ??

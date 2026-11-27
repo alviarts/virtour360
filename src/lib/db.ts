@@ -5,6 +5,10 @@ export interface StoredPanorama {
   createdAt: number
   /** URL publik saat mode remote (Supabase Storage); lokal memakai blob: */
   url?: string
+  /** Project pemilik aset — mencegah project baru mewarisi scene lama */
+  projectId?: string
+  /** Thumbnail persisten (data URL) supaya tetap tampil setelah refresh. */
+  thumbnail?: string
 }
 
 export type AssetKind = "audio" | "image"
@@ -16,6 +20,7 @@ export interface StoredAsset {
   name: string
   blob: Blob
   createdAt: number
+  projectId?: string
 }
 
 const DB_NAME = "virtour360"

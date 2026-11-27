@@ -97,12 +97,12 @@ export function makePublicUid(): string {
 /** Link langsung yang bisa dibagikan. */
 export function publicShareUrl(uid: string): string {
   const base = typeof window !== "undefined" ? window.location.origin : ""
-  return `${base}/#/p/${encodeURIComponent(uid)}`
+  return `${base}/#/p/${uid.split("/").map(encodeURIComponent).join("/")}`
 }
 
 /** Baca UID dari hash `#/p/<uid>`. */
 export function publicUidFromHash(): string | null {
-  const match = window.location.hash.match(/^#\/p\/([^/?]+)/)
+  const match = window.location.hash.match(/^#\/p\/([^?]+)/)
   return match ? decodeURIComponent(match[1]) : null
 }
 
@@ -155,15 +155,11 @@ export async function loadPublicPayload(uid?: string | null): Promise<PublicPayl
       const currentUid = uid ?? localStorage.getItem("virtour360.publishedUid")
       const raw = localStorage.getItem(localKey(currentUid))
       if (!raw) return fromApi()
+      // Utamakan project lokal hasil publish milik user. Jangan jatuh ke data
+      // default server hanya karena panorama lokal ber-blob: — itu mengganti
+      // karya yang di-upload dengan contoh bawaan.
       const payload = JSON.parse(raw) as PublicPayload
-      // blob: tidak valid setelah reload — jangan tampilkan panorama rusak.
-      const scenes = (payload.scenes ?? []).filter(
-        (scene) => !scene.panorama.startsWith("blob:") && !scene.thumbnail.startsWith("blob:"),
-      )
-      if (!scenes.length) {
-        const remote = await fromApi()
-        if (remote) return remote
-      }
+      const scenes = payload.scenes ?? []
       const validIds = new Set(scenes.map((scene) => scene.id))
       const folders = (payload.folders ?? buildPublicFolders(scenes)).map((folder) => ({
         ...folder,

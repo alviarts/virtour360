@@ -7,6 +7,7 @@ import { profile as defaultProfile } from "../../data/profile"
 import {
   buildPublicFolders,
   hashPassword,
+  makePublicUid,
   normalizeSlug,
   publicShareUrl,
   publishPublicPayload,
@@ -26,10 +27,14 @@ interface PublishModalProps {
 type Access = "draft" | "public" | "password"
 
 export function PublishModal({ onClose, scenes, userName, userInitials, existingUid, onPublished }: PublishModalProps) {
+  const { studioConfig, user } = useApp()
   const [access, setAccess] = useState<Access>("public")
   const [password, setPassword] = useState("")
   const [uid, setUid] = useState<string | null>(existingUid ?? null)
-  const [slug, setSlug] = useState(existingUid ?? "")
+  const owner = normalizeSlug(user?.name ?? userName ?? "user") || "user"
+  const tourName = normalizeSlug(scenes[0]?.name ?? "tour") || "tour"
+  // Project baru selalu dapat alamat unik; publish ulang memakai UID project yang sama.
+  const [slug, setSlug] = useState(existingUid ?? `${owner}/${tourName}-${makePublicUid().slice(0, 6)}`)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState<"link" | "code" | null>(null)
@@ -37,7 +42,6 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
   const [allowFullscreen, setAllowFullscreen] = useState(true)
   const [allowVr, setAllowVr] = useState(true)
   const [lazy, setLazy] = useState(true)
-  const { studioConfig } = useApp()
 
   const shareUrl = uid ? publicShareUrl(uid) : ""
   const embedCode = `<iframe src="${shareUrl}" width="100%" height="600" frameborder="0"${allowFullscreen ? ' allowfullscreen' : ""}${allowVr ? ' allow="vr"' : ""}${lazy ? ' loading="lazy"' : ""} title="Virtour360 Virtual Tour"></iframe>`
@@ -65,7 +69,8 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
       website: defaultProfile.website,
       bio: defaultProfile.bio,
     }
-    const cleanSlug = normalizeSlug(slug)
+    const parts = slug.split("/").map(normalizeSlug).filter(Boolean)
+    const cleanSlug = parts.join("/") || `${owner}/${tourName}`
     const result = await publishPublicPayload({
       profile: userProfile,
       scenes,
@@ -153,7 +158,7 @@ export function PublishModal({ onClose, scenes, userName, userInitials, existing
             placeholder="contoh: the-gallery"
             className="mt-1.5 h-9 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 font-mono text-[11px] text-zinc-100 outline-none"
           />
-          <span className="mt-1 block text-[10px] text-zinc-600">Kosongkan untuk UID acak. Publish ulang memakai slug/UID yang sama.</span>
+          <span className="mt-1 block text-[10px] text-zinc-600">Format: username/alamat-tour-kode — kode unik otomatis supaya project tidak saling menimpa.</span>
         </label>
 
         {error && (

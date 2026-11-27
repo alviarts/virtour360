@@ -16,7 +16,7 @@ import {
 import { useApp } from "../context/useApp"
 import { Logo360 } from "../components/ui/Logo360"
 import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
-import { creatorFromHash, navigate } from "../lib/navigation"
+import { creatorFromHash, navigate, profileFromHash, profileSlug } from "../lib/navigation"
 import { buildPublicFolders, hashPassword, loadPublicPayload, publicUidFromHash, type PublicPayload } from "../lib/publicStore"
 import { LOCAL_CREATORS } from "../data/creators"
 import { profile } from "../data/profile"
@@ -84,41 +84,41 @@ function Header({
 }) {
   const { notify } = useApp()
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#202A3A] bg-[#0F1521]/95 px-5 backdrop-blur">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#23252a] bg-[#0f1011]/95 px-5 backdrop-blur">
       <div className="flex items-center gap-4">
         <button onClick={() => navigate("home")} title="Kembali ke Home" aria-label="Kembali ke Home" className="flex items-center">
-          <Logo360 tone="dark" size={28} />
+          <Logo360 tone="white" size={28} />
         </button>
-        <div className="flex h-9 w-64 items-center gap-2 rounded-full bg-[#151D2B] px-3.5">
-          <Search size={15} className="text-[#5F6B7C]" />
+        <div className="flex h-9 w-64 items-center gap-2 rounded-full bg-[#1c1d1f] px-3.5">
+          <Search size={15} className="text-[#62666d]" />
           <input
             value={query}
             onChange={(e) => onQuery(e.target.value)}
             placeholder="Cari karya⬦"
-            className="min-w-0 flex-1 bg-transparent text-xs text-[#E2E8F0] outline-none placeholder:text-[#5F6B7C]"
+            className="min-w-0 flex-1 bg-transparent text-xs text-[#E2E8F0] outline-none placeholder:text-[#62666d]"
           />
-          {query && <button onClick={() => onQuery("")} title="Hapus" className="text-[#5F6B7C] hover:text-[#C7D0DD]"><X size={13} /></button>}
+          {query && <button onClick={() => onQuery("")} title="Hapus" className="text-[#62666d] hover:text-[#d0d6e0]"><X size={13} /></button>}
         </div>
       </div>
       {!hideActions && (
         <div className="flex items-center gap-2">
-          <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-[#7AA2FF] px-3.5 text-xs font-semibold text-[#0A0E17] hover:bg-[#A8C5FF]">
+          <button onClick={onCreate} className="flex h-9 items-center gap-1.5 rounded-full bg-[#e4f222] px-3.5 text-xs font-semibold text-[#08090a] hover:bg-[#f0ff7a]">
             <Upload size={13} /> Create
           </button>
           <button onClick={() => (userName ? navigate("dashboard") : onLogin())} style={{ background: primaryColor }} className="flex h-9 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white opacity-95 hover:opacity-100">
             <Compass size={13} /> Studio
           </button>
           {userName && (
-            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-[#202A3A] text-[#8C97A8]">
+            <button onClick={() => notify("Tidak ada notifikasi baru.")} className="grid size-9 place-items-center rounded-full border border-[#23252a] text-[#8a8f98]">
               <Bell size={15} />
             </button>
           )}
-          <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-[#202A3A] px-4 text-xs font-medium text-[#C7D0DD]">
+          <button onClick={onLogin} className="h-9 max-w-32 truncate rounded-full border border-[#23252a] px-4 text-xs font-medium text-[#d0d6e0]">
             {userName ?? "Masuk"}
           </button>
         </div>
       )}
-      {hideActions && <span className="rounded-full bg-[#151D2B] px-2.5 py-1 text-[10px] font-semibold text-[#8C97A8]">Tour privat</span>}
+      {hideActions && <span className="rounded-full bg-[#1c1d1f] px-2.5 py-1 text-[10px] font-semibold text-[#8a8f98]">Tour privat</span>}
     </header>
   )
 }
@@ -131,14 +131,14 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, sho
     { value: String(likes), label: "Likes" },
   ]
   return (
-    <div className="flex flex-col items-center bg-[#0F1521] px-4 py-10" id="portfolio-author">
+    <div className="flex flex-col items-center bg-[#0f1011] px-4 py-10" id="portfolio-author">
       <div className="grid size-24 place-items-center rounded-full border-4 border-white bg-emerald-200 text-3xl shadow-md">
         {initials.toUpperCase()}
       </div>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#F5F7FA]">{name}</h1>
-      <p className="mt-0.5 text-sm text-[#5F6B7C]">
+      <h1 className="mt-4 text-2xl font-bold tracking-tight text-[#ffffff]">{name}</h1>
+      <p className="mt-0.5 text-sm text-[#62666d]">
         {badge && showBadge ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#7AA2FF]/10 px-2.5 py-1 text-[11px] font-semibold text-[#7AA2FF]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#e4f222]/10 px-2.5 py-1 text-[11px] font-semibold text-[#e4f222]">
             <Folder size={11} /> {badge}
           </span>
         ) : (
@@ -148,8 +148,8 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, sho
       <div className="mt-6 flex items-start gap-8 sm:gap-10">
         {stats.map((stat) => (
           <div key={stat.label} className="flex flex-col items-center">
-            <span className="text-xl font-bold text-[#F5F7FA]">{stat.value}</span>
-            <span className="mt-0.5 text-xs text-[#5F6B7C]">{stat.label}</span>
+            <span className="text-xl font-bold text-[#ffffff]">{stat.value}</span>
+            <span className="mt-0.5 text-xs text-[#62666d]">{stat.label}</span>
           </div>
         ))}
       </div>
@@ -159,8 +159,8 @@ function ProfileHeader({ name, initials, postCount, tourCount, likes, badge, sho
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[#F5F7FA]">
-      <Folder size={18} className="text-[#F5F7FA]" /> {children}
+    <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-[#ffffff]">
+      <Folder size={18} className="text-[#ffffff]" /> {children}
     </h2>
   )
 }
@@ -178,9 +178,14 @@ function Card({
 }) {
   return (
     <div className="group text-left">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#151D2B]">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-[#1c1d1f]">
         <button onClick={onOpen} className="block h-full w-full">
-          <img src={item.image} alt={item.title} className="pano-drift h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <img
+            src={item.image || "/media/thumbnails/entrance_hall.jpg"}
+            onError={(e) => { e.currentTarget.src = "/media/thumbnails/entrance_hall.jpg" }}
+            alt={item.title}
+            className="pano-drift h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
         </button>
         <button
           onClick={onToggleFavorite}
@@ -189,7 +194,7 @@ function Card({
         >
           <Heart size={13} fill={favorite ? "currentColor" : "none"} />
         </button>
-        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-[#7AA2FF] px-1.5 text-[10px] font-bold text-white">360°</span>
+        <span className="pointer-events-none absolute bottom-2 left-2 flex h-6 items-center gap-1 rounded-md bg-[#e4f222] px-1.5 text-[10px] font-bold text-white">360°</span>
         {item.count !== undefined && (
           <span className="pointer-events-none absolute bottom-2 right-2 flex h-6 items-center gap-1 rounded-md bg-slate-900/70 px-1.5 text-[10px] font-medium text-white">{item.count} ▣</span>
         )}
@@ -209,21 +214,21 @@ function DetailModal({ item, onClose, onExplore }: { item: CardItem; onClose: ()
   const favorite = favorites.includes(item.id)
   return (
     <div className="fixed inset-0 z-[110] grid place-items-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md animate-fade-up overflow-hidden rounded-2xl bg-[#0F1521] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md animate-fade-up overflow-hidden rounded-2xl bg-[#0f1011] shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="relative h-52">
-          <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+          <img src={item.image || "/media/thumbnails/entrance_hall.jpg"} onError={(e) => { e.currentTarget.src = "/media/thumbnails/entrance_hall.jpg" }} alt={item.title} className="h-full w-full object-cover" />
           <button onClick={onClose} className="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-black/60 text-white hover:bg-black/80"><X size={15} /></button>
         </div>
         <div className="p-5">
-          <h3 className="truncate text-base font-bold text-[#F5F7FA]">{item.title}</h3>
-          <p className="mt-1 text-xs text-[#8C97A8]">Panorama 360° · {item.count ?? 1} scene</p>
+          <h3 className="truncate text-base font-bold text-[#ffffff]">{item.title}</h3>
+          <p className="mt-1 text-xs text-[#8a8f98]">Panorama 360° · {item.count ?? 1} scene</p>
           <div className="mt-4 flex gap-2">
-            <button onClick={onExplore} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#7AA2FF] text-xs font-semibold text-[#0A0E17] hover:bg-[#A8C5FF]">
+            <button onClick={onExplore} className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-[#e4f222] text-xs font-semibold text-[#08090a] hover:bg-[#f0ff7a]">
               Jelajahi 360°   →
             </button>
             <button
               onClick={() => toggleFavorite(item.id)}
-              className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-medium ${favorite ? "border-rose-300 bg-rose-50 text-rose-600" : "border-[#202A3A] text-[#C7D0DD]"}`}
+              className={`flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-medium ${favorite ? "border-rose-300 bg-rose-50 text-rose-600" : "border-[#23252a] text-[#d0d6e0]"}`}
             >
               <Heart size={13} fill={favorite ? "currentColor" : "none"} /> {favorite ? "Favorit" : "Simpan"}
             </button>
@@ -241,19 +246,19 @@ function FloatingNav() {
   }
   const items = [
     { label: "Home", icon: Home, run: () => scrollTo() },
-    { label: "Map", icon: MapPin, run: () => scrollTo("portfolio-map") },
+    { label: "Map", icon: MapPin, run: () => scrollTo("portfolio-contact") },
     { label: "Author", icon: User, run: () => scrollTo("portfolio-author") },
     { label: "Explore", icon: Compass, run: () => scrollTo("portfolio-explore") },
   ]
   return (
-    <div className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/70 bg-[#0F1521]/90 px-2 py-1.5 shadow-xl backdrop-blur-md">
+    <div className="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/70 bg-[#0f1011]/90 px-2 py-1.5 shadow-xl backdrop-blur-md">
       {items.map((item) => {
         const Icon = item.icon
         return (
           <button
             key={item.label}
             onClick={item.run}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#8C97A8] hover:bg-[#151D2B] hover:text-[#F5F7FA]"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[#8a8f98] hover:bg-[#1c1d1f] hover:text-[#ffffff]"
           >
             <Icon size={14} /> {item.label}
           </button>
@@ -264,7 +269,7 @@ function FloatingNav() {
 }
 
 export function PublicPortfolioView() {
-  const { scenes, user, setAuthOpen, favorites, toggleFavorite, studioConfig } = useApp()
+  const { scenes, user, setAuthOpen, favorites, toggleFavorite, studioConfig, demoMode, projects } = useApp()
   const [query, setQuery] = useState("")
   const [detail, setDetail] = useState<CardItem | null>(null)
   const [exploring, setExploring] = useState<CardItem | null>(null)
@@ -286,24 +291,45 @@ export function PublicPortfolioView() {
 
   useEffect(() => {
     let alive = true
-    loadPublicPayload(publicUidFromHash()).then((data) => {
-      if (!alive) return
-      setPublicData(
-        data ?? {
-          profile: {
-            name: user?.name ?? "Ardhana Wicaksono",
-            initials: user?.initials ?? "AW",
-            location: profile.location,
-            email: profile.email,
-            website: profile.website,
-            bio: profile.bio,
-          },
-          scenes,
-          folders: buildPublicFolders(scenes),
-          updatedAt: new Date().toISOString(),
-        },
-      )
-    })
+    const fallback: PublicPayload = {
+      profile: {
+        name: user?.name ?? "Ardhana Wicaksono",
+        initials: user?.initials ?? "AW",
+        location: profile.location,
+        email: profile.email,
+        website: profile.website,
+        bio: profile.bio,
+      },
+      scenes,
+      folders: buildPublicFolders(scenes),
+      updatedAt: new Date().toISOString(),
+    }
+    const load = async () => {
+      const hashUid = publicUidFromHash()
+      if (hashUid) {
+        // Link publish: tampilkan tepat project yang diminta UID-nya.
+        const data = await loadPublicPayload(hashUid)
+        if (alive) setPublicData(data ?? fallback)
+        return
+      }
+      // Profil user: kumpulkan HANYA project milik user yang benar-benar dipublish.
+      const published = (projects ?? []).filter((p) => p.publishedUid)
+      if (published.length) {
+        const loaded = await Promise.all(published.map((p) => loadPublicPayload(p.publishedUid!)))
+        const payloads = loaded.filter((x): x is PublicPayload => !!x?.scenes?.length)
+        if (payloads.length) {
+          if (alive) setPublicData({
+            ...payloads[0],
+            scenes: payloads.flatMap((x) => x.scenes),
+            folders: payloads.flatMap((x) => x.folders ?? []),
+            updatedAt: payloads[0].updatedAt,
+          })
+          return
+        }
+      }
+      if (alive) setPublicData(fallback)
+    }
+    void load()
     return () => {
       alive = false
     }
@@ -314,20 +340,21 @@ export function PublicPortfolioView() {
     () => (publicData?.scenes?.length ? publicData.scenes : scenes),
     [publicData, scenes],
   )
+  const routeSlug = profileFromHash()
   const uploaded = sourceScenes.filter((s) => s.id.startsWith("pano-"))
   const basePosts: CardItem[] = useMemo(
     () => [
       ...uploaded.map((s) => ({ id: s.id, title: s.name, image: s.thumbnail, panorama: s.panorama, count: 1, sceneId: s.id })),
-      ...postCards.map((item, i) => ({ id: `post-${i}`, ...item })),
+      ...(routeSlug ? [] : postCards.map((item, i) => ({ id: `post-${i}`, ...item }))),
     ],
-    [uploaded],
+    [uploaded, routeSlug],
   )
   const baseTours: CardItem[] = useMemo(
     () => [
       ...uploaded.map((s) => ({ id: `tour-${s.id}`, title: s.name, image: s.thumbnail, panorama: s.panorama, likes: 0, sceneId: s.id })),
-      ...tourCards.map((item, i) => ({ id: `tour-${i}`, ...item })),
+      ...(routeSlug ? [] : tourCards.map((item, i) => ({ id: `tour-${i}`, ...item }))),
     ],
-    [uploaded],
+    [uploaded, routeSlug],
   )
 
   // Portofolio yang dibuka mengikuti kreator yang dipilih di Home.
@@ -337,6 +364,7 @@ export function PublicPortfolioView() {
 
   // Link publish (#/p/<uid>) membuka portofolio PER PROJECT, bukan profil user.
   const sharedUid = publicUidFromHash()
+  const isOwnProfile = !!user && routeSlug === profileSlug(user.name, user.uid)
   const projectName =
     publicData?.folders?.[0]?.name ??
     publicData?.scenes?.[0]?.project?.title ??
@@ -346,7 +374,9 @@ export function PublicPortfolioView() {
   // Di link publish, yang tampil adalah project yang dipilih.
   const displayName = sharedUid
     ? projectName ?? publicData?.profile.name ?? "Project Virtour360"
-    : user?.name ?? selected?.name ?? publicData?.profile.name ?? "Kreator Virtour360"
+    : routeSlug
+      ? isOwnProfile ? user!.name : routeSlug
+      : demoMode || !user ? "Demo Portofolio" : selected?.name ?? publicData?.profile.name ?? "Kreator Virtour360"
   const displayInitials = sharedUid
     ? (displayName ?? "Project").slice(0, 2).toUpperCase()
     : user?.initials ?? selected?.initials ?? publicData?.profile.initials ?? "V3"
@@ -436,15 +466,15 @@ export function PublicPortfolioView() {
 
   if (isLocked) {
     return (
-      <div className="grid h-full w-full place-items-center bg-[#0A0E17] px-4 text-[#F5F7FA]">
-        <div className="w-full max-w-sm rounded-2xl border border-[#202A3A] bg-[#0F1521] p-6 text-center shadow-xl">
-          <div className="mx-auto grid size-12 place-items-center rounded-full bg-[#151D2B] text-[#8C97A8]">
+      <div className="grid h-full w-full place-items-center bg-[#08090a] px-4 text-[#ffffff]">
+        <div className="w-full max-w-sm rounded-2xl border border-[#23252a] bg-[#0f1011] p-6 text-center shadow-xl">
+          <div className="mx-auto grid size-12 place-items-center rounded-full bg-[#1c1d1f] text-[#8a8f98]">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="10" width="16" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
           </div>
           <h1 className="mt-4 text-lg font-bold">
             {access === "draft" ? "Tour masih dalam draft" : "Tour dilindungi password"}
           </h1>
-          <p className="mt-2 text-xs text-[#8C97A8]">
+          <p className="mt-2 text-xs text-[#8a8f98]">
             {access === "draft"
               ? "Pemilik belum mempublikasikan tour ini."
               : "Masukkan password untuk melihat virtual tour ini."}
@@ -457,13 +487,13 @@ export function PublicPortfolioView() {
                 onChange={(e) => setGatePassword(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") unlock() }}
                 placeholder="Password tour"
-                className="h-10 rounded-lg border border-[#202A3A] px-3 text-sm outline-none focus:border-sky-500"
+                className="h-10 rounded-lg border border-[#23252a] px-3 text-sm outline-none focus:border-sky-500"
               />
               {gateError && <p className="text-[11px] text-red-500">{gateError}</p>}
               <button onClick={unlock} className="h-10 rounded-lg bg-sky-500 text-sm font-semibold text-white hover:bg-sky-600">Buka tour</button>
             </div>
           )}
-          <button onClick={() => navigate("home")} className="mt-4 text-[11px] text-[#5F6B7C] hover:underline">Kembali ke Home</button>
+          <button onClick={() => navigate("home")} className="mt-4 text-[11px] text-[#62666d] hover:underline">Kembali ke Home</button>
         </div>
       </div>
     )
@@ -476,24 +506,32 @@ export function PublicPortfolioView() {
   } as CSSProperties
 
   return (
-    <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#0A0E17] text-[#F5F7FA]">
-      <Header onCreate={() => setAuthOpen(true)} onLogin={() => setAuthOpen(true)} userName={user?.name} query={query} onQuery={setQuery} primaryColor={design.theme.primaryColor} hideActions={access !== "public"} />
+    <div ref={rootRef} id="portfolio-root" style={rootStyle} className="h-full w-full overflow-y-auto bg-[#08090a] text-[#ffffff]">
+      <Header
+        onCreate={() => user ? navigate("dashboard") : setAuthOpen(true)}
+        onLogin={() => user ? navigate("dashboard") : setAuthOpen(true)}
+        userName={user?.name}
+        query={query}
+        onQuery={setQuery}
+        primaryColor={design.theme.primaryColor}
+        hideActions={access !== "public"}
+      />
       <ProfileHeader
         name={displayName}
         initials={displayInitials}
         postCount={posts.length}
         tourCount={tours.length}
         likes={favorites.length}
-        badge={selected ? `@${selected.name}` : "@virtour360"}
+        badge={routeSlug ? `@${routeSlug}` : selected ? `@${selected.name}` : `@${(user?.name ?? "demo").toLowerCase().replace(/\s+/g, "")}`}
         showBadge={!design.theme.hideProjectTitle}
       />
 
       <div className="mx-auto max-w-[1200px] px-4 pb-28 sm:px-6 lg:px-8">
         {/* Struktur folder hasil publish: Project   → Scenes */}
         {!selected && !!publicData?.folders?.length && (
-          <section className="mt-4 rounded-2xl bg-[#0F1521] p-6" id="portfolio-folders">
+          <section className="mt-4 rounded-2xl bg-[#0f1011] p-6" id="portfolio-folders">
             <SectionTitle>Project &amp; folder</SectionTitle>
-            <p className="mb-4 text-xs text-[#8C97A8]">
+            <p className="mb-4 text-xs text-[#8a8f98]">
               {publicData.folders.length} folder dipublikasikan · klik untuk melihat scene di dalamnya
             </p>
             <div className="flex flex-col gap-3">
@@ -503,27 +541,27 @@ export function PublicPortfolioView() {
                   .filter((scene): scene is NonNullable<typeof scene> => !!scene)
                 const open = openFolder === folder.id
                 return (
-                  <div key={folder.id} className="overflow-hidden rounded-xl border border-[#202A3A] bg-[#0F1521]">
+                  <div key={folder.id} className="overflow-hidden rounded-xl border border-[#23252a] bg-[#0f1011]">
                     <button
                       onClick={() => setOpenFolder(open ? null : folder.id)}
-                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-[#121A27]"
+                      className="flex w-full items-center gap-3 p-3 text-left hover:bg-[#161718]"
                     >
-                      <img src={folder.cover} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
+                      <img src={folder.cover && !folder.cover.startsWith("blob:") ? folder.cover : "/media/thumbnails/entrance_hall.jpg"} alt="" className="size-14 shrink-0 rounded-lg object-cover" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-[#F5F7FA]">{folder.name}</span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[#8C97A8]">
+                        <span className="block truncate text-sm font-semibold text-[#ffffff]">{folder.name}</span>
+                        <span className="mt-0.5 block truncate text-[11px] text-[#8a8f98]">
                           {folder.description}
                         </span>
                         <span className="mt-1 flex flex-wrap gap-1">
                           {folder.tags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="rounded-full bg-[#151D2B] px-2 py-0.5 text-[9px] text-[#8C97A8]">{tag}</span>
+                            <span key={tag} className="rounded-full bg-[#1c1d1f] px-2 py-0.5 text-[9px] text-[#8a8f98]">{tag}</span>
                           ))}
                         </span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-[#151D2B] px-2.5 py-1 text-[10px] font-semibold text-[#8C97A8]">
+                      <span className="shrink-0 rounded-full bg-[#1c1d1f] px-2.5 py-1 text-[10px] font-semibold text-[#8a8f98]">
                         <Folder size={10} className="mr-1 inline" />{scenes.length} scene
                       </span>
-                      <ChevronDown size={15} className={`shrink-0 text-[#5F6B7C] transition-transform ${open ? "rotate-180" : ""}`} />
+                      <ChevronDown size={15} className={`shrink-0 text-[#62666d] transition-transform ${open ? "rotate-180" : ""}`} />
                     </button>
                     {open && (
                       <div className="animate-fade-up grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-4 border-t border-slate-100 p-4">
@@ -562,13 +600,13 @@ export function PublicPortfolioView() {
         )}
 
         {query && (
-          <p className="mt-4 text-xs text-[#8C97A8]">
+          <p className="mt-4 text-xs text-[#8a8f98]">
             Hasil pencarian "{query}" — {posts.filter(matches).length} post, {tours.filter(matches).length} tour.
           </p>
         )}
 
-        <section className="mt-4 rounded-2xl bg-[#0F1521] p-6" id="portfolio-explore">
-          <SectionTitle>{sharedUid ? `360° posts — ${displayName}` : `360° posts by ${displayInitials}`}</SectionTitle>
+        <section className="mt-4 rounded-2xl bg-[#0f1011] p-6" id="portfolio-explore">
+          <SectionTitle>360° posts — {displayName}</SectionTitle>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-6">
             {shownPosts.map((item) => (
               <Card
@@ -580,10 +618,10 @@ export function PublicPortfolioView() {
               />
             ))}
           </div>
-          {shownPosts.length === 0 && <p className="py-8 text-center text-xs text-[#8C97A8]">Tidak ada post yang cocok.</p>}
+          {shownPosts.length === 0 && <p className="py-8 text-center text-xs text-[#8a8f98]">Tidak ada post yang cocok.</p>}
           {posts.length > 4 && (
             <div className="mt-6 text-center">
-              <button onClick={() => setAllPosts((v) => !v)} className="rounded-full bg-[#151D2B] px-5 py-2 text-xs font-semibold text-white">
+              <button onClick={() => setAllPosts((v) => !v)} className="rounded-full bg-[#1c1d1f] px-5 py-2 text-xs font-semibold text-white">
                 {allPosts ? "View less" : "View more"}
               </button>
             </div>
@@ -604,8 +642,11 @@ export function PublicPortfolioView() {
           </div>
         </div>
 
-        <section className="mt-10 rounded-2xl bg-[#0F1521] p-6" id="portfolio-tours">
-          <SectionTitle>{sharedUid ? `Virtual tours — ${displayName}` : `Virtual tours by ${displayInitials}`}</SectionTitle>
+        <section className="mt-10 rounded-2xl bg-[#0f1011] p-6" id="portfolio-tours">
+          <div className="flex items-end justify-between gap-4">
+            <SectionTitle>Virtual tours — {displayName}</SectionTitle>
+            <button onClick={() => navigate("customers")} className="mb-4 text-[11px] text-[#4CC9F0] hover:text-white">Explore komunitas →</button>
+          </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-6">
             {shownTours.map((item) => (
               <Card
@@ -617,32 +658,32 @@ export function PublicPortfolioView() {
               />
             ))}
           </div>
-          {shownTours.length === 0 && <p className="py-8 text-center text-xs text-[#8C97A8]">Tidak ada tour yang cocok.</p>}
+          {shownTours.length === 0 && <p className="py-8 text-center text-xs text-[#8a8f98]">Tidak ada tour yang cocok.</p>}
           {tours.length > 3 && (
             <div className="mt-6 text-center">
-              <button onClick={() => setAllTours((v) => !v)} className="rounded-full bg-[#151D2B] px-5 py-2 text-xs font-semibold text-white">
+              <button onClick={() => setAllTours((v) => !v)} className="rounded-full bg-[#1c1d1f] px-5 py-2 text-xs font-semibold text-white">
                 {allTours ? "View less" : "View more"}
               </button>
             </div>
           )}
         </section>
 
-        <div className="mt-8 flex items-center gap-3 rounded-xl border border-[#202A3A] bg-[#0F1521] p-5" id="portfolio-map">
+        <div className="mt-8 flex items-center gap-3 rounded-xl border border-[#23252a] bg-[#0f1011] p-5" id="portfolio-contact">
           <MapPin size={20} className="shrink-0 text-sky-500" />
           <div>
-            <h3 className="text-sm font-bold text-[#F5F7FA]">Lokasi &amp; kontak</h3>
-            <p className="mt-1 text-xs text-[#8C97A8]">{profile.location} · {profile.email}</p>
+            <h3 className="text-sm font-bold text-[#ffffff]">Lokasi &amp; kontak</h3>
+            <p className="mt-1 text-xs text-[#8a8f98]">{profile.location} · {profile.email}</p>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl border border-[#202A3A] bg-[#0F1521] p-5 sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl border border-[#23252a] bg-[#0f1011] p-5 sm:flex-row sm:items-center">
           <div>
-            <h3 className="text-sm font-bold text-[#F5F7FA]">Share your world in 360</h3>
-            <p className="mt-1 text-xs text-[#8C97A8]">
+            <h3 className="text-sm font-bold text-[#ffffff]">Share your world in 360</h3>
+            <p className="mt-1 text-xs text-[#8a8f98]">
               Turn this dead-end into your next discovery by publishing your own panorama.
             </p>
           </div>
-          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#7AA2FF] px-4 text-xs font-semibold text-[#0A0E17] hover:bg-[#A8C5FF]">
+          <button onClick={() => setAuthOpen(true)} className="flex h-9 shrink-0 items-center gap-2 rounded-full bg-[#e4f222] px-4 text-xs font-semibold text-[#08090a] hover:bg-[#f0ff7a]">
             Upload your own 360   →
           </button>
         </div>
@@ -650,16 +691,17 @@ export function PublicPortfolioView() {
         {/* Call To Action dari panel Design */}
         {design.cta.title && (
           <div
-            className={`mt-8 flex items-center justify-between gap-4 rounded-xl border border-[#202A3A] bg-[#0F1521] p-4 ${design.cta.position === "left" ? "flex-row-reverse" : ""}`}
+            className={`mt-8 flex items-center justify-between gap-4 rounded-xl border border-[#23252a] bg-[#0f1011] p-4 ${design.cta.position === "left" ? "flex-row-reverse" : ""}`}
             style={{ marginInline: design.cta.offset }}
           >
             <div>
-              <p className="text-sm font-bold text-[#F5F7FA]">{design.cta.title}</p>
-              <p className="mt-0.5 text-xs text-[#8C97A8]">{design.cta.description}</p>
+              <p className="text-sm font-bold text-[#ffffff]">{design.cta.title}</p>
+              <p className="mt-0.5 text-xs text-[#8a8f98]">{design.cta.description}</p>
             </div>
             <a
-              href={design.cta.href}
-              className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold text-[#0A0E17]"
+              href="#/contact"
+              onClick={(e) => { e.preventDefault(); navigate("contact") }}
+              className="cursor-pointer shrink-0 rounded-full px-4 py-2 text-xs font-semibold text-[#08090a]"
               style={{ background: design.theme.primaryColor }}
             >
               {design.cta.layout === "bubble" ? "Hubungi" : "Lihat detail"}
@@ -669,7 +711,7 @@ export function PublicPortfolioView() {
 
         {/* Copyright / branding dari panel Setting */}
         {design.setting.copyrightEnabled && (
-          <div className="py-8 text-center text-[10px] text-[#5F6B7C]">
+          <div className="py-8 text-center text-[10px] text-[#62666d]">
             {design.setting.logo && <img src={design.setting.logo} alt="" className="mx-auto mb-2 max-h-8" />}
             <a href={design.setting.copyrightLink} target="_blank" rel="noreferrer" className="font-semibold hover:underline">
               {design.setting.copyrightAuthor}
@@ -699,6 +741,20 @@ export function PublicPortfolioView() {
           onClose={() => setExploring(null)}
         />
       )}
+      <footer className="border-t border-[#23252a] px-6 py-10">
+        <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+          <Logo360 tone="white" size={24} />
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-[11px] text-[#8a8f98]">
+            <button onClick={() => navigate("home")} className="hover:text-white">Home</button>
+            <button onClick={() => navigate("product")} className="hover:text-white">Product</button>
+            <button onClick={() => navigate("customers")} className="hover:text-white">Customers</button>
+            <button onClick={() => navigate("resources")} className="hover:text-white">Resources</button>
+            <button onClick={() => navigate("contact")} className="hover:text-white">Contact</button>
+            <a href="https://instagram.com/vwrks" target="_blank" rel="noreferrer" className="hover:text-white">Instagram</a>
+          </div>
+          <span className="font-[family-name:var(--font-mono)] text-[10px] text-[#62666d]">© 2026 Virtour360</span>
+        </div>
+      </footer>
       <FloatingNav />
     </div>
   )

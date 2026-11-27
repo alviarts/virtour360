@@ -47,7 +47,10 @@ export interface Project {
   id: string
   name: string
   category: string
+  status: "draft" | "review" | "published"
   createdAt: number
+  /** UID publish unik per project — mencegah project lain menimpa link ini. */
+  publishedUid?: string
 }
 
 /** Jejak aktivitas supaya perubahan terlihat (weblog lokal). */
@@ -73,6 +76,8 @@ interface SceneAudio {
 
 export interface AppContextValue {
   user: User | null
+  demoMode: boolean
+  setDemoMode: (value: boolean) => void
   /** Identitas tamu stabil (tanpa login) */
   guestId: string
   isGuest: boolean
@@ -87,6 +92,8 @@ export interface AppContextValue {
   removePanorama: (id: string) => Promise<void>
 
   scenes: Scene[]
+  /** Scene milik project tertentu — dipakai Dashboard & portofolio tanpa mengubah project aktif. */
+  getProjectScenes: (projectId: string) => Scene[]
   activeSceneId: string
   setActiveSceneId: (id: string) => void
 
@@ -131,6 +138,8 @@ export interface AppContextValue {
   createProject: (name: string, category: string) => Project
   setActiveProject: (id: string) => void
   removeProject: (id: string) => void
+  setProjectStatus: (id: string, status: Project["status"]) => void
+  setProjectPublishedUid: (id: string, uid: string) => void
 
   activity: ActivityEntry[]
   logActivity: (text: string) => void
@@ -141,7 +150,8 @@ export interface AppContextValue {
   setPendingGroup: (group: string | null) => void
 
   authOpen: boolean
-  setAuthOpen: (open: boolean) => void
+  authMode: "login" | "register"
+  setAuthOpen: (open: boolean, mode?: "login" | "register") => void
   uploadOpen: boolean
   setUploadOpen: (open: boolean) => void
   replaceSceneId: string | null
@@ -156,6 +166,7 @@ export const AppContext = createContext<AppContextValue | null>(null)
 const USERS_KEY = "virtour360.users"
 const SESSION_KEY = "virtour360.session"
 const GUEST_KEY = "virtour360.guestId"
+const DEMO_KEY = "virtour360.demo"
 const OWNER_KEY = "virtour360.owner"
 const HOTSPOTS_KEY = "virtour360.hotspots"
 const MEDIA_KEY = "virtour360.media"
@@ -255,6 +266,26 @@ function persistableMedia(media: Record<string, SceneMedia>): Record<string, Sce
   return out
 }
 
+/** Thumbnail kecil berbentuk data URL — tahan refresh (blob: tidak). */
+async function makeThumbnail(blob: Blob): Promise<string | undefined> {
+  try {
+    if (typeof createImageBitmap !== "function") return undefined
+    const bitmap = await createImageBitmap(blob)
+    const width = 320
+    const height = Math.max(1, Math.min(200, Math.round((bitmap.height / bitmap.width) * width)))
+    const canvas = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return undefined
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    bitmap.close?.()
+    return canvas.toDataURL("image/jpeg", 0.7)
+  } catch {
+    return undefined
+  }
+}
+
 const urlCache = new Map<string, string>()
 function objectUrl(item: StoredPanorama) {
   if (item.url) return item.url
@@ -267,6 +298,12 @@ function objectUrl(item: StoredPanorama) {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => readJSON<User | null>(SESSION_KEY, null))
+  const [demoMode, setDemoModeState] = useState(() => sessionStorage.getItem(DEMO_KEY) === "1")
+  const setDemoMode = useCallback((value: boolean) => {
+    if (value) sessionStorage.setItem(DEMO_KEY, "1")
+    else sessionStorage.removeItem(DEMO_KEY)
+    setDemoModeState(value)
+  }, [])
   const [guestId] = useState(getGuestId)
   const [panoramas, setPanoramas] = useState<StoredPanorama[]>([])
   const [hotspotOverrides, setHotspotOverrides] = useState<Record<string, Hotspot[]>>(() =>
@@ -336,6 +373,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: `prj-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       name: name.trim() || "Project baru",
       category: category.trim() || "360°",
+      status: "draft",
       createdAt: Date.now(),
     }
     setProjects((prev) => {
@@ -366,10 +404,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     logActivity("Project dihapus")
   }, [activeProjectId, logActivity])
+
+  const setProjectStatus = useCallback((id: string, status: Project["status"]) => {
+    setProjects((prev) => {
+      const next = prev.map((p) => (p.id === id ? { ...p, status } : p))
+      persist(PROJECTS_KEY, next)
+      return next
+    })
+    logActivity(`Status project diubah menjadi ${status}`)
+  }, [logActivity])
+
+  const setProjectPublishedUid = useCallback((id: string, publishedUid: string) => {
+    setProjects((prev) => {
+      const next = prev.map((p) => (p.id === id ? { ...p, publishedUid, status: "published" as const } : p))
+      persist(PROJECTS_KEY, next)
+      return next
+    })
+    localStorage.setItem("virtour360.publishedUid", publishedUid)
+  }, [])
+
   const [activeSceneId, setActiveSceneId] = useState<string>("atrium")
   const [audioByScene, setAudioByScene] = useState<Record<string, SceneAudio>>({})
   const [assetMedia, setAssetMedia] = useState<Record<string, SceneMedia>>({})
   const [authOpen, setAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<"login" | "register">("login")
+  const openAuth = useCallback((open: boolean, mode: "login" | "register" = "login") => {
+    setAuthMode(mode)
+    setAuthOpen(open)
+  }, [])
   const [uploadOpen, setUploadOpen] = useState(false)
   const [replaceSceneId, setReplaceSceneId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -692,6 +754,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: name.trim() || file.name.replace(/\.[^.]+$/, ""),
         blob: file,
         createdAt: Date.now(),
+        projectId: activeProject?.id,
+        thumbnail: await makeThumbnail(file),
       }
       if (isRemote) {
         try {
@@ -712,7 +776,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await savePanorama(item)
       setPanoramas((prev) => [item, ...prev])
     },
-    [notify, pendingGroup, logActivity],
+    [notify, pendingGroup, logActivity, activeProject],
   )
 
   const removePanorama = useCallback(
@@ -866,6 +930,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: file.name,
         blob: file,
         createdAt: Date.now(),
+        projectId: activeProject?.id,
       }
       await saveAsset(asset)
       assetsRef.current = [asset, ...assetsRef.current]
@@ -878,7 +943,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return next
       })
     },
-    [],
+    [activeProject],
   )
 
   const setSceneAudio = useCallback(async (sceneId: string, file: File) => {
@@ -897,13 +962,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       name: file.name,
       blob: file,
       createdAt: Date.now(),
+      projectId: activeProject?.id,
     }
     await saveAsset(asset)
     assetsRef.current = [asset, ...assetsRef.current]
     const url = URL.createObjectURL(asset.blob)
     assetUrls.current.set(asset.id, url)
     setAudioByScene((prev) => ({ ...prev, [sceneId]: { url, name: asset.name } }))
-  }, [])
+  }, [activeProject])
 
   const removeSceneAudio = useCallback(async (sceneId: string) => {
     const asset = assetsRef.current.find((a) => a.sceneId === sceneId && a.kind === "audio")
@@ -1020,13 +1086,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const scenes = useMemo<Scene[]>(() => {
-    const uploaded: Scene[] = panoramas.map((p) => ({
+    const ownedPanoramas = demoMode
+      ? []
+      : activeProject
+        ? panoramas.filter((p) => p.projectId === activeProject.id)
+        : panoramas
+    const uploaded: Scene[] = ownedPanoramas.map((p) => ({
       id: p.id,
       name: p.name,
       description: "Panorama 360° yang Anda unggah.",
       group: panoramaGroups[p.id] ?? "Uncategory",
       panorama: objectUrl(p),
-      thumbnail: objectUrl(p),
+      thumbnail: p.thumbnail ?? objectUrl(p),
       initialView: { yaw: 0, pitch: 0, zoom: 70 },
       hotspots: [],
       project: {
@@ -1039,7 +1110,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }))
     // Akun baru mulai dari nol: tidak ada scene/template bawaan.
     // Template hanya dipakai mode tamu untuk demo publik.
-    const base = user ? [] : staticScenes
+    const base = user && !demoMode ? [] : staticScenes
     return [...base, ...uploaded]
       .map((scene) => ({
         ...scene,
@@ -1049,12 +1120,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...(audioByScene[scene.id] ? { audio: audioByScene[scene.id].url } : {}),
       }))
       .sort((a, b) => (sceneOrder[a.id] ?? 0) - (sceneOrder[b.id] ?? 0))
-  }, [panoramas, user, hotspotOverrides, effectiveMedia, audioByScene, sceneGroupOverrides, sceneOrder, panoramaGroups])
+  }, [panoramas, user, demoMode, activeProject, hotspotOverrides, effectiveMedia, audioByScene, sceneGroupOverrides, sceneOrder, panoramaGroups])
+
+  /** Ambil scene project lain tanpa mengubah activeProject (untuk preview Dashboard). */
+  const getProjectScenes = useCallback(
+    (projectId: string): Scene[] =>
+      panoramas
+        .filter((p) => p.projectId === projectId)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          description: "Panorama 360° yang Anda unggah.",
+          group: panoramaGroups[p.id] ?? "Uncategory",
+          panorama: objectUrl(p),
+          thumbnail: p.thumbnail ?? objectUrl(p),
+          initialView: { yaw: 0, pitch: 0, zoom: 70 },
+          hotspots: hotspotOverrides[p.id] ?? [],
+          project: {
+            title: p.name,
+            role: "Panorama 360°",
+            client: user?.name ?? "Saya",
+            year: String(new Date(p.createdAt).getFullYear()),
+            tags: ["360°", "Upload"],
+          },
+          ...(effectiveMedia[p.id] ?? {}),
+          ...(audioByScene[p.id] ? { audio: audioByScene[p.id].url } : {}),
+        })),
+    [panoramas, panoramaGroups, user, hotspotOverrides, effectiveMedia, audioByScene],
+  )
 
   return (
     <AppContext.Provider
       value={{
         user,
+        demoMode,
+        setDemoMode,
         guestId,
         isGuest: !user,
         register,
@@ -1098,6 +1198,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createProject,
         setActiveProject,
         removeProject,
+        setProjectStatus,
+        setProjectPublishedUid,
+        getProjectScenes,
         activity,
         logActivity,
         clearActivity,
@@ -1107,7 +1210,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSceneEffects,
         resetSceneEffects,
         authOpen,
-        setAuthOpen,
+        authMode,
+        setAuthOpen: openAuth,
         uploadOpen,
         setUploadOpen,
         replaceSceneId,

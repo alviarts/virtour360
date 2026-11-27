@@ -1,48 +1,78 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+/* Font asli linear.app, di-host lokal. */
+@font-face {
+  font-family: "Inter Variable";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  src: url("/fonts/InterVariable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Berkeley Mono";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  src: url("/fonts/BerkeleyMono.woff2") format("woff2");
+}
 
 @theme {
-  /* Precision Dark: navy hampir hitam, tiga undakan permukaan, hairline. */
-  --color-abyss: #0a0e17;
-  --color-panel: #0f1521;
-  --color-panel-2: #121a27;
-  --color-raised: #151d2b;
-  --color-line: #202a3a;
-  --color-inktext: #f5f7fa;
-  --color-muted: #8c97a8;
-  --color-signal: #7aa2ff;
+  /* Token persis Linear design system. */
+  --color-void: #08090a;
+  --color-carbon: #0f1011;
+  --color-obsidian: #161718;
+  --color-graphite: #23252a;
+  --color-smoke: #383b3f;
+  --color-ash: #62666d;
+  --color-fog: #8a8f98;
+  --color-mist: #d0d6e0;
+  --color-bone: #e5e5e6;
+  --color-paper: #f7f8f8;
+  --color-acid: #e4f222;
+  --color-success: #27a644;
+  --color-warning: #f2c14e;
+  --color-danger: #eb5757;
+  --color-pulse: #27a644;
+  --color-coral: #eb5757;
+  --color-teal: #02b8cc;
+  --color-iris: #6366f1;
+  --color-lavender: #8b5cf6;
 
-  /* Token zinc dipetakan ke palet yang sama — semua panel ikut konsisten. */
-  --color-zinc-950: #0a0e17;
-  --color-zinc-900: #0f1521;
-  --color-zinc-850: #121a27;
-  --color-zinc-800: #151d2b;
-  --color-zinc-700: #202a3a;
-  --color-zinc-600: #5f6b7c;
-  --color-zinc-500: #8c97a8;
-  --color-zinc-400: #c7d0dd;
-  --color-zinc-300: #e2e8f0;
-  --color-zinc-200: #202a3a;
+  /* Pemetaan zinc untuk panel existing agar ikut palet Linear. */
+  --color-zinc-950: #08090a;
+  --color-zinc-900: #0f1011;
+  --color-zinc-850: #161718;
+  --color-zinc-800: #1c1d1f;
+  --color-zinc-700: #23252a;
+  --color-zinc-600: #62666d;
+  --color-zinc-500: #8a8f98;
+  --color-zinc-400: #d0d6e0;
+  --color-zinc-300: #e5e5e6;
+  --color-zinc-200: #23252a;
   --color-zinc-100: #f5f7fa;
-  --color-zinc-50: #fafcff;
+  --color-zinc-50: #ffffff;
 
-  --color-ink-950: #0a0e17;
-  --color-ink-900: #0f1521;
-  --color-ink-850: #121a27;
-  --color-ink-800: #151d2b;
-  --color-ink-700: #202a3a;
-  --color-accent: #7aa2ff;
-  --color-primary: #7aa2ff;
-  --color-brand: #7aa2ff;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-ink-950: #08090a;
+  --color-ink-900: #0f1011;
+  --color-ink-850: #161718;
+  --color-ink-800: #1c1d1f;
+  --color-ink-700: #23252a;
+  --color-accent: #e4f222;
+  --color-primary: #e4f222;
+  --color-brand: #e4f222;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Berkeley Mono", ui-monospace, monospace;
+
+  /* Linear: 700 tidak dipakai — penekanan maksimal 590. */
+  --font-weight-semibold: 510;
+  --font-weight-bold: 590;
 }
 
 :root {
   color-scheme: dark;
   font-family: var(--font-sans);
-  background: var(--color-ink-950);
-  color: #fafafa;
+  background: var(--color-void);
+  color: var(--color-mist);
+  font-feature-settings: "cv01" 1, "ss03" 1, "zero" 1;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -56,7 +86,7 @@ body { overflow: hidden; }
 
 button { cursor: pointer; }
 
-::selection { background: #facc15; color: #09090b; }
+::selection { background: #e4f222; color: #08090a; }
 
 .hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -79,6 +109,139 @@ button { cursor: pointer; }
   to { background-position: 200% 50%; }
 }
 
+/* Panorama stage: mobile menjaga rasio, desktop bisa dipan lebih lebar. */
+.tour-pano { background-size: auto 100%; background-position: center 50%; }
+@media (min-width: 640px) {
+  .tour-pano { background-size: 180% 100%; background-position: 38% 50%; }
+}
+
+/* Mark logo berputar pelan tiap kali halaman dimuat. */
+@keyframes logoTurn {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.logo-mark { animation: logoTurn 14s linear infinite; transform-origin: 50% 50%; }
+@media (prefers-reduced-motion: reduce) { .logo-mark { animation: none; } }
+
+/* Transisi antar-rute: fade keluar, lalu fade masuk. */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.page-fade { animation: pageIn 240ms cubic-bezier(.25,.46,.45,.94) both; }
+.page-fade.is-leaving { animation: none; opacity: 0; transition: opacity 160ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade, .page-fade.is-leaving { animation: none; transition: none; opacity: 1; }
+}
+
+/* Reveal saat scroll membawa elemen masuk viewport. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 700ms cubic-bezier(.25, .46, .45, .94), transform 700ms cubic-bezier(.25, .46, .45, .94);
+}
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* Cahaya latar hero: radial lembut, menghilang di tepi tanpa garis potong. */
+.hero-floor {
+  background: radial-gradient(ellipse 70% 48% at 50% 62%, rgba(208, 214, 224, .06) 0%, rgba(208, 214, 224, .02) 45%, transparent 78%);
+}
+
+/* Visual yang dibalik (teks di kanan): fade di kiri, bukan ke arah teks. */
+.product-stage-flip {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 5%, #000 100%);
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, .65));
+}
+
+/* Wrapper stage ala linear.app: buffer, overflow hidden, fade kanan. */
+.stage-wrapper {
+  position: relative;
+  margin: 0 auto;
+  overflow: hidden;
+  padding-inline: 60px;
+}
+@media (max-width: 1280px) { .stage-wrapper { padding-inline: 32px; } }
+@media (max-width: 1024px) { .stage-wrapper { padding-inline: 28px; } }
+@media (max-width: 640px) { .stage-wrapper { padding-inline: 18px; } }
+.stage-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 360px;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(8,9,10,0) 0%, rgba(8,9,10,.8) 100%);
+}
+
+/* Stage tanpa frame — fade di tepi agar menyatu dengan background. */
+.product-stage {
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 95%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 95%, transparent 100%);
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, .65));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Screenshot fitur ikut bernapas — tanpa fade masuk di setiap seksi. */
+@keyframes featureFloat {
+  from { transform: translateY(0); }
+  to { transform: translateY(-8px); }
+}
+.feature-frame { animation: featureFloat 6s ease-in-out infinite alternate; }
+
+/* Stage produk: daftar scene bergerak vertikal seperti demo produk. */
+@keyframes stageScroll {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+.stage-scroll { animation: stageScroll 30s linear infinite; }
+
+@keyframes agentDot {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+.agent-dot { animation: agentDot 3.2s ease-in-out infinite; }
+
+@keyframes agentSweep {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.agent-sweep { animation: agentSweep 2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-scroll, .agent-dot, .agent-sweep, .feature-frame { animation: none; }
+}
+
+/* Grid titik_background ala Linear: tiap titik naik-turun, stagger per kolom. */
+@keyframes dotUpDown {
+  from { transform: translateY(0); opacity: 0.25; }
+  to { transform: translateY(-6px); opacity: 0.85; }
+}
+.dot-grid span {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: #d0d6e0;
+  animation: dotUpDown 2.8s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dot-grid span { animation: none; }
+}
+
+/* Screenshot produk masuk sekali saat halaman dimuat — bukan fade di tiap seksi. */
+@keyframes productReveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+.product-frame { animation: productReveal 700ms ease-out both; }
+
 /* Satu gerakan terorkestrasi: panorama hero bergeser sangat pelan bolak-balik. */
 .hero-360 {
   animation: slow-pan 48s ease-in-out infinite alternate;
@@ -86,7 +249,7 @@ button { cursor: pointer; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-360 { animation: none; }
+  .hero-360, .product-frame { animation: none; }
 }
 
 /* Logo global 360° berputar pelan */

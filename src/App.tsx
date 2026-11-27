@@ -16,7 +16,7 @@ import { useHotkeys } from "./hooks/useHotkeys"
 import { useApp } from "./context/useApp"
 import { theme } from "./config/theme"
 import { profile } from "./data/profile"
-import { navigate } from "./lib/navigation"
+import { navigate, navigateProfile } from "./lib/navigation"
 import { publicShareUrl } from "./lib/publicStore"
 import { defaultEffects } from "./lib/effects"
 import type { HotspotIcon, HotspotKind, HotspotType } from "./types/tour"
@@ -111,6 +111,7 @@ export default function App() {
   const [preview, setPreview] = useState(false)
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const [designOpen, setDesignOpen] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [embedOpen, setEmbedOpen] = useState(false)
   const [publishOpen, setPublishOpen] = useState(false)
@@ -146,7 +147,10 @@ export default function App() {
     effectsByScene,
     studioConfig,
     activeProject,
+    setProjectPublishedUid,
     logActivity,
+    demoMode,
+    setDemoMode,
   } = useApp()
 
   const currentEffects = effectsByScene[activeSceneId] ?? defaultEffects
@@ -219,6 +223,18 @@ export default function App() {
     onFullscreen: toggleFullscreen,
   })
 
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        setPaletteOpen((v) => !v)
+      }
+      if (event.key === "Escape") setPaletteOpen(false)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
   const openUpload = () => setUploadOpen(true)
 
   const handleTool = (id: string) => {
@@ -249,13 +265,25 @@ export default function App() {
 
   return (
     <AppShell containerRef={shellRef}>
+      {demoMode && (
+        <div className="pointer-events-auto absolute left-1/2 top-16 z-[80] flex -translate-x-1/2 items-center gap-3 rounded-full border border-[#e4f222]/40 bg-[#0f1011]/95 px-4 py-2 text-[11px] text-[#d0d6e0] shadow-xl backdrop-blur">
+          <span className="size-2 rounded-full bg-[#e4f222]" />
+          Mode demo — hanya sesi browser ini
+          <button
+            onClick={() => { setDemoMode(false); navigate("home") }}
+            className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] hover:bg-white/10"
+          >
+            Keluar demo
+          </button>
+        </div>
+      )}
       {!preview && (
         <>
           <TopBar
             activeTool={activeTool}
             onToolChange={handleTool}
             onToggleSettings={() => setSettingsOpen((v) => !v)}
-            initials={user?.initials ?? profile.initials}
+            initials={demoMode ? "DE" : (user?.initials ?? profile.initials)}
             onAccount={() => setAccountOpen((v) => !v)}
             onSuggestions={() => setSuggestionsOpen((v) => !v)}
             suggestionsOpen={suggestionsOpen}
@@ -263,8 +291,8 @@ export default function App() {
             preview={false}
             onTogglePreview={() => setPreview(true)}
             onPublish={() => setPublishOpen(true)}
-            projectName={activeProject?.name}
-            projectCategory={activeProject?.category}
+            projectName={demoMode ? "Demo Studio" : activeProject?.name}
+            projectCategory={demoMode ? "Sesi browser ini" : activeProject?.category}
           />
 
           {suggestionsOpen && (
@@ -286,7 +314,22 @@ export default function App() {
             </div>
           )}
 
-          {accountOpen && (
+          {accountOpen && demoMode && (
+            <div className="absolute left-2 top-12 z-40 w-52 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl">
+              <div className="border-b border-zinc-800 px-2 pb-2">
+                <p className="truncate text-xs font-semibold text-zinc-100">Mode demo</p>
+                <p className="truncate text-[10px] text-zinc-500">Tidak terhubung ke akun apa pun</p>
+              </div>
+              <button
+                onClick={() => { setAccountOpen(false); setDemoMode(false); navigate("home") }}
+                className="mt-1 flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-emerald-400 hover:bg-emerald-500/10"
+              >
+                Keluar demo
+              </button>
+            </div>
+          )}
+
+          {accountOpen && !demoMode && (
             <div className="absolute left-2 top-12 z-40 w-52 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl">
               <div className="border-b border-zinc-800 px-2 pb-2">
                 <p className="truncate text-xs font-semibold text-zinc-100">{user?.name ?? "Publik"}</p>
@@ -303,7 +346,7 @@ export default function App() {
               <button onClick={() => { setAccountOpen(false); navigate("dashboard") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Buka Dashboard
               </button>
-              <button onClick={() => { setAccountOpen(false); navigate("portfolio") }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
+              <button onClick={() => { setAccountOpen(false); navigateProfile(user?.name, user?.uid) }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
                 Kembali ke Portofolio user
               </button>
               <button onClick={() => { setAccountOpen(false); setEmbedOpen(true) }} className="flex w-full items-center rounded-lg px-2 py-2 text-left text-[11px] text-zinc-300 hover:bg-white/5">
@@ -484,10 +527,11 @@ export default function App() {
           scenes={scenes}
           userName={user?.name}
           userInitials={user?.initials}
-          existingUid={publishedUid}
+          existingUid={activeProject ? activeProject.publishedUid ?? null : publishedUid}
           onPublished={(uid) => {
             setPublishedUid(uid)
-            localStorage.setItem("virtour360.publishedUid", uid)
+            if (activeProject) setProjectPublishedUid(activeProject.id, uid)
+            else localStorage.setItem("virtour360.publishedUid", uid)
             logActivity(`Tour dipublish · /p/${uid}`)
             notify("Link, QR, dan embed siap dibagikan.")
           }}
@@ -495,6 +539,30 @@ export default function App() {
       )}
       {mediaPickerOpen && <MediaPickerModal activeSceneId={tour.currentScene.id} onClose={() => setMediaPickerOpen(false)} />}
       {lightboxOpen && <Lightbox src={tour.currentScene.thumbnail} title={tour.currentScene.name} onClose={() => setLightboxOpen(false)} />}
+
+      {paletteOpen && (
+        <div className="fixed inset-0 z-[130] flex items-start justify-center bg-black/70 px-4 pt-[16vh] backdrop-blur-sm" onClick={() => setPaletteOpen(false)}>
+          <div className="w-full max-w-lg rounded-lg border border-white/10 bg-[#0f1011] p-2 shadow-[0_16px_50px_-24px_rgba(0,0,0,.9)]" onClick={(e) => e.stopPropagation()}>
+            <p className="px-2 pb-2 pt-1 font-[family-name:var(--font-mono)] text-[10px] text-zinc-500">⌘K · perintah</p>
+            {[
+              ["Unggah scene baru", () => setUploadOpen(true)],
+              ["Tambah hotspot", () => { tour.startPlacement("info"); notify("Klik panorama untuk menaruh hotspot.") }],
+              ["Buka Design", () => setDesignOpen(true)],
+              ["Publish tour", () => setPublishOpen(true)],
+              ["Buka Dashboard", () => navigate("dashboard")],
+              ["Kembali ke Home", () => navigate("home")],
+            ].map(([label, run]) => (
+              <button
+                key={label as string}
+                onClick={() => { (run as () => void)(); setPaletteOpen(false) }}
+                className="flex h-9 w-full items-center rounded-md px-2 text-left text-[12px] text-zinc-200 hover:bg-white/5"
+              >
+                {label as string}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </AppShell>
   )
 }

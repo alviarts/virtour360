@@ -13,7 +13,8 @@ import {
 import { useApp } from "../context/useApp"
 import { NewProjectModal } from "../components/auth/NewProjectModal"
 import { Logo360 } from "../components/ui/Logo360"
-import { navigate, navigateHash } from "../lib/navigation"
+import { navigate, navigateProfile, profileSlug } from "../lib/navigation"
+import { PublicViewerModal } from "../components/viewer/PublicViewerModal"
 import type { Scene } from "../types/tour"
 
 const navItems = ["Project", "Media", "Portofolio"]
@@ -112,13 +113,18 @@ const selectClass =
 export function DashboardView() {
   const [tab, setTab] = useState<"studio" | "live">("studio")
   const [showNotice, setShowNotice] = useState(true)
+  const [editingSlug, setEditingSlug] = useState(false)
+  const [customSlug, setCustomSlug] = useState(() => localStorage.getItem("virtour360.customSlug") || "")
+  const [changelogOpen, setChangelogOpen] = useState(false)
   const [view, setView] = useState<"grid" | "list">("grid")
   const [query, setQuery] = useState("")
   const [source, setSource] = useState<"all" | "uploaded" | "static">("all")
   const [category, setCategory] = useState<"all" | "360" | "tour">("all")
   const [accountOpen, setAccountOpen] = useState(false)
   const [newProjectOpen, setNewProjectOpen] = useState(false)
-  const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites, projects, activeProject, createProject, setActiveProject, removeProject } = useApp()
+  const [preview, setPreview] = useState<{ title: string; scenes: Scene[]; uid?: string } | null>(null)
+  const { scenes, user, setAuthOpen, setUploadOpen, setActiveSceneId, removePanorama, logout, notify, favorites, projects, activeProject, createProject, setActiveProject, removeProject, setProjectStatus, getProjectScenes } = useApp()
+  const userSlug = customSlug || profileSlug(user?.name, user?.uid)
 
   const filteredScenes = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -156,6 +162,12 @@ export function DashboardView() {
     navigate("studio")
   }
 
+  /** Klik kartu = pratinjau 360 milik project itu, bukan langsung masuk Studio. */
+  const previewProject = (project: (typeof projects)[number]) => {
+    const owned = getProjectScenes(project.id)
+    setPreview({ title: project.name, scenes: owned, uid: project.publishedUid })
+  }
+
   return (
     <div className="relative h-full w-full overflow-y-auto bg-zinc-950 text-zinc-50">
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
@@ -169,7 +181,7 @@ export function DashboardView() {
                   onClick={() => {
                     if (item === "Project") notify("Anda sedang di halaman Project.")
                     else if (item === "Media") setUploadOpen(true)
-                    else navigate("portfolio")
+                    else navigateProfile(user?.name, user?.uid)
                   }}
                   className={`relative flex h-8 items-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap transition-colors ${
                     item === "Project" ? "bg-zinc-800 text-zinc-50" : "text-zinc-300 hover:bg-white/5"
@@ -182,12 +194,43 @@ export function DashboardView() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => notify("Portofolio pribadi — dibuat untuk teman.")} className="hidden h-6 items-center rounded-full bg-amber-400 px-2.5 text-[11px] font-semibold text-black whitespace-nowrap md:flex">
-              Portofolio Pribadi
-            </button>
-            <button onClick={() => notify("Changelog: peningkatan viewer & upload 360.")} className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-700 px-3 text-xs whitespace-nowrap text-zinc-200 hover:bg-white/5 lg:flex">
+            {editingSlug ? (
+              <input
+                autoFocus
+                value={customSlug}
+                onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                onBlur={() => { localStorage.setItem("virtour360.customSlug", customSlug); setEditingSlug(false) }}
+                onKeyDown={(e) => { if (e.key === "Enter") { localStorage.setItem("virtour360.customSlug", customSlug); setEditingSlug(false) } }}
+                className="hidden h-6 w-40 rounded-full border border-zinc-600 bg-zinc-950 px-2.5 font-mono text-[10px] text-white outline-none md:block"
+              />
+            ) : (
+              <button
+                onClick={() => setEditingSlug(true)}
+                title="Klik untuk mengganti path portofolio"
+                className="hidden h-6 items-center rounded-full border border-zinc-700 bg-zinc-900 px-2.5 font-mono text-[10px] whitespace-nowrap text-zinc-200 hover:text-white md:flex"
+              >
+                /u/{userSlug}
+              </button>
+            )}
+            <button onClick={() => setChangelogOpen((v) => !v)} className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-700 px-3 text-xs whitespace-nowrap text-zinc-200 hover:bg-white/5 lg:flex">
               <Sparkles size={13} /> Changelog
             </button>
+            {changelogOpen && (
+              <div className="absolute right-24 top-12 z-40 w-80 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-3 shadow-2xl">
+                <p className="px-1 pb-2 text-[10px] font-semibold text-zinc-300">Workflow changelog</p>
+                {[
+                  ["10.11.2026 · 09:12", "Panel Design", "7 preset tema + style hotspot"],
+                  ["04.11.2026 · 14:30", "Publish", "Slug, QR, embed, password"],
+                  ["27.10.2026 · 08:45", "Demo session", "Mode demo per browser"],
+                  ["12.10.2026 · 16:20", "Hotspot", "9 tipe data sungguhan"],
+                ].map(([when, title, desc]) => (
+                  <div key={title} className="flex gap-2 border-b border-zinc-800 py-2 text-[10px]">
+                    <span className="shrink-0 font-mono text-zinc-500">{when}</span>
+                    <span><b className="text-zinc-100">{title}</b><span className="block text-zinc-400">{desc}</span></span>
+                  </div>
+                ))}
+              </div>
+            )}
             <button
               onClick={() => setNewProjectOpen(true)}
               className="flex h-8 items-center gap-1.5 rounded-full bg-[#d1005c] px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-[#b80051]"
@@ -204,7 +247,7 @@ export function DashboardView() {
               </button>
               {accountOpen && (
                 <div className="absolute right-0 top-10 z-30 w-44 animate-fade-up rounded-xl border border-zinc-700 bg-zinc-900 p-2 shadow-2xl text-left">
-                  <p className="truncate border-b border-zinc-800 px-2 pb-2 text-[11px] text-zinc-200">{user?.name ?? "Publik"}</p>
+                  <p className="truncate border-b border-zinc-800 px-2 pb-2 text-[11px] text-white">{user?.name ?? "Publik"}</p>
                   {user ? (
                     <button onClick={() => { logout(); setAccountOpen(false); notify("Anda telah keluar.") }} className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[11px] text-red-400 hover:bg-red-500/10">
                       <LogOut size={12} /> Keluar
@@ -239,32 +282,74 @@ export function DashboardView() {
 
           {projects.length ? (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,248px),1fr))] gap-4">
-              {projects.map((project) => (
+              {projects.map((project) => {
+                const owned = getProjectScenes(project.id)
+                const cover = owned[0]?.thumbnail
+                return (
                 <div
                   key={project.id}
-                  className={`group rounded-xl border p-4 transition-colors ${
+                  onClick={() => previewProject(project)}
+                  className={`group cursor-pointer overflow-hidden rounded-xl border transition-colors ${
                     activeProject?.id === project.id ? "border-[#d1005c] bg-[#d1005c]/5" : "border-zinc-800 bg-zinc-900/60 hover:border-zinc-600"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-zinc-800 text-[11px] font-semibold text-zinc-200">
-                      {project.name.slice(0, 2).toUpperCase()}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-zinc-100">{project.name}</p>
-                      <span className="mt-1 inline-block rounded-full bg-cyan-500/15 px-2 py-0.5 text-[9px] font-semibold text-cyan-300">{project.category}</span>
+                  <button onClick={(e) => { e.stopPropagation(); previewProject(project) }} className="block h-[120px] w-full overflow-hidden bg-zinc-950 text-left">
+                    {cover ? (
+                      <img src={cover} alt={`Pratinjau ${project.name}`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                    ) : (
+                      <span className="grid h-full place-items-center text-[11px] text-zinc-600">Belum ada 360° — buka Studio untuk mengunggah</span>
+                    )}
+                  </button>
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-zinc-800 text-[11px] font-semibold text-white">
+                        {project.name.slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-medium text-zinc-100">{project.name}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <span className="inline-block rounded-full bg-cyan-500/15 px-2 py-0.5 text-[9px] font-medium text-cyan-300">{project.category}</span>
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-medium ${
+                            project.status === "published" ? "bg-[#27a644]/15 text-[#5fd486]"
+                              : project.status === "review" ? "bg-[#f2c14e]/15 text-[#f2c14e]"
+                                : "bg-white/10 text-zinc-400"
+                          }`}>{project.status === "published" ? "Dipublikasi" : project.status === "review" ? "Dalam review" : "Draft"}</span>
+                          <span className="inline-block rounded-full bg-white/5 px-2 py-0.5 text-[9px] text-zinc-400">{owned.length} scene</span>
+                        </div>
+                      </div>
+                    </div>
+                    <select
+                      value={project.status}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => setProjectStatus(project.id, e.target.value as typeof project.status)}
+                      title="Status project"
+                      className="mt-3 h-7 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-[10px] text-zinc-300 outline-none"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="review">Dalam review</option>
+                      <option value="published">Dipublikasi</option>
+                    </select>
+                    <div className="mt-3 flex gap-2">
+                      <button onClick={(e) => { e.stopPropagation(); openProjectById(project.id) }} className="h-8 flex-1 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
+                        Buka Studio
+                      </button>
+                      {project.publishedUid && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); window.open(`#/p/${project.publishedUid}`, "_blank") }}
+                          title="Buka link publish"
+                          className="grid size-8 shrink-0 place-items-center rounded-lg border border-[#27a644]/40 text-[#5fd486] hover:bg-[#27a644]/10"
+                        >
+                          <Sparkles size={13} />
+                        </button>
+                      )}
+                      <button onClick={(e) => { e.stopPropagation(); removeProject(project.id); notify(`Project "${project.name}" dihapus.`) }} title="Hapus project" className="grid size-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-red-500/40 hover:text-red-400">
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   </div>
-                  <div className="mt-4 flex gap-2">
-                    <button onClick={() => openProjectById(project.id)} className="h-8 flex-1 rounded-lg bg-white text-[11px] font-semibold text-black hover:bg-zinc-200">
-                      Buka Studio
-                    </button>
-                    <button onClick={() => { removeProject(project.id); notify(`Project "${project.name}" dihapus.`) }} title="Hapus project" className="grid size-8 shrink-0 place-items-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-red-500/40 hover:text-red-400">
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-zinc-700 py-10 text-center">
@@ -308,7 +393,7 @@ export function DashboardView() {
             </div>
             <button
               onClick={() => user?.uid
-                ? navigateHash(`#/p/${user.uid}`)
+                ? navigateProfile(user.name, user.uid)
                 : notify("UID publik belum tersedia. Silakan logout lalu masuk lagi.")}
               title="Buka tour publik sesuai UID akun kamu"
               className="flex items-center gap-1.5 text-xs font-medium text-zinc-200 hover:text-white"
@@ -389,19 +474,62 @@ export function DashboardView() {
       {showNotice && (
         <div className="fixed bottom-8 right-8 z-30 w-[310px] animate-fade-up rounded-xl border border-zinc-800 bg-zinc-900/95 p-4 shadow-2xl">
           <div className="flex items-start justify-between">
-            <span className="rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-semibold text-black">Catatan</span>
+            <span className="rounded-full bg-[#27a644]/20 px-2 py-0.5 text-[10px] font-semibold text-[#5fd486]">Free usage</span>
             <button onClick={() => setShowNotice(false)} className="text-zinc-500 hover:text-zinc-200"><X size={13} /></button>
           </div>
-          <h3 className="mt-3 text-sm font-semibold text-zinc-50">Portofolio untuk teman</h3>
+          <h3 className="mt-3 text-sm font-semibold text-zinc-50">Paket gratis</h3>
           <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-            Tempat berbagi karya 360° dengan teman dekat — dibuat dengan senang.
+            Project unlimited, 3 GB storage, publish ke link sendiri tanpa watermark. Bayar hanya saat butuh storage lebih.
           </p>
-          <button onClick={() => notify("Dibuat dengan senang untuk teman-teman.")} className="mt-3 text-xs font-semibold text-zinc-100 hover:text-white">Selengkapnya</button>
+          <button onClick={() => notify("Storage 3 GB · unlimited project · tanpa watermark.")} className="mt-3 text-xs font-semibold text-zinc-100 hover:text-white">Lihat detail paket</button>
         </div>
       )}
 
       {newProjectOpen && (
         <NewProjectModal onClose={() => setNewProjectOpen(false)} onCreate={handleCreateProject} />
+      )}
+
+      {preview && (
+        <div className="fixed inset-0 z-[120] grid place-items-center bg-black/80 p-3 backdrop-blur-sm sm:p-6" onClick={() => setPreview(null)}>
+          <div className="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-zinc-100">{preview.title} · pratinjau 360°</p>
+                <p className="truncate text-[10px] text-zinc-500">
+                  {preview.scenes.length ? `${preview.scenes.length} scene tersimpan di project ini` : "Belum ada panorama yang di-upload"}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {preview.uid && (
+                  <button onClick={() => window.open(`#/p/${preview.uid}`, "_blank")} className="h-8 rounded-lg border border-[#27a644]/40 px-3 text-[11px] font-semibold text-[#5fd486] hover:bg-[#27a644]/10">
+                    Link publish
+                  </button>
+                )}
+                <button onClick={() => setPreview(null)} className="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-white/5 hover:text-white" title="Tutup"><X size={16} /></button>
+              </div>
+            </div>
+            <div className="relative min-h-0 flex-1">
+              {preview.scenes.length ? (
+                <PublicViewerModal
+                  title={preview.scenes[0].name}
+                  panorama={preview.scenes[0].panorama}
+                  scenes={preview.scenes.length > 1 ? preview.scenes : undefined}
+                  sceneId={preview.scenes.length > 1 ? preview.scenes[0].id : undefined}
+                  onClose={() => setPreview(null)}
+                />
+              ) : (
+                <div className="grid h-full place-items-center px-6 text-center">
+                  <div>
+                    <p className="text-sm text-zinc-300">Belum ada 360° di project ini.</p>
+                    <button onClick={() => { const id = projects.find((p) => p.name === preview.title)?.id; if (id) openProjectById(id) }} className="mt-4 rounded-full bg-white px-4 py-2 text-[11px] font-semibold text-black">
+                      Unggah di Studio
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

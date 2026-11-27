@@ -1,11 +1,13 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { X } from "lucide-react"
 import { useApp } from "../../context/useApp"
 import { navigate } from "../../lib/navigation"
 
 export function AuthModal() {
-  const { authOpen, setAuthOpen, login, register, notify } = useApp()
+  const { authOpen, authMode, setAuthOpen, login, register, notify } = useApp()
   const [mode, setMode] = useState<"login" | "register">("login")
+
+  useEffect(() => { if (authOpen) setMode(authMode) }, [authOpen, authMode])
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
