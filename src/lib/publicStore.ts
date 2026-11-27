@@ -327,7 +327,9 @@ export async function listPublishedPayloads(): Promise<PublishedItem[]> {
       const response = await fetch("/api/public?list=1", { cache: "no-store" })
       if (!response.ok) return []
       const json = (await response.json()) as { items?: PublishedItem[] }
-      return json.items ?? []
+      // Endpoint server mengembalikan baris virtour_state tanpa field source;
+      // tandai sebagai Supabase supaya badge feed konsisten dengan mode klien.
+      return (json.items ?? []).map((item) => ({ ...item, source: "supabase" }))
     } catch {
       return []
     }
