@@ -34,7 +34,8 @@ Akar teknisnya:
    - membuat bucket publik `panoramas` otomatis bila belum ada (dan memperbarui
      bucket lama menjadi publik),
    - menerima `kind: "panorama" | "audio" | "image"`,
-   - mengembalikan **signed upload URL** + `publicUrl`.
+   - mengembalikan **signed upload URL** + `publicUrl`,
+   - `DELETE { url }` menghapus object milik sesi yang sedang login.
    - Path panorama lama tetap `<owner>/<id>.<ext>` agar URL lama tidak rusak;
      audio/gambar memakai `<owner>/<kind>/<id>.<ext>`.
 2. `src/lib/remoteStore.ts`:

@@ -156,6 +156,18 @@ export async function uploadPanoramaFile(id: string, file: File | Blob): Promise
 /** Hapus object Storage dari URL publik (berlaku untuk semua jenis aset). */
 export async function removeStorageFile(url: string | undefined): Promise<void> {
   if (!supabase || !url) return
+  if (isServerMode) {
+    const response = await fetch("/api/storage", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({ url }),
+    })
+    if (!response.ok) throw new Error("Gagal menghapus aset di Storage.")
+    return
+  }
   const marker = `/${STORAGE_BUCKET}/`
   const index = url.indexOf(marker)
   if (index < 0) return

@@ -24,11 +24,14 @@ function extensionFor(mime, kind) {
  * Kredensial service-key hanya ada di server; browser meng-upload langsung ke
  * Supabase Storage memakai token ini, jadi tidak kena batas body 4,5 MB Vercel.
  *
- * POST { id, contentType, kind } → { path, token, publicUrl }
+ * POST   { id, contentType, kind } → { path, token, publicUrl }
+ * DELETE { url | path } → { ok, path } (hanya object milik sesi ini)
  */
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store")
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" })
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    return res.status(405).json({ error: "Method not allowed" })
+  }
 
   const url = process.env.SUPABASE_URL
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -36,7 +39,23 @@ export default async function handler(req, res) {
 
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
   const session = verifySession(token)
-  if (!session) return res.status(401).json({ error: "Masuk dulu untuk mengunggah aset." })
+  if (!session) return res.status(401).json({ error: "Masuk dulu untuk mengelola aset." })
+
+  const owner = session.email.toLowerCase().replace(/[^a-z0-9]/g, "_").slice(0, 60) || "user"
+  const supabase = createClient(url, key, { auth: { persistSession: false } })
+
+  if (req.method === "DELETE") {
+    const raw = String(req.body?.url || req.body?.path || "")
+    const marker = `/${BUCKET}/`
+    const at = raw.indexOf(marker)
+    let path = at >= 0 ? decodeURIComponent(raw.slice(at + marker.length).split("?")[0]) : raw.replace(/^\/+/, "")
+    if (!path || path.includes("..")) return res.status(400).json({ error: "Invalid asset path" })
+    // Hanya pemilik yang boleh menghapus object di prefix emailnya sendiri.
+    if (!path.startsWith(`${owner}/`)) return res.status(403).json({ error: "Akses ditolak" })
+    const { error } = await supabase.storage.from(BUCKET).remove([path])
+    if (error) return res.status(500).json({ error: error.message })
+    return res.status(200).json({ ok: true, path })
+  }
 
   const id = String(req.body?.id || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80)
   if (!id) return res.status(400).json({ error: "Missing asset id" })
@@ -45,12 +64,9 @@ export default async function handler(req, res) {
   const kind = KINDS.includes(kindRaw) ? kindRaw : "panorama"
   const mime = String(req.body?.contentType || (kind === "audio" ? "audio/mpeg" : "image/jpeg"))
   const ext = extensionFor(mime, kind)
-  const owner = session.email.toLowerCase().replace(/[^a-z0-9]/g, "_").slice(0, 60) || "user"
   // Panorama lama memakai path <owner>/<id>.<ext>; jangan diubah agar URL lama tetap valid.
   const folder = kind === "panorama" ? "" : `${kind}/`
   const path = `${owner}/${folder}${id}.${ext}`
-
-  const supabase = createClient(url, key, { auth: { persistSession: false } })
 
   // Pastikan bucket publik tersedia. Bucket dibuat otomatis memakai service key
   // supaya aset bisa dibuka dari perangkat mana pun tanpa SQL manual.
